@@ -8,6 +8,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
-        value: "3.10.12"
+        value: "3.11.11"
       - key: FLASK_APP
         value: "run.py"

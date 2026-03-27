@@ -3,9 +3,11 @@ services:
     name: obs-projesi
     runtime: python
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn run:app
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
         value: "3.10.12"
+      - key: FLASK_APP
+        value: "run.py"

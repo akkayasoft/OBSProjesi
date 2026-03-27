@@ -1,0 +1,84 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Kategoriler{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.gelir_gider.liste') }}">Gelir / Gider</a></li>
+<li class="breadcrumb-item active">Kategoriler</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="row">
+    <!-- Kategori Ekleme Formu -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Yeni Kategori</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.ad.label.text }}</label>
+                        {{ form.ad(class="form-control") }}
+                        {% for error in form.ad.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.tur.label.text }}</label>
+                        {{ form.tur(class="form-select") }}
+                    </div>
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kategori Listesi -->
+    <div class="col-lg-8">
+        <div class="table-container">
+            <div class="p-3 border-bottom">
+                <h6 class="mb-0"><i class="bi bi-tags me-2"></i>Kategoriler</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Kategori Adı</th>
+                            <th>Tür</th>
+                            <th>Kayıt Sayısı</th>
+                            <th class="text-center">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for k in kategoriler %}
+                        <tr>
+                            <td>{{ k.ad }}</td>
+                            <td>
+                                {% if k.tur == 'gelir' %}
+                                <span class="badge bg-success">Gelir</span>
+                                {% else %}
+                                <span class="badge bg-danger">Gider</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ k.kayitlar.count() }}</td>
+                            <td class="text-center">
+                                <form method="POST" action="{{ url_for('muhasebe.gelir_gider.kategori_sil', id=k.id) }}"
+                                      class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            data-confirm="Bu kategoriyi silmek istediğinizden emin misiniz?">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

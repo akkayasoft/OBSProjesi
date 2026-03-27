@@ -1,0 +1,117 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}{{ ogrenci.tam_ad }} - Ödeme Detayı{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.ogrenci_odeme.liste') }}">Öğrenci Ödemeleri</a></li>
+<li class="breadcrumb-item active">{{ ogrenci.tam_ad }}</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<!-- Öğrenci Bilgileri -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-1">{{ ogrenci.tam_ad }}</h5>
+                <p class="text-muted mb-0">
+                    <span class="me-3"><i class="bi bi-hash me-1"></i>{{ ogrenci.ogrenci_no }}</span>
+                    <span class="me-3"><i class="bi bi-book me-1"></i>{{ ogrenci.sinif or 'Belirtilmemiş' }}</span>
+                    {% if ogrenci.veli_ad %}
+                    <span><i class="bi bi-person me-1"></i>{{ ogrenci.veli_ad }} {{ ogrenci.veli_telefon or '' }}</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('muhasebe.ogrenci_odeme.plan_olustur', ogrenci_id=ogrenci.id) }}"
+                   class="btn btn-primary">
+                    <i class="bi bi-calendar-plus me-1"></i>Yeni Ödeme Planı
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toplam Borç Kartı -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card border-start border-danger border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Toplam Borç</p>
+                <h4 class="text-danger mb-0">{{ "{:,.2f}".format(ogrenci.toplam_borc) }} ₺</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ödeme Planları -->
+{% for plan in planlar %}
+<div class="card mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-calendar3 me-2"></i>{{ plan.donem }} Dönemi
+            <span class="text-muted small ms-2">({{ plan.taksit_sayisi }} Taksit)</span>
+        </h6>
+        <div>
+            <span class="badge bg-primary">Toplam: {{ "{:,.2f}".format(plan.toplam_tutar) }} ₺</span>
+            <span class="badge bg-success">Ödenen: {{ "{:,.2f}".format(plan.odenen_toplam) }} ₺</span>
+            <span class="badge bg-danger">Kalan: {{ "{:,.2f}".format(plan.kalan_borc) }} ₺</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Taksit</th>
+                    <th>Vade Tarihi</th>
+                    <th class="text-end">Tutar</th>
+                    <th class="text-end">Ödenen</th>
+                    <th class="text-end">Kalan</th>
+                    <th class="text-center">Durum</th>
+                    <th class="text-center">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for taksit in plan.taksitler %}
+                <tr>
+                    <td><strong>{{ taksit.taksit_no }}. Taksit</strong></td>
+                    <td>{{ taksit.vade_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td class="text-end">{{ "{:,.2f}".format(taksit.tutar) }} ₺</td>
+                    <td class="text-end text-success">{{ "{:,.2f}".format(taksit.odenen_tutar) }} ₺</td>
+                    <td class="text-end fw-bold">{{ "{:,.2f}".format(taksit.kalan) }} ₺</td>
+                    <td class="text-center">
+                        {% if taksit.durum == 'odendi' %}
+                        <span class="badge badge-odendi">Ödendi</span>
+                        {% elif taksit.durum == 'gecikti' or taksit.gecikti_mi %}
+                        <span class="badge badge-gecikti">Gecikti</span>
+                        {% elif taksit.durum == 'kismi_odendi' %}
+                        <span class="badge badge-kismi_odendi">Kısmi Ödendi</span>
+                        {% else %}
+                        <span class="badge badge-beklemede">Beklemede</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if taksit.durum != 'odendi' %}
+                        <a href="{{ url_for('muhasebe.ogrenci_odeme.odeme_yap', taksit_id=taksit.id) }}"
+                           class="btn btn-sm btn-success" title="Ödeme Yap">
+                            <i class="bi bi-cash"></i> Ödeme Yap
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+    <p class="mt-3">Henüz ödeme planı oluşturulmamış.</p>
+    <a href="{{ url_for('muhasebe.ogrenci_odeme.plan_olustur', ogrenci_id=ogrenci.id) }}"
+       class="btn btn-primary">
+        <i class="bi bi-calendar-plus me-1"></i>Ödeme Planı Oluştur
+    </a>
+</div>
+{% endfor %}
+{% endblock %}

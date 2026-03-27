@@ -1,0 +1,93 @@
+{% extends "kayit/_layout.html" %}
+
+{% block title %}{{ ogrenci.tam_ad }} - Düzenle{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kayit.ogrenci.liste') }}">Öğrenci Listesi</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('kayit.ogrenci.detay', ogrenci_id=ogrenci.id) }}">{{ ogrenci.tam_ad }}</a></li>
+<li class="breadcrumb-item active">Düzenle</li>
+{% endblock %}
+
+{% block kayit_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>Öğrenci Bilgilerini Düzenle</h5>
+                <p class="text-muted mb-0 mt-1">{{ ogrenci.tam_ad }} ({{ ogrenci.ogrenci_no }})</p>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.ogrenci_no.label.text }}</label>
+                            {{ form.ogrenci_no(class="form-control") }}
+                            {% for error in form.ogrenci_no.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.tc_kimlik.label.text }}</label>
+                            {{ form.tc_kimlik(class="form-control", maxlength="11") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.cinsiyet.label.text }}</label>
+                            {{ form.cinsiyet(class="form-select") }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.ad.label.text }}</label>
+                            {{ form.ad(class="form-control") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.soyad.label.text }}</label>
+                            {{ form.soyad(class="form-control") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.kan_grubu.label.text }}</label>
+                            {{ form.kan_grubu(class="form-select") }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.dogum_tarihi.label.text }}</label>
+                            {{ form.dogum_tarihi(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.dogum_yeri.label.text }}</label>
+                            {{ form.dogum_yeri(class="form-control") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.telefon.label.text }}</label>
+                            {{ form.telefon(class="form-control") }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.email.label.text }}</label>
+                            {{ form.email(class="form-control") }}
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">{{ form.adres.label.text }}</label>
+                            {{ form.adres(class="form-control", rows="2") }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('kayit.ogrenci.detay', ogrenci_id=ogrenci.id) }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Geri
+                        </a>
+                        {{ form.submit(class="btn btn-warning") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

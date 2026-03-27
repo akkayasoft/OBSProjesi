@@ -1,0 +1,68 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Personel Ödeme Ekle{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.personel_odeme.liste') }}">Personel Ödemeleri</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.personel_odeme.detay', personel_id=personel.id) }}">{{ personel.tam_ad }}</a></li>
+<li class="breadcrumb-item active">Ödeme Ekle</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-cash me-2"></i>Personel Ödeme Ekle</h5>
+                <p class="text-muted mb-0 mt-1">{{ personel.tam_ad }} ({{ personel.sicil_no }})</p>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.donem.label.text }}</label>
+                            {{ form.donem(class="form-control", placeholder="2026-03") }}
+                            {% for error in form.donem.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.tutar.label.text }}</label>
+                            {{ form.tutar(class="form-control", step="0.01", value=personel.maas or '') }}
+                            {% for error in form.tutar.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.odeme_turu.label.text }}</label>
+                            {{ form.odeme_turu(class="form-select") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.banka_hesap_id.label.text }}</label>
+                            {{ form.banka_hesap_id(class="form-select") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.aciklama.label.text }}</label>
+                        {{ form.aciklama(class="form-control", rows="2") }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('muhasebe.personel_odeme.detay', personel_id=personel.id) }}"
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Geri
+                        </a>
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.banka.liste') }}">Banka Hesapları</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-bank me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.banka_adi.label.text }}</label>
+                            {{ form.banka_adi(class="form-control") }}
+                            {% for error in form.banka_adi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.hesap_adi.label.text }}</label>
+                            {{ form.hesap_adi(class="form-control") }}
+                            {% for error in form.hesap_adi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.iban.label.text }}</label>
+                        {{ form.iban(class="form-control", placeholder="TR...") }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.hesap_no.label.text }}</label>
+                            {{ form.hesap_no(class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.bakiye.label.text }}</label>
+                            {{ form.bakiye(class="form-control", step="0.01") }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('muhasebe.banka.liste') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Geri
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

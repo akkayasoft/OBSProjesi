@@ -1,0 +1,222 @@
+{% extends "personel/_layout.html" %}
+
+{% block title %}Personel Raporları{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Raporlar</li>
+{% endblock %}
+
+{% block personel_content %}
+<h4 class="mb-4"><i class="bi bi-bar-chart-line me-2"></i>Personel Raporları</h4>
+
+<!-- İstatistik Kartları -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Toplam Personel</p>
+                        <h3 class="mb-0">{{ toplam_personel }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Aktif Personel</p>
+                        <h3 class="mb-0">{{ aktif_personel }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Bekleyen İzin</p>
+                        <h3 class="mb-0">{{ bekleyen_izin }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Kullanılan İzin (Gün)</p>
+                        <h3 class="mb-0">{{ toplam_izin_gun }}</h3>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafikler -->
+<div class="row g-4">
+    <!-- Departman Dağılımı -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Departman Dağılımı</h6>
+            </div>
+            <div class="card-body">
+                {% if departman_labels %}
+                <canvas id="departmanChart" height="280"></canvas>
+                {% else %}
+                <p class="text-muted text-center py-5">Departman verisi bulunmuyor</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Çalışma Türü Dağılımı -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Çalışma Türü Dağılımı</h6>
+            </div>
+            <div class="card-body">
+                {% if calisma_labels %}
+                <canvas id="calismaTuruChart" height="280"></canvas>
+                {% else %}
+                <p class="text-muted text-center py-5">Çalışma türü verisi bulunmuyor</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- İzin Türü Dağılımı -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Onaylanan İzin Türleri</h6>
+            </div>
+            <div class="card-body">
+                {% if izin_labels %}
+                <canvas id="izinChart" height="280"></canvas>
+                {% else %}
+                <p class="text-muted text-center py-5">İzin verisi bulunmuyor</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Durum Özeti -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Personel Durum Özeti</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="durumChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% if departman_labels %}
+new Chart(document.getElementById('departmanChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ departman_labels|tojson }},
+        datasets: [{
+            data: {{ departman_values|tojson }},
+            backgroundColor: [
+                '#0d6efd', '#198754', '#ffc107', '#dc3545', '#6610f2',
+                '#0dcaf0', '#fd7e14', '#6f42c1', '#20c997', '#d63384',
+                '#6c757d', '#495057', '#adb5bd'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+{% endif %}
+
+{% if calisma_labels %}
+new Chart(document.getElementById('calismaTuruChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ calisma_labels|tojson }},
+        datasets: [{
+            label: 'Personel Sayısı',
+            data: {{ calisma_values|tojson }},
+            backgroundColor: ['#0d6efd', '#198754', '#ffc107']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+{% endif %}
+
+{% if izin_labels %}
+new Chart(document.getElementById('izinChart'), {
+    type: 'pie',
+    data: {
+        labels: {{ izin_labels|tojson }},
+        datasets: [{
+            data: {{ izin_values|tojson }},
+            backgroundColor: ['#198754', '#dc3545', '#ffc107', '#6c757d', '#0dcaf0']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+{% endif %}
+
+new Chart(document.getElementById('durumChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Aktif', 'Pasif'],
+        datasets: [{
+            data: [{{ aktif_personel }}, {{ pasif_personel }}],
+            backgroundColor: ['#198754', '#6c757d']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+</script>
+{% endblock %}

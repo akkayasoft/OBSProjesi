@@ -1,0 +1,141 @@
+{% extends "devamsizlik/_layout.html" %}
+
+{% block title %}{{ ogrenci.tam_ad }} - Devamsızlık Geçmişi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('devamsizlik.yoklama.index') }}">Yoklama</a></li>
+<li class="breadcrumb-item active">{{ ogrenci.tam_ad }}</li>
+{% endblock %}
+
+{% block devamsizlik_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-person me-2"></i>{{ ogrenci.tam_ad }}</h4>
+        <small class="text-muted">Öğrenci No: <strong>{{ ogrenci.ogrenci_no }}</strong></small>
+    </div>
+    <a href="{{ url_for('devamsizlik.yoklama.index') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Geri
+    </a>
+</div>
+
+<!-- İstatistikler -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card bg-light border-0">
+            <div class="card-body text-center">
+                <div class="h5 text-muted mb-2">Toplam Yoklama</div>
+                <div class="h3 mb-0">{{ istatistik.toplam }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card bg-danger bg-opacity-10 border-0">
+            <div class="card-body text-center">
+                <div class="h5 text-danger mb-2"><i class="bi bi-x-circle me-1"></i>Devamsız</div>
+                <div class="h3 text-danger mb-0">{{ istatistik.devamsiz }}</div>
+                <small class="text-muted">({{ istatistik.devamsiz_gun }} gün)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card bg-warning bg-opacity-10 border-0">
+            <div class="card-body text-center">
+                <div class="h5 text-warning mb-2"><i class="bi bi-clock me-1"></i>Geç</div>
+                <div class="h3 text-warning mb-0">{{ istatistik.gec }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card bg-info bg-opacity-10 border-0">
+            <div class="card-body text-center">
+                <div class="h5 text-info mb-2"><i class="bi bi-exclamation-circle me-1"></i>İzinli</div>
+                <div class="h3 text-info mb-0">{{ istatistik.izinli }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Devamsızlık Geçmişi Tablosu -->
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Devamsızlık Geçmişi</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 20%">Tarih</th>
+                    <th style="width: 15%">Ders Saati</th>
+                    <th style="width: 20%">Durum</th>
+                    <th style="width: 45%">Not</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if kayitlar %}
+                    {% for kayit in kayitlar %}
+                    <tr>
+                        <td>
+                            <strong>{{ kayit.tarih.strftime('%d.%m.%Y') }}</strong>
+                        </td>
+                        <td>
+                            {{ kayit.ders_saati }}. Ders
+                        </td>
+                        <td>
+                            {% set label, renk = kayit.durum_badge %}
+                            <span class="badge bg-{{ renk }}">
+                                {% if kayit.durum == 'devamsiz' %}
+                                <i class="bi bi-x-circle me-1"></i>
+                                {% elif kayit.durum == 'gec' %}
+                                <i class="bi bi-clock me-1"></i>
+                                {% elif kayit.durum == 'izinli' %}
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                {% elif kayit.durum == 'raporlu' %}
+                                <i class="bi bi-file-text me-1"></i>
+                                {% endif %}
+                                {{ label }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if kayit.aciklama %}
+                                <small class="text-muted">{{ kayit.aciklama }}</small>
+                            {% else %}
+                                <small class="text-muted text-opacity-50">-</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
+                            Devamsızlık kaydı bulunmamaktadır.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Devamsızlık Yüzdesi -->
+{% if istatistik.toplam > 0 %}
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title">Devamsızlık Oranı</h5>
+        {% set devamsizlik_yuzde = (istatistik.devamsiz / istatistik.toplam * 100) | round(1) %}
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar bg-success" role="progressbar"
+                 style="width: {{ 100 - devamsizlik_yuzde }}%"
+                 aria-valuenow="{{ 100 - devamsizlik_yuzde }}" aria-valuemin="0" aria-valuemax="100">
+                Hazır: {{ 100 - devamsizlik_yuzde | round(1) }}%
+            </div>
+            <div class="progress-bar bg-danger" role="progressbar"
+                 style="width: {{ devamsizlik_yuzde }}%"
+                 aria-valuenow="{{ devamsizlik_yuzde }}" aria-valuemin="0" aria-valuemax="100">
+                Devamsız: {{ devamsizlik_yuzde }}%
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

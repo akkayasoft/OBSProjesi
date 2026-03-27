@@ -1,0 +1,137 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Gelir / Gider{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Gelir / Gider</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Gelir / Gider Kayıtları</h4>
+    <div>
+        <a href="{{ url_for('muhasebe.gelir_gider.kategoriler') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-tags me-1"></i>Kategoriler
+        </a>
+        <a href="{{ url_for('muhasebe.gelir_gider.ekle') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Kayıt
+        </a>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Tür</label>
+                <select name="tur" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="gelir" {% if tur_filtre == 'gelir' %}selected{% endif %}>Gelir</option>
+                    <option value="gider" {% if tur_filtre == 'gider' %}selected{% endif %}>Gider</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Kategori</label>
+                <select name="kategori" class="form-select">
+                    <option value="0">Tümü</option>
+                    {% for k in kategoriler %}
+                    <option value="{{ k.id }}" {% if kategori_filtre == k.id %}selected{% endif %}>
+                        {{ k.ad }} ({{ k.tur }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-funnel me-1"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tablo -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Tür</th>
+                    <th>Kategori</th>
+                    <th>Açıklama</th>
+                    <th>Belge No</th>
+                    <th class="text-end">Tutar</th>
+                    <th class="text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for kayit in kayitlar.items %}
+                <tr>
+                    <td>{{ kayit.tarih.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        {% if kayit.tur == 'gelir' %}
+                        <span class="badge bg-success">Gelir</span>
+                        {% else %}
+                        <span class="badge bg-danger">Gider</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ kayit.kategori.ad }}</td>
+                    <td>{{ kayit.aciklama or '-' }}</td>
+                    <td>{{ kayit.belge_no or '-' }}</td>
+                    <td class="text-end fw-bold {% if kayit.tur == 'gelir' %}text-success{% else %}text-danger{% endif %}">
+                        {{ "{:,.2f}".format(kayit.tutar) }} ₺
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('muhasebe.gelir_gider.duzenle', id=kayit.id) }}"
+                           class="btn btn-sm btn-outline-primary" title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('muhasebe.gelir_gider.sil', id=kayit.id) }}"
+                              class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    data-confirm="Bu kaydı silmek istediğinizden emin misiniz?" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Henüz kayıt bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Sayfalama -->
+    {% if kayitlar.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if kayitlar.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ kayitlar.prev_num }}&tur={{ tur_filtre }}&kategori={{ kategori_filtre }}">Önceki</a>
+            </li>
+            {% endif %}
+            {% for p in kayitlar.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == kayitlar.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&tur={{ tur_filtre }}&kategori={{ kategori_filtre }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if kayitlar.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ kayitlar.next_num }}&tur={{ tur_filtre }}&kategori={{ kategori_filtre }}">Sonraki</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

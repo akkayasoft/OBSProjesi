@@ -1,0 +1,124 @@
+{% extends "kayit/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block kayit_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Kişisel Bilgiler -->
+                    <h6 class="text-muted mb-3 border-bottom pb-2">
+                        <i class="bi bi-person me-1"></i>Kişisel Bilgiler
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.ogrenci_no.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogrenci_no(class="form-control") }}
+                            {% for error in form.ogrenci_no.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.tc_kimlik.label.text }}</label>
+                            {{ form.tc_kimlik(class="form-control", maxlength="11") }}
+                            {% for error in form.tc_kimlik.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.cinsiyet.label.text }}</label>
+                            {{ form.cinsiyet(class="form-select") }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.soyad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.soyad(class="form-control") }}
+                            {% for error in form.soyad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.kan_grubu.label.text }}</label>
+                            {{ form.kan_grubu(class="form-select") }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.dogum_tarihi.label.text }}</label>
+                            {{ form.dogum_tarihi(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.dogum_yeri.label.text }}</label>
+                            {{ form.dogum_yeri(class="form-control") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.telefon.label.text }}</label>
+                            {{ form.telefon(class="form-control") }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.email.label.text }}</label>
+                            {{ form.email(class="form-control") }}
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">{{ form.adres.label.text }}</label>
+                            {{ form.adres(class="form-control", rows="2") }}
+                        </div>
+                    </div>
+
+                    <!-- Kayıt Bilgileri -->
+                    <h6 class="text-muted mb-3 border-bottom pb-2 mt-2">
+                        <i class="bi bi-journal-check me-1"></i>Kayıt Bilgileri
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.donem_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.donem_id(class="form-select") }}
+                            {% for error in form.donem_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.sube_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sube_id(class="form-select") }}
+                            {% for error in form.sube_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="{{ url_for('kayit.ogrenci.liste') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Geri
+                        </a>
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

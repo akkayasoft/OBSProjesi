@@ -1,0 +1,94 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}{{ hesap.banka_adi }} - {{ hesap.hesap_adi }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.banka.liste') }}">Banka Hesapları</a></li>
+<li class="breadcrumb-item active">{{ hesap.hesap_adi }}</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h5 class="mb-1">{{ hesap.banka_adi }} - {{ hesap.hesap_adi }}</h5>
+                <p class="text-muted mb-0">
+                    {% if hesap.iban %}<span class="me-3"><i class="bi bi-credit-card me-1"></i>{{ hesap.iban }}</span>{% endif %}
+                    {% if hesap.hesap_no %}<span><i class="bi bi-hash me-1"></i>{{ hesap.hesap_no }}</span>{% endif %}
+                </p>
+            </div>
+            <div class="col-md-6 text-end">
+                <p class="text-muted small mb-1">Güncel Bakiye</p>
+                <h3 class="{% if hesap.bakiye >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                    {{ "{:,.2f}".format(hesap.bakiye) }} ₺
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="p-3 border-bottom">
+        <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Hesap Hareketleri</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Tür</th>
+                    <th>Açıklama</th>
+                    <th class="text-end">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hareket in hareketler.items %}
+                <tr>
+                    <td>{{ hareket.tarih.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                        {% if hareket.tur == 'giris' %}
+                        <span class="badge bg-success">Giriş</span>
+                        {% elif hareket.tur == 'cikis' %}
+                        <span class="badge bg-danger">Çıkış</span>
+                        {% else %}
+                        <span class="badge bg-info">Transfer</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ hareket.aciklama or '-' }}</td>
+                    <td class="text-end fw-bold {% if hareket.tur == 'giris' %}text-success{% else %}text-danger{% endif %}">
+                        {% if hareket.tur == 'giris' %}+{% else %}-{% endif %}{{ "{:,.2f}".format(hareket.tutar) }} ₺
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">Henüz hareket bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if hareketler.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if hareketler.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ hareketler.prev_num }}">Önceki</a></li>
+            {% endif %}
+            {% for p in hareketler.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == hareketler.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if hareketler.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ hareketler.next_num }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

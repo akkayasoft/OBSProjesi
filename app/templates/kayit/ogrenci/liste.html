@@ -1,0 +1,127 @@
+{% extends "kayit/_layout.html" %}
+
+{% block title %}Öğrenci Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Öğrenci Listesi</li>
+{% endblock %}
+
+{% block kayit_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-people me-2"></i>Öğrenci Listesi</h4>
+    <a href="{{ url_for('kayit.ogrenci.yeni_kayit') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus me-1"></i>Yeni Öğrenci Kaydı
+    </a>
+</div>
+
+<!-- Arama ve Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Öğrenci Ara</label>
+                <input type="text" name="q" class="form-control"
+                       placeholder="Ad, soyad, öğrenci no veya TC kimlik..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Sınıf</label>
+                <select name="sinif" class="form-select">
+                    <option value="0">Tümü</option>
+                    {% for s in siniflar %}
+                    <option value="{{ s.id }}" {% if sinif_filtre == s.id %}selected{% endif %}>{{ s.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Ara
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Öğrenci Tablosu -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Öğrenci No</th>
+                    <th>Ad Soyad</th>
+                    <th>TC Kimlik</th>
+                    <th>Sınıf</th>
+                    <th>Kayıt Durumu</th>
+                    <th class="text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ogrenci in ogrenciler.items %}
+                {% set aktif_kayit = ogrenci.kayitlar.filter_by(durum='aktif').first() %}
+                <tr>
+                    <td><strong>{{ ogrenci.ogrenci_no }}</strong></td>
+                    <td>
+                        <a href="{{ url_for('kayit.ogrenci.detay', ogrenci_id=ogrenci.id) }}">
+                            {{ ogrenci.tam_ad }}
+                        </a>
+                    </td>
+                    <td>{{ ogrenci.tc_kimlik or '-' }}</td>
+                    <td>
+                        {% if aktif_kayit %}
+                        {{ aktif_kayit.sinif_sube }}
+                        {% else %}
+                        {{ ogrenci.sinif or '-' }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if aktif_kayit %}
+                        {% set label, renk = aktif_kayit.durum_badge %}
+                        <span class="badge bg-{{ renk }}">{{ label }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Kayıt Yok</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('kayit.ogrenci.detay', ogrenci_id=ogrenci.id) }}"
+                           class="btn btn-sm btn-outline-primary" title="Detay">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('kayit.ogrenci.duzenle', ogrenci_id=ogrenci.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Henüz öğrenci bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if ogrenciler.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if ogrenciler.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ ogrenciler.prev_num }}&q={{ arama }}&sinif={{ sinif_filtre }}">Önceki</a></li>
+            {% endif %}
+            {% for p in ogrenciler.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == ogrenciler.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&q={{ arama }}&sinif={{ sinif_filtre }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if ogrenciler.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ ogrenciler.next_num }}&q={{ arama }}&sinif={{ sinif_filtre }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

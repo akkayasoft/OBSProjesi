@@ -1,0 +1,87 @@
+{% extends "kayit/_layout.html" %}
+
+{% block title %}Sınıf / Şube Yönetimi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Sınıf / Şube Yönetimi</li>
+{% endblock %}
+
+{% block kayit_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-building me-2"></i>Sınıf / Şube Yönetimi</h4>
+    <div>
+        <a href="{{ url_for('kayit.sinif.sube_ekle') }}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Şube
+        </a>
+        <a href="{{ url_for('kayit.sinif.sinif_ekle') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Sınıf
+        </a>
+    </div>
+</div>
+
+{% for sinif in siniflar %}
+<div class="card mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-mortarboard me-2"></i>{{ sinif.ad }}
+            <span class="badge bg-primary ms-2">{{ sinif.ogrenci_sayisi }} öğrenci</span>
+        </h6>
+        <form method="POST" action="{{ url_for('kayit.sinif.sinif_sil', sinif_id=sinif.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-outline-danger"
+                    data-confirm="Bu sınıfı silmek istediğinizden emin misiniz?">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for sube in sinif.subeler.filter_by(aktif=True) %}
+            <div class="col-md-3">
+                <div class="card border">
+                    <div class="card-body text-center">
+                        <h5 class="mb-1">{{ sube.ad }} Şubesi</h5>
+                        <div class="d-flex justify-content-around mt-2">
+                            <div>
+                                <small class="text-muted d-block">Öğrenci</small>
+                                <strong>{{ sube.aktif_ogrenci_sayisi }}</strong>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Kontenjan</small>
+                                <strong>{{ sube.kontenjan }}</strong>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Boş</small>
+                                <strong class="{% if sube.bos_kontenjan <= 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {{ sube.bos_kontenjan }}
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="progress mt-2" style="height:6px;">
+                            {% set doluluk = (sube.aktif_ogrenci_sayisi / sube.kontenjan * 100) if sube.kontenjan > 0 else 0 %}
+                            <div class="progress-bar {% if doluluk >= 90 %}bg-danger{% elif doluluk >= 70 %}bg-warning{% else %}bg-success{% endif %}"
+                                 style="width: {{ doluluk }}%"></div>
+                        </div>
+                        <form method="POST" action="{{ url_for('kayit.sinif.sube_sil', sube_id=sube.id) }}" class="mt-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    data-confirm="Bu şubeyi silmek istediğinizden emin misiniz?">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center text-muted">Bu sınıfa ait şube bulunmuyor</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-building" style="font-size: 3rem;"></i>
+    <p class="mt-3">Henüz sınıf tanımlanmamış.</p>
+</div>
+{% endfor %}
+{% endblock %}

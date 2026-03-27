@@ -1,0 +1,118 @@
+{% extends "personel/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('personel.personel_crud.liste') }}">Personel Listesi</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block personel_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <!-- Kişisel Bilgiler -->
+                    <h6 class="text-muted mb-3 border-bottom pb-2">
+                        <i class="bi bi-person me-1"></i>Kişisel Bilgiler
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.sicil_no.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sicil_no(class="form-control", placeholder="Örn: P004") }}
+                            {% for error in form.sicil_no.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.tc_kimlik.label.text }}</label>
+                            {{ form.tc_kimlik(class="form-control", placeholder="11 haneli TC Kimlik No") }}
+                            {% for error in form.tc_kimlik.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.cinsiyet.label.text }}</label>
+                            {{ form.cinsiyet(class="form-select") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.soyad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.soyad(class="form-control") }}
+                            {% for error in form.soyad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.dogum_tarihi.label.text }}</label>
+                            {{ form.dogum_tarihi(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.telefon.label.text }}</label>
+                            {{ form.telefon(class="form-control", placeholder="05xx xxx xx xx") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.email.label.text }}</label>
+                            {{ form.email(class="form-control", placeholder="ornek@email.com") }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.adres.label.text }}</label>
+                            {{ form.adres(class="form-control", rows="2") }}
+                        </div>
+                    </div>
+
+                    <!-- İş Bilgileri -->
+                    <h6 class="text-muted mb-3 border-bottom pb-2">
+                        <i class="bi bi-briefcase me-1"></i>İş Bilgileri
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.pozisyon.label.text }}</label>
+                            {{ form.pozisyon(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.departman.label.text }}</label>
+                            {{ form.departman(class="form-select") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.calisma_turu.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.calisma_turu(class="form-select") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.maas.label.text }}</label>
+                            {{ form.maas(class="form-control", placeholder="0.00") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.ise_baslama_tarihi.label.text }}</label>
+                            {{ form.ise_baslama_tarihi(class="form-control", type="date") }}
+                        </div>
+                        {% if form.ise_bitis_tarihi %}
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.ise_bitis_tarihi.label.text }}</label>
+                            {{ form.ise_bitis_tarihi(class="form-control", type="date") }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('personel.personel_crud.liste') }}" class="btn btn-secondary me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

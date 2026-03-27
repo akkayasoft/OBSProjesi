@@ -1,0 +1,67 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}{{ personel.tam_ad }} - Ödeme Geçmişi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.personel_odeme.liste') }}">Personel Ödemeleri</a></li>
+<li class="breadcrumb-item active">{{ personel.tam_ad }}</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-1">{{ personel.tam_ad }}</h5>
+                <p class="text-muted mb-0">
+                    <span class="me-3"><i class="bi bi-hash me-1"></i>{{ personel.sicil_no }}</span>
+                    <span class="me-3"><i class="bi bi-briefcase me-1"></i>{{ personel.pozisyon or 'Belirtilmemiş' }}</span>
+                    {% if personel.maas %}
+                    <span><i class="bi bi-cash me-1"></i>{{ "{:,.2f}".format(personel.maas) }} ₺ / ay</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('muhasebe.personel_odeme.odeme_ekle', personel_id=personel.id) }}"
+                   class="btn btn-success">
+                    <i class="bi bi-cash me-1"></i>Ödeme Ekle
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="p-3 border-bottom">
+        <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Ödeme Geçmişi</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Dönem</th>
+                    <th>Ödeme Türü</th>
+                    <th>Açıklama</th>
+                    <th class="text-end">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for odeme in odemeler %}
+                <tr>
+                    <td>{{ odeme.tarih.strftime('%d.%m.%Y') }}</td>
+                    <td><span class="badge bg-info">{{ odeme.donem }}</span></td>
+                    <td>{{ odeme.odeme_turu|title }}</td>
+                    <td>{{ odeme.aciklama or '-' }}</td>
+                    <td class="text-end fw-bold">{{ "{:,.2f}".format(odeme.tutar) }} ₺</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">Henüz ödeme kaydı bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

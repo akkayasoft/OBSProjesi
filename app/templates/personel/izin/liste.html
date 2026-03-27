@@ -1,0 +1,147 @@
+{% extends "personel/_layout.html" %}
+
+{% block title %}İzin Yönetimi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">İzin Yönetimi</li>
+{% endblock %}
+
+{% block personel_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-calendar-check me-2"></i>İzin Yönetimi</h4>
+    <a href="{{ url_for('personel.izin.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Yeni İzin Talebi
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Personel</label>
+                <select name="personel_id" class="form-select">
+                    <option value="0">Tümü</option>
+                    {% for p in personeller %}
+                    <option value="{{ p.id }}" {% if personel_id == p.id %}selected{% endif %}>{{ p.tam_ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">İzin Türü</label>
+                <select name="izin_turu" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="yillik" {% if izin_turu == 'yillik' %}selected{% endif %}>Yıllık İzin</option>
+                    <option value="saglik" {% if izin_turu == 'saglik' %}selected{% endif %}>Sağlık İzni</option>
+                    <option value="mazeret" {% if izin_turu == 'mazeret' %}selected{% endif %}>Mazeret İzni</option>
+                    <option value="ucretsiz" {% if izin_turu == 'ucretsiz' %}selected{% endif %}>Ücretsiz İzin</option>
+                    <option value="idari" {% if izin_turu == 'idari' %}selected{% endif %}>İdari İzin</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="beklemede" {% if durum == 'beklemede' %}selected{% endif %}>Beklemede</option>
+                    <option value="onaylandi" {% if durum == 'onaylandi' %}selected{% endif %}>Onaylandı</option>
+                    <option value="reddedildi" {% if durum == 'reddedildi' %}selected{% endif %}>Reddedildi</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- İzin Tablosu -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Personel</th>
+                    <th>İzin Türü</th>
+                    <th>Başlangıç</th>
+                    <th>Bitiş</th>
+                    <th>Gün</th>
+                    <th>Durum</th>
+                    <th>Açıklama</th>
+                    <th class="text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for izin in izinler.items %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('personel.personel_crud.detay', personel_id=izin.personel.id) }}">
+                            {{ izin.personel.tam_ad }}
+                        </a>
+                    </td>
+                    <td>{{ izin.izin_turu_str }}</td>
+                    <td>{{ izin.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td>{{ izin.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td><strong>{{ izin.gun_sayisi }}</strong></td>
+                    <td>
+                        {% set label, renk = izin.durum_badge %}
+                        <span class="badge bg-{{ renk }}">{{ label }}</span>
+                    </td>
+                    <td>{{ izin.aciklama or '-' }}</td>
+                    <td class="text-center">
+                        {% if izin.durum == 'beklemede' %}
+                        <form method="POST" action="{{ url_for('personel.izin.onayla', izin_id=izin.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-success" title="Onayla">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('personel.izin.reddet', izin_id=izin.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Reddet">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('personel.izin.iptal', izin_id=izin.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Sil"
+                                    onclick="return confirm('Bu izin kaydını silmek istediğinize emin misiniz?')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">Henüz izin kaydı bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if izinler.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if izinler.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ izinler.prev_num }}&personel_id={{ personel_id }}&izin_turu={{ izin_turu }}&durum={{ durum }}">Önceki</a></li>
+            {% endif %}
+            {% for p in izinler.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == izinler.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&personel_id={{ personel_id }}&izin_turu={{ izin_turu }}&durum={{ durum }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if izinler.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ izinler.next_num }}&personel_id={{ personel_id }}&izin_turu={{ izin_turu }}&durum={{ durum }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

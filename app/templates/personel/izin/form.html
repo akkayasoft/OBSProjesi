@@ -1,0 +1,62 @@
+{% extends "personel/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('personel.izin.liste') }}">İzin Yönetimi</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block personel_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-calendar-plus me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.personel_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.personel_id(class="form-select") }}
+                            {% for error in form.personel_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.izin_turu.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.izin_turu(class="form-select") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.baslangic_tarihi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.baslangic_tarihi(class="form-control", type="date") }}
+                            {% for error in form.baslangic_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.bitis_tarihi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.bitis_tarihi(class="form-control", type="date") }}
+                            {% for error in form.bitis_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control", rows="3", placeholder="İzin sebebi hakkında açıklama...") }}
+                        </div>
+                    </div>
+
+                    <div class="text-end mt-4">
+                        <a href="{{ url_for('personel.izin.liste') }}" class="btn btn-secondary me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

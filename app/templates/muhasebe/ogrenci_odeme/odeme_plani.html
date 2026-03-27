@@ -1,0 +1,65 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Ödeme Planı Oluştur{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.ogrenci_odeme.liste') }}">Öğrenci Ödemeleri</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=ogrenci.id) }}">{{ ogrenci.tam_ad }}</a></li>
+<li class="breadcrumb-item active">Ödeme Planı Oluştur</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-calendar-plus me-2"></i>Ödeme Planı Oluştur</h5>
+                <p class="text-muted mb-0 mt-1">{{ ogrenci.tam_ad }} ({{ ogrenci.ogrenci_no }})</p>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.donem.label.text }}</label>
+                        {{ form.donem(class="form-control") }}
+                        {% for error in form.donem.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.toplam_tutar.label.text }}</label>
+                            {{ form.toplam_tutar(class="form-control", step="0.01") }}
+                            {% for error in form.toplam_tutar.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.taksit_sayisi.label.text }}</label>
+                            {{ form.taksit_sayisi(class="form-control", min="1", max="12") }}
+                            {% for error in form.taksit_sayisi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.aciklama.label.text }}</label>
+                        {{ form.aciklama(class="form-control", rows="3") }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=ogrenci.id) }}"
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Geri
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

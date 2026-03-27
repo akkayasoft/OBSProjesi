@@ -1,0 +1,245 @@
+{% extends "devamsizlik/_layout.html" %}
+
+{% block title %}{{ sube.tam_ad }} - Devamsızlık Raporu{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('devamsizlik.rapor.index') }}">Raporlar</a></li>
+<li class="breadcrumb-item active">{{ sube.tam_ad }}</li>
+{% endblock %}
+
+{% block devamsizlik_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-building me-2"></i>{{ sube.tam_ad }} - Devamsızlık Raporu</h4>
+        <small class="text-muted">
+            {{ baslangic.strftime('%d.%m.%Y') }} - {{ bitis.strftime('%d.%m.%Y') }}
+        </small>
+    </div>
+    <div>
+        <a href="{{ url_for('devamsizlik.rapor.index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Geri
+        </a>
+        <button onclick="window.print()" class="btn btn-outline-secondary">
+            <i class="bi bi-printer me-1"></i>Yazdır
+        </button>
+    </div>
+</div>
+
+<!-- Filtre Paneli (Print'te gizli) -->
+<div class="card mb-4 no-print">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Başlangıç Tarihi</label>
+                <input type="date" name="baslangic" class="form-control"
+                       value="{{ baslangic.isoformat() }}">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Bitiş Tarihi</label>
+                <input type="date" name="bitis" class="form-control"
+                       value="{{ bitis.isoformat() }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Özet Kartları -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card bg-light border-0">
+            <div class="card-body text-center">
+                <div class="text-muted mb-2">Toplam Öğrenci</div>
+                <div class="h3 mb-0">{{ ogrenci_verileri | length }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card bg-danger bg-opacity-10 border-0">
+            <div class="card-body text-center">
+                <div class="text-danger mb-2"><i class="bi bi-x-circle me-1"></i>Toplam Devamsız</div>
+                <div class="h3 text-danger mb-0">
+                    {% set toplam_dev = ogrenci_verileri | map(attribute='devamsiz') | sum %}
+                    {{ toplam_dev }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card bg-warning bg-opacity-10 border-0">
+            <div class="card-body text-center">
+                <div class="text-warning mb-2"><i class="bi bi-clock me-1"></i>Toplam Geç</div>
+                <div class="h3 text-warning mb-0">
+                    {% set toplam_gec = ogrenci_verileri | map(attribute='gec') | sum %}
+                    {{ toplam_gec }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card bg-info bg-opacity-10 border-0">
+            <div class="card-body text-center">
+                <div class="text-info mb-2"><i class="bi bi-exclamation-circle me-1"></i>Toplam İzinli</div>
+                <div class="h3 text-info mb-0">
+                    {% set toplam_izin = ogrenci_verileri | map(attribute='izinli') | sum %}
+                    {{ toplam_izin }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detaylı Rapor Tablosu -->
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Öğrenci Bazında Devamsızlık Ayrıntıları</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 35%">Öğrenci Adı</th>
+                    <th style="width: 12%" class="text-center">
+                        <span title="Devamsız">
+                            <i class="bi bi-x-circle text-danger"></i> Devamsız
+                        </span>
+                    </th>
+                    <th style="width: 12%" class="text-center">
+                        <span title="Geç Geldi">
+                            <i class="bi bi-clock text-warning"></i> Geç
+                        </span>
+                    </th>
+                    <th style="width: 12%" class="text-center">
+                        <span title="İzinli">
+                            <i class="bi bi-exclamation-circle text-info"></i> İzinli
+                        </span>
+                    </th>
+                    <th style="width: 12%" class="text-center">
+                        <span title="Raporlu">
+                            <i class="bi bi-file-text text-secondary"></i> Raporlu
+                        </span>
+                    </th>
+                    <th style="width: 12%" class="text-center">Toplam</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if ogrenci_verileri %}
+                    {% for veri in ogrenci_verileri %}
+                    <tr>
+                        <td class="text-muted">{{ loop.index }}</td>
+                        <td>
+                            <a href="{{ url_for('devamsizlik.yoklama.ogrenci_devamsizlik', ogrenci_id=veri.ogrenci.id) }}"
+                               class="text-decoration-none">
+                                <strong>{{ veri.ogrenci.tam_ad }}</strong><br>
+                                <small class="text-muted">{{ veri.ogrenci.ogrenci_no }}</small>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            {% if veri.devamsiz > 0 %}
+                                <span class="badge bg-danger">{{ veri.devamsiz }}</span>
+                            {% else %}
+                                <span class="text-muted text-opacity-50">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if veri.gec > 0 %}
+                                <span class="badge bg-warning">{{ veri.gec }}</span>
+                            {% else %}
+                                <span class="text-muted text-opacity-50">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if veri.izinli > 0 %}
+                                <span class="badge bg-info">{{ veri.izinli }}</span>
+                            {% else %}
+                                <span class="text-muted text-opacity-50">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if veri.raporlu > 0 %}
+                                <span class="badge bg-secondary">{{ veri.raporlu }}</span>
+                            {% else %}
+                                <span class="text-muted text-opacity-50">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <strong>{{ veri.toplam }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
+                            Seçilen tarih aralığında devamsızlık kaydı bulunmamaktadır.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+            {% if ogrenci_verileri %}
+            <tfoot class="table-light">
+                <tr>
+                    <th colspan="2" class="text-end">TOPLAM</th>
+                    <th class="text-center">
+                        <strong class="text-danger">
+                            {% set toplam_dev = ogrenci_verileri | map(attribute='devamsiz') | sum %}
+                            {{ toplam_dev }}
+                        </strong>
+                    </th>
+                    <th class="text-center">
+                        <strong class="text-warning">
+                            {% set toplam_gec = ogrenci_verileri | map(attribute='gec') | sum %}
+                            {{ toplam_gec }}
+                        </strong>
+                    </th>
+                    <th class="text-center">
+                        <strong class="text-info">
+                            {% set toplam_izin = ogrenci_verileri | map(attribute='izinli') | sum %}
+                            {{ toplam_izin }}
+                        </strong>
+                    </th>
+                    <th class="text-center">
+                        <strong class="text-secondary">
+                            {% set toplam_rap = ogrenci_verileri | map(attribute='raporlu') | sum %}
+                            {{ toplam_rap }}
+                        </strong>
+                    </th>
+                    <th class="text-center">
+                        <strong>
+                            {% set toplam_tum = ogrenci_verileri | map(attribute='toplam') | sum %}
+                            {{ toplam_tum }}
+                        </strong>
+                    </th>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+<!-- Print Stili -->
+<style>
+    @media print {
+        .no-print {
+            display: none;
+        }
+
+        body {
+            font-size: 11pt;
+        }
+
+        .table {
+            font-size: 10pt;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+    }
+</style>
+{% endblock %}

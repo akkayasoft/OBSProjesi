@@ -1,0 +1,237 @@
+{% extends "personel/_layout.html" %}
+
+{% block title %}{{ personel.tam_ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('personel.personel_crud.liste') }}">Personel Listesi</a></li>
+<li class="breadcrumb-item active">{{ personel.tam_ad }}</li>
+{% endblock %}
+
+{% block personel_content %}
+<!-- Personel Başlık -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-1 text-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                     style="width:60px;height:60px;">
+                    <i class="bi bi-person-badge text-primary" style="font-size:1.8rem;"></i>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <h4 class="mb-1">{{ personel.tam_ad }}</h4>
+                <p class="text-muted mb-0">
+                    <span class="me-3"><i class="bi bi-hash me-1"></i>{{ personel.sicil_no }}</span>
+                    {% if personel.pozisyon %}
+                    <span class="me-3"><i class="bi bi-briefcase me-1"></i>{{ personel.pozisyon }}</span>
+                    {% endif %}
+                    {% if personel.departman %}
+                    <span class="me-3"><i class="bi bi-building me-1"></i>{{ personel.departman }}</span>
+                    {% endif %}
+                    {% if personel.aktif %}
+                    <span class="badge bg-success">Aktif</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Pasif</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('personel.personel_crud.duzenle', personel_id=personel.id) }}"
+                   class="btn btn-outline-warning me-1">
+                    <i class="bi bi-pencil me-1"></i>Düzenle
+                </a>
+                <form method="POST" action="{{ url_for('personel.personel_crud.durum_degistir', personel_id=personel.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-{{ 'danger' if personel.aktif else 'success' }}"
+                            onclick="return confirm('{{ personel.tam_ad }} personelini {{ 'pasif' if personel.aktif else 'aktif' }} yapmak istediğinize emin misiniz?')">
+                        <i class="bi bi-toggle-{{ 'on' if personel.aktif else 'off' }} me-1"></i>
+                        {{ 'Pasif Yap' if personel.aktif else 'Aktif Yap' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sekmeler -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#bilgiler">
+            <i class="bi bi-person me-1"></i>Kişisel Bilgiler
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#is-bilgileri">
+            <i class="bi bi-briefcase me-1"></i>İş Bilgileri
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#izinler">
+            <i class="bi bi-calendar-check me-1"></i>İzinler
+            <span class="badge bg-secondary ms-1">{{ izinler|length }}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#odemeler">
+            <i class="bi bi-cash me-1"></i>Ödeme Geçmişi
+            <span class="badge bg-secondary ms-1">{{ odemeler|length }}</span>
+        </a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Kişisel Bilgiler -->
+    <div class="tab-pane fade show active" id="bilgiler">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <td class="text-muted" style="width:160px">TC Kimlik No</td>
+                        <td>{{ personel.tc_kimlik or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Cinsiyet</td>
+                        <td>{{ 'Erkek' if personel.cinsiyet == 'erkek' else ('Kadın' if personel.cinsiyet == 'kadin' else '-') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Doğum Tarihi</td>
+                        <td>{{ personel.dogum_tarihi.strftime('%d.%m.%Y') if personel.dogum_tarihi else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Telefon</td>
+                        <td>{{ personel.telefon or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">E-posta</td>
+                        <td>{{ personel.email or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Adres</td>
+                        <td>{{ personel.adres or '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- İş Bilgileri -->
+    <div class="tab-pane fade" id="is-bilgileri">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <td class="text-muted" style="width:160px">Sicil No</td>
+                        <td>{{ personel.sicil_no }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Pozisyon</td>
+                        <td>{{ personel.pozisyon or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Departman</td>
+                        <td>{{ personel.departman or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Çalışma Türü</td>
+                        <td>{{ personel.calisma_turu_str }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Maaş</td>
+                        <td>{{ '{:,.2f}'.format(personel.maas|float) }} ₺</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">İşe Başlama</td>
+                        <td>{{ personel.ise_baslama_tarihi.strftime('%d.%m.%Y') if personel.ise_baslama_tarihi else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">İşten Ayrılma</td>
+                        <td>{{ personel.ise_bitis_tarihi.strftime('%d.%m.%Y') if personel.ise_bitis_tarihi else '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- İzinler -->
+    <div class="tab-pane fade" id="izinler">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">İzin Kayıtları</h6>
+                <a href="{{ url_for('personel.izin.yeni', personel_id=personel.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-plus me-1"></i>İzin Ekle
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>İzin Türü</th>
+                            <th>Başlangıç</th>
+                            <th>Bitiş</th>
+                            <th>Gün</th>
+                            <th>Durum</th>
+                            <th>Açıklama</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for izin in izinler %}
+                        <tr>
+                            <td>{{ izin.izin_turu_str }}</td>
+                            <td>{{ izin.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+                            <td>{{ izin.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                            <td>{{ izin.gun_sayisi }}</td>
+                            <td>
+                                {% set label, renk = izin.durum_badge %}
+                                <span class="badge bg-{{ renk }}">{{ label }}</span>
+                            </td>
+                            <td>{{ izin.aciklama or '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-3">Henüz izin kaydı bulunmuyor</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ödeme Geçmişi -->
+    <div class="tab-pane fade" id="odemeler">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Ödeme Kayıtları</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Dönem</th>
+                            <th>Tutar</th>
+                            <th>Ödeme Türü</th>
+                            <th>Tarih</th>
+                            <th>Açıklama</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for odeme in odemeler %}
+                        <tr>
+                            <td>{{ odeme.donem }}</td>
+                            <td><strong>{{ '{:,.2f}'.format(odeme.tutar|float) }} ₺</strong></td>
+                            <td>{{ odeme.odeme_turu }}</td>
+                            <td>{{ odeme.tarih.strftime('%d.%m.%Y') }}</td>
+                            <td>{{ odeme.aciklama or '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">Henüz ödeme kaydı bulunmuyor</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

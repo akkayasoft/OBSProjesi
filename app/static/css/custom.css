@@ -1,0 +1,197 @@
+/* === Genel === */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f9;
+}
+
+/* === Login Sayfası === */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 1rem;
+}
+
+.login-container .card {
+    border-radius: 1rem;
+}
+
+/* === Navbar === */
+.navbar {
+    z-index: 1040;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* === Sidebar === */
+.sidebar {
+    width: 260px;
+    min-height: calc(100vh - 56px);
+    margin-top: 56px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    transition: all 0.3s;
+    z-index: 1030;
+}
+
+.sidebar-content {
+    padding: 1rem 0;
+}
+
+.sidebar-section {
+    margin-bottom: 0.25rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.7rem 1.25rem;
+    color: #adb5bd;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-link:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-link.active {
+    color: #fff;
+    background-color: rgba(26, 115, 232, 0.3);
+    border-left-color: #1a73e8;
+}
+
+.sidebar-link.has-children {
+    cursor: pointer;
+}
+
+.sidebar-link .bi-chevron-down {
+    font-size: 0.75rem;
+    transition: transform 0.2s;
+}
+
+.sidebar-link[aria-expanded="true"] .bi-chevron-down {
+    transform: rotate(180deg);
+}
+
+.sub-link {
+    padding-left: 2.5rem;
+    font-size: 0.85rem;
+}
+
+/* === Page Content === */
+.page-content {
+    margin-left: 260px;
+    margin-top: 56px;
+    width: calc(100% - 260px);
+    min-height: calc(100vh - 56px);
+}
+
+/* === Kartlar === */
+.stat-card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card .card-body {
+    padding: 1.25rem;
+}
+
+.stat-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* === Tablolar === */
+.table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.table-container .table {
+    margin-bottom: 0;
+}
+
+.table-container .table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #6c757d;
+}
+
+/* === Durum Badge'leri === */
+.badge-beklemede { background-color: #ffc107; color: #000; }
+.badge-odendi { background-color: #28a745; }
+.badge-gecikti { background-color: #dc3545; }
+.badge-kismi_odendi { background-color: #17a2b8; }
+
+/* === Flash Messages === */
+.flash-messages {
+    margin-bottom: 1rem;
+}
+
+/* === Makbuz === */
+.makbuz {
+    max-width: 600px;
+    margin: 0 auto;
+    border: 2px solid #333;
+    padding: 2rem;
+}
+
+.makbuz-header {
+    text-align: center;
+    border-bottom: 2px solid #333;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media print {
+    .navbar, .sidebar, .no-print {
+        display: none !important;
+    }
+    .page-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -260px;
+    }
+    .sidebar.show {
+        margin-left: 0;
+    }
+    .page-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}

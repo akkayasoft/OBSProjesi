@@ -1,0 +1,95 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Makbuz - {{ odeme.makbuz_no }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.ogrenci_odeme.liste') }}">Öğrenci Ödemeleri</a></li>
+<li class="breadcrumb-item active">Makbuz</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="mb-3 no-print">
+    <button onclick="window.print()" class="btn btn-primary">
+        <i class="bi bi-printer me-1"></i>Yazdır
+    </button>
+    <a href="{{ url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=ogrenci.id) }}" class="btn btn-outline-secondary ms-2">
+        <i class="bi bi-arrow-left me-1"></i>Geri
+    </a>
+</div>
+
+<div class="makbuz">
+    <div class="makbuz-header">
+        <h3 class="mb-1">OBS - Öğrenci Bilgi Sistemi</h3>
+        <h5 class="text-muted">ÖDEME MAKBUZU</h5>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-6">
+            <strong>Makbuz No:</strong> {{ odeme.makbuz_no }}
+        </div>
+        <div class="col-6 text-end">
+            <strong>Tarih:</strong> {{ odeme.tarih.strftime('%d.%m.%Y %H:%M') }}
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="mb-3">
+        <h6 class="text-muted">Öğrenci Bilgileri</h6>
+        <table class="table table-borderless table-sm">
+            <tr>
+                <td style="width:150px"><strong>Öğrenci No:</strong></td>
+                <td>{{ ogrenci.ogrenci_no }}</td>
+            </tr>
+            <tr>
+                <td><strong>Ad Soyad:</strong></td>
+                <td>{{ ogrenci.tam_ad }}</td>
+            </tr>
+            <tr>
+                <td><strong>Sınıf:</strong></td>
+                <td>{{ ogrenci.sinif or '-' }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="mb-3">
+        <h6 class="text-muted">Ödeme Bilgileri</h6>
+        <table class="table table-borderless table-sm">
+            <tr>
+                <td style="width:150px"><strong>Dönem:</strong></td>
+                <td>{{ odeme.taksit.odeme_plani.donem }}</td>
+            </tr>
+            <tr>
+                <td><strong>Taksit:</strong></td>
+                <td>{{ odeme.taksit.taksit_no }}. Taksit</td>
+            </tr>
+            <tr>
+                <td><strong>Ödeme Türü:</strong></td>
+                <td>{{ odeme.odeme_turu|title }}</td>
+            </tr>
+            {% if odeme.aciklama %}
+            <tr>
+                <td><strong>Açıklama:</strong></td>
+                <td>{{ odeme.aciklama }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <div class="text-center py-3" style="background-color: #f8f9fa; border-radius: 8px;">
+        <p class="text-muted mb-1">Ödenen Tutar</p>
+        <h2 class="text-success mb-0">{{ "{:,.2f}".format(odeme.tutar) }} ₺</h2>
+    </div>
+
+    <hr>
+
+    <div class="row mt-4">
+        <div class="col-6">
+            <p class="small text-muted">İşlemi Yapan: {{ odeme.olusturan.tam_ad }}</p>
+        </div>
+        <div class="col-6 text-end">
+            <p class="small text-muted">İmza: ________________</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

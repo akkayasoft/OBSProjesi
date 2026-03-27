@@ -1,0 +1,115 @@
+{% extends "devamsizlik/_layout.html" %}
+
+{% block title %}Yoklama Al{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Yoklama Al</li>
+{% endblock %}
+
+{% block devamsizlik_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Yoklama Al</h4>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Yoklama Seçimi</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('devamsizlik.yoklama.yoklama_al') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Sınıf / Şube</strong></label>
+                        {{ form.sube_id(class="form-select form-select-lg") }}
+                        {% if form.sube_id.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.sube_id.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Tarih</strong></label>
+                        {{ form.tarih(class="form-control form-control-lg") }}
+                        {% if form.tarih.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.tarih.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"><strong>Ders Saati(ları)</strong></label>
+                        <div class="row">
+                            {% for ders_saati in [1, 2, 3, 4, 5, 6, 7, 8] %}
+                            <div class="col-6 col-sm-3 mb-2">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input"
+                                           name="ders_saatleri" value="{{ ders_saati }}"
+                                           id="ders_{{ ders_saati }}">
+                                    <label class="form-check-label" for="ders_{{ ders_saati }}">
+                                        {{ ders_saati }}. Ders
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <small class="form-text text-muted d-block mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Yoklama işlemi için en az bir ders saati seçiniz.
+                        </small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" name="submit_button" value="yoklama">
+                            <i class="bi bi-check-lg me-2"></i>Yoklama Al
+                        </button>
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-lg me-2"></i>İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bilgi Paneli -->
+    <div class="col-md-4">
+        <div class="card bg-light border-0 mb-3">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-lightbulb me-2"></i>Nasıl Kullanılır?</h6>
+                <ol class="small mb-0">
+                    <li>Yoklama yapılacak <strong>sınıf/şubeyi</strong> seçiniz.</li>
+                    <li>Yoklama <strong>tarihini</strong> belirleyiniz.</li>
+                    <li>Yoklama yapılacak <strong>ders saatleri</strong>ni seçiniz.</li>
+                    <li><strong>Yoklama Al</strong> butonuna tıklayınız.</li>
+                    <li>Açılan sayfada her öğrenci için durumunu belirleyiniz.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card bg-info bg-opacity-10 border-0">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-info-circle me-2"></i>Durum Açıklamaları</h6>
+                <div class="small">
+                    <div class="mb-2">
+                        <span class="badge bg-danger">Devamsız</span> Ders saatinde okulda değil
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-warning">Geç</span> Ders saatine geç geldi
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-info">İzinli</span> Ailesi tarafından izin alınmış
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-secondary">Raporlu</span> Tıbbi raporu var
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "personel/_layout.html" %}
+
+{% block title %}Personel Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Personel Listesi</li>
+{% endblock %}
+
+{% block personel_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-people-fill me-2"></i>Personel Listesi</h4>
+    <a href="{{ url_for('personel.personel_crud.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus me-1"></i>Yeni Personel
+    </a>
+</div>
+
+<!-- Arama ve Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Personel Ara</label>
+                <input type="text" name="arama" class="form-control"
+                       placeholder="Ad, soyad veya sicil no..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Departman</label>
+                <select name="departman" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="Matematik" {% if departman == 'Matematik' %}selected{% endif %}>Matematik</option>
+                    <option value="Fen Bilimleri" {% if departman == 'Fen Bilimleri' %}selected{% endif %}>Fen Bilimleri</option>
+                    <option value="Türkçe" {% if departman == 'Türkçe' %}selected{% endif %}>Türkçe</option>
+                    <option value="Sosyal Bilimler" {% if departman == 'Sosyal Bilimler' %}selected{% endif %}>Sosyal Bilimler</option>
+                    <option value="Yabancı Dil" {% if departman == 'Yabancı Dil' %}selected{% endif %}>Yabancı Dil</option>
+                    <option value="İdari" {% if departman == 'İdari' %}selected{% endif %}>İdari</option>
+                    <option value="Destek" {% if departman == 'Destek' %}selected{% endif %}>Destek</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="aktif" {% if durum == 'aktif' %}selected{% endif %}>Aktif</option>
+                    <option value="pasif" {% if durum == 'pasif' %}selected{% endif %}>Pasif</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Ara
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Personel Tablosu -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Sicil No</th>
+                    <th>Ad Soyad</th>
+                    <th>Pozisyon</th>
+                    <th>Departman</th>
+                    <th>Çalışma Türü</th>
+                    <th>Durum</th>
+                    <th class="text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in personeller.items %}
+                <tr>
+                    <td><strong>{{ p.sicil_no }}</strong></td>
+                    <td>
+                        <a href="{{ url_for('personel.personel_crud.detay', personel_id=p.id) }}">
+                            {{ p.tam_ad }}
+                        </a>
+                    </td>
+                    <td>{{ p.pozisyon or '-' }}</td>
+                    <td>{{ p.departman or '-' }}</td>
+                    <td>{{ p.calisma_turu_str }}</td>
+                    <td>
+                        {% if p.aktif %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('personel.personel_crud.detay', personel_id=p.id) }}"
+                           class="btn btn-sm btn-outline-primary" title="Detay">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('personel.personel_crud.duzenle', personel_id=p.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Henüz personel bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if personeller.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if personeller.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ personeller.prev_num }}&arama={{ arama }}&departman={{ departman }}&durum={{ durum }}">Önceki</a></li>
+            {% endif %}
+            {% for p in personeller.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == personeller.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&arama={{ arama }}&departman={{ departman }}&durum={{ durum }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if personeller.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ personeller.next_num }}&arama={{ arama }}&departman={{ departman }}&durum={{ durum }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

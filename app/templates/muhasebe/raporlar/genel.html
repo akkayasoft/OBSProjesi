@@ -1,0 +1,282 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Raporlar{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Raporlar</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Muhasebe Raporları</h4>
+
+    <!-- Dönem Seçici -->
+    <form method="GET" class="d-flex align-items-center gap-2">
+        <select name="ay" class="form-select form-select-sm" style="width:auto;">
+            {% for i in range(1, 13) %}
+            <option value="{{ i }}" {% if i == ay %}selected{% endif %}>{{ ay_isimleri[i] }}</option>
+            {% endfor %}
+        </select>
+        <select name="yil" class="form-select form-select-sm" style="width:auto;">
+            {% for y in range(yil-2, yil+2) %}
+            <option value="{{ y }}" {% if y == yil %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">
+            <i class="bi bi-funnel"></i>
+        </button>
+    </form>
+</div>
+
+<!-- Özet Kartları -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">{{ ay_adi }} Gelir</p>
+                <h4 class="text-success mb-0">{{ "{:,.2f}".format(aylik_gelir) }} ₺</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">{{ ay_adi }} Gider</p>
+                <h4 class="text-danger mb-0">{{ "{:,.2f}".format(aylik_gider) }} ₺</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Net Kar/Zarar</p>
+                <h4 class="{% if aylik_gelir - aylik_gider >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                    {{ "{:,.2f}".format(aylik_gelir - aylik_gider) }} ₺
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Personel Maliyet</p>
+                <h4 class="text-info mb-0">{{ "{:,.2f}".format(aylik_personel_maliyet) }} ₺</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafikler -->
+<div class="row g-4 mb-4">
+    <!-- Yıllık Trend -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>{{ yil }} Yılı Gelir/Gider Trendi</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gelir Kategori Dağılımı -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Gelir Dağılımı</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="gelirPieChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Gider Kategori Dağılımı -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Gider Dağılımı</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="giderPieChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Öğrenci Borç Özeti -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-mortarboard me-2"></i>Öğrenci Borç Durumu</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h3 class="text-danger">{{ "{:,.2f}".format(toplam_ogrenci_borc) }} ₺</h3>
+                    <p class="text-muted small">Toplam Öğrenci Borcu</p>
+                </div>
+                <div class="d-flex justify-content-around">
+                    <div class="text-center">
+                        <h5>{{ ogrenci_sayisi }}</h5>
+                        <small class="text-muted">Toplam Öğrenci</small>
+                    </div>
+                    <div class="text-center">
+                        <h5 class="text-danger">{{ borclu_ogrenci }}</h5>
+                        <small class="text-muted">Borçlu Öğrenci</small>
+                    </div>
+                    <div class="text-center">
+                        <h5 class="text-success">{{ ogrenci_sayisi - borclu_ogrenci }}</h5>
+                        <small class="text-muted">Borçsuz</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Excel Export -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-file-earmark-excel me-2"></i>Excel İndir</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('muhasebe.raporlar.export', rapor_turu='gelir-gider', yil=yil, ay=ay) }}"
+                       class="btn btn-outline-success">
+                        <i class="bi bi-download me-2"></i>Gelir/Gider Raporu
+                    </a>
+                    <a href="{{ url_for('muhasebe.raporlar.export', rapor_turu='ogrenci-borc', yil=yil, ay=ay) }}"
+                       class="btn btn-outline-success">
+                        <i class="bi bi-download me-2"></i>Öğrenci Borç Raporu
+                    </a>
+                    <a href="{{ url_for('muhasebe.raporlar.export', rapor_turu='personel-maliyet', yil=yil, ay=ay) }}"
+                       class="btn btn-outline-success">
+                        <i class="bi bi-download me-2"></i>Personel Maliyet Raporu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Yıllık Trend Grafiği
+    const trendData = {{ aylik_trend|tojson }};
+    const aylar = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+
+    new Chart(document.getElementById('trendChart'), {
+        type: 'bar',
+        data: {
+            labels: aylar,
+            datasets: [
+                {
+                    label: 'Gelir',
+                    data: trendData.map(d => d.gelir),
+                    backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                    borderColor: 'rgb(40, 167, 69)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Gider',
+                    data: trendData.map(d => d.gider),
+                    backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                    borderColor: 'rgb(220, 53, 69)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString('tr-TR') + ' ₺';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' +
+                                context.parsed.y.toLocaleString('tr-TR') + ' ₺';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Gelir Pasta Grafiği
+    const gelirKategorileri = {{ gelir_kategorileri|map(attribute=0)|list|tojson }};
+    const gelirTutarlari = {{ gelir_kategorileri|map(attribute=1)|list|tojson|safe }};
+    const renkler = ['#28a745', '#17a2b8', '#ffc107', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c'];
+
+    if (gelirKategorileri.length > 0) {
+        new Chart(document.getElementById('gelirPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: gelirKategorileri,
+                datasets: [{
+                    data: gelirTutarlari.map(Number),
+                    backgroundColor: renkler.slice(0, gelirKategorileri.length)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' +
+                                    Number(context.parsed).toLocaleString('tr-TR') + ' ₺';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gider Pasta Grafiği
+    const giderKategorileri = {{ gider_kategorileri|map(attribute=0)|list|tojson }};
+    const giderTutarlari = {{ gider_kategorileri|map(attribute=1)|list|tojson|safe }};
+    const giderRenkler = ['#dc3545', '#fd7e14', '#6c757d', '#343a40', '#e83e8c', '#6610f2', '#795548'];
+
+    if (giderKategorileri.length > 0) {
+        new Chart(document.getElementById('giderPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: giderKategorileri,
+                datasets: [{
+                    data: giderTutarlari.map(Number),
+                    backgroundColor: giderRenkler.slice(0, giderKategorileri.length)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' +
+                                    Number(context.parsed).toLocaleString('tr-TR') + ' ₺';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

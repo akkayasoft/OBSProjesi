@@ -1,0 +1,34 @@
+{% extends "denetim/_layout.html" %}
+{% block title %}Denetim Kayitlari{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Loglar</li>{% endblock %}
+{% block denetim_content %}
+<h4 class="mb-4"><i class="bi bi-shield-check me-2"></i>Denetim Kayitlari</h4>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="row g-2 align-items-center">
+<div class="col-auto"><select name="islem" class="form-select form-select-sm"><option value="">Tum Islemler</option>
+{% for k, v in [('giris','Giris'),('cikis','Cikis'),('ekleme','Ekleme'),('guncelleme','Guncelleme'),('silme','Silme'),('goruntuleme','Goruntuleme')] %}
+<option value="{{ k }}" {% if islem==k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></div>
+<div class="col-auto"><input type="text" name="modul" class="form-control form-control-sm" placeholder="Modul..." value="{{ modul }}"></div>
+<div class="col-auto"><select name="kullanici_id" class="form-select form-select-sm"><option value="0">Tum Kullanicilar</option>
+{% for k in kullanicilar %}<option value="{{ k.id }}" {% if kullanici_id==k.id %}selected{% endif %}>{{ k.tam_ad }}</option>{% endfor %}</select></div>
+<div class="col-auto"><button class="btn btn-sm btn-primary">Filtrele</button></div></form></div></div>
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover table-sm mb-0"><thead class="table-light">
+<tr><th>Tarih</th><th>Kullanici</th><th>Islem</th><th>Modul</th><th>Detay</th><th>IP</th></tr></thead><tbody>
+{% for l in loglar.items %}<tr>
+<td class="text-nowrap small">{{ l.tarih.strftime('%d.%m.%Y %H:%M') }}</td>
+<td>{% if l.kullanici %}{{ l.kullanici.tam_ad }}{% else %}<span class="text-muted">Sistem</span>{% endif %}</td>
+<td><span class="badge bg-{{ l.islem_badge }}">{{ l.islem_str }}</span></td>
+<td><small>{{ l.modul }}</small></td>
+<td><small class="text-muted">{{ l.detay[:80] if l.detay else '-' }}</small></td>
+<td><small class="text-muted">{{ l.ip_adresi or '-' }}</small></td>
+</tr>{% else %}<tr><td colspan="6" class="text-center text-muted py-4">Log kaydi bulunamadi.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% if loglar.pages > 1 %}
+<nav class="mt-3"><ul class="pagination pagination-sm justify-content-center">
+{% if loglar.has_prev %}<li class="page-item"><a class="page-link" href="?page={{ loglar.prev_num }}&islem={{ islem }}&modul={{ modul }}&kullanici_id={{ kullanici_id }}">Onceki</a></li>{% endif %}
+{% for p in loglar.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+{% if p %}<li class="page-item {% if p == loglar.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&islem={{ islem }}&modul={{ modul }}&kullanici_id={{ kullanici_id }}">{{ p }}</a></li>
+{% else %}<li class="page-item disabled"><span class="page-link">...</span></li>{% endif %}{% endfor %}
+{% if loglar.has_next %}<li class="page-item"><a class="page-link" href="?page={{ loglar.next_num }}&islem={{ islem }}&modul={{ modul }}&kullanici_id={{ kullanici_id }}">Sonraki</a></li>{% endif %}
+</ul></nav>{% endif %}
+{% endblock %}

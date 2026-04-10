@@ -1,0 +1,176 @@
+{% extends "karne/_layout.html" %}
+
+{% block title %}Karne Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Karne Listesi</li>
+{% endblock %}
+
+{% block karne_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Karne Listesi</h4>
+    <div>
+        <a href="{{ url_for('karne.transkript.index') }}" class="btn btn-outline-info me-2">
+            <i class="bi bi-journal-text me-1"></i>Transkript
+        </a>
+        <a href="{{ url_for('karne.karne_routes.olustur') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Karne Olustur
+        </a>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Sinif</label>
+                <select name="sinif_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for s in siniflar %}
+                    <option value="{{ s.id }}" {% if sinif_id == s.id %}selected{% endif %}>{{ s.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Donem</label>
+                <select name="donem" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="1. Donem" {% if donem == '1. Donem' %}selected{% endif %}>1. Donem</option>
+                    <option value="2. Donem" {% if donem == '2. Donem' %}selected{% endif %}>2. Donem</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Ogretim Yili</label>
+                <input type="text" name="ogretim_yili" class="form-control" placeholder="2025-2026"
+                       value="{{ ogretim_yili }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="taslak" {% if durum == 'taslak' %}selected{% endif %}>Taslak</option>
+                    <option value="onaylandi" {% if durum == 'onaylandi' %}selected{% endif %}>Onaylandi</option>
+                    <option value="basildi" {% if durum == 'basildi' %}selected{% endif %}>Basildi</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Arama</label>
+                <input type="text" name="arama" class="form-control" placeholder="Ogrenci ara..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            {% if sinif_id or donem or ogretim_yili or durum or arama %}
+            <div class="col-md-1">
+                <a href="{{ url_for('karne.karne_routes.liste') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Karne Tablosu -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ogrenci No</th>
+                        <th>Ogrenci Adi</th>
+                        <th>Sinif</th>
+                        <th>Donem</th>
+                        <th>Ogretim Yili</th>
+                        <th>Genel Ort.</th>
+                        <th>Durum</th>
+                        <th class="text-end">Islemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in karneler.items %}
+                    <tr>
+                        <td>{{ k.ogrenci.ogrenci_no }}</td>
+                        <td>
+                            <a href="{{ url_for('karne.karne_routes.detay', karne_id=k.id) }}" class="text-decoration-none">
+                                {{ k.ogrenci.tam_ad }}
+                            </a>
+                        </td>
+                        <td>{{ k.sinif.ad }}</td>
+                        <td>{{ k.donem }}</td>
+                        <td>{{ k.ogretim_yili }}</td>
+                        <td>
+                            {% if k.genel_ortalama %}
+                            <span class="fw-bold {% if k.genel_ortalama >= 70 %}text-success{% elif k.genel_ortalama >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(k.genel_ortalama) }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-{{ k.durum_badge }}">{{ k.durum_str }}</span></td>
+                        <td class="text-end text-nowrap">
+                            <a href="{{ url_for('karne.karne_routes.detay', karne_id=k.id) }}"
+                               class="btn btn-sm btn-outline-primary" title="Detay">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('karne.karne_routes.duzenle', karne_id=k.id) }}"
+                               class="btn btn-sm btn-outline-warning" title="Duzenle">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('karne.karne_routes.yazdir', karne_id=k.id) }}"
+                               class="btn btn-sm btn-outline-info" title="Yazdir" target="_blank">
+                                <i class="bi bi-printer"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-file-earmark-text display-4 d-block mb-3"></i>
+                            Henuz karne bulunmuyor.
+                            <div class="mt-3">
+                                <a href="{{ url_for('karne.karne_routes.olustur') }}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-1"></i>Karne Olustur
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if karneler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if karneler.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ karneler.prev_num }}&sinif_id={{ sinif_id }}&donem={{ donem }}&ogretim_yili={{ ogretim_yili }}&durum={{ durum }}&arama={{ arama }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in karneler.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == karneler.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&sinif_id={{ sinif_id }}&donem={{ donem }}&ogretim_yili={{ ogretim_yili }}&durum={{ durum }}&arama={{ arama }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if karneler.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ karneler.next_num }}&sinif_id={{ sinif_id }}&donem={{ donem }}&ogretim_yili={{ ogretim_yili }}&durum={{ durum }}&arama={{ arama }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

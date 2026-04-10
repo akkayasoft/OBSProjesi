@@ -1,0 +1,98 @@
+{% extends "anket/_layout.html" %}
+
+{% block title %}{{ anket.baslik }} - Anketi Doldur{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('anket.katilim.aktif_anketler') }}">Aktif Anketler</a></li>
+<li class="breadcrumb-item active">Anketi Doldur</li>
+{% endblock %}
+
+{% block anket_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-1"><i class="bi bi-clipboard2-data me-2"></i>{{ anket.baslik }}</h5>
+                {% if anket.aciklama %}
+                <p class="text-muted mb-0 small">{{ anket.aciklama }}</p>
+                {% endif %}
+                {% if anket.anonim %}
+                <span class="badge bg-info mt-1">Bu anket anonimdir - kimlik bilgileriniz kaydedilmez</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="POST" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            {% for soru in sorular %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <span class="badge bg-primary me-2">{{ soru.sira }}</span>
+                        {{ soru.soru_metni }}
+                        {% if soru.zorunlu %}<span class="text-danger">*</span>{% endif %}
+                    </h6>
+
+                    {% if soru.soru_tipi == 'coktan_secmeli' %}
+                        {% for secenek in soru.secenekler_listesi %}
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio"
+                                   name="soru_{{ soru.id }}" id="soru_{{ soru.id }}_{{ loop.index }}"
+                                   value="{{ secenek }}"
+                                   {% if request.form.get('soru_' ~ soru.id|string) == secenek %}checked{% endif %}>
+                            <label class="form-check-label" for="soru_{{ soru.id }}_{{ loop.index }}">
+                                {{ secenek }}
+                            </label>
+                        </div>
+                        {% endfor %}
+
+                    {% elif soru.soru_tipi == 'evet_hayir' %}
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio"
+                                   name="soru_{{ soru.id }}" id="soru_{{ soru.id }}_evet"
+                                   value="Evet"
+                                   {% if request.form.get('soru_' ~ soru.id|string) == 'Evet' %}checked{% endif %}>
+                            <label class="form-check-label" for="soru_{{ soru.id }}_evet">Evet</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio"
+                                   name="soru_{{ soru.id }}" id="soru_{{ soru.id }}_hayir"
+                                   value="Hayir"
+                                   {% if request.form.get('soru_' ~ soru.id|string) == 'Hayir' %}checked{% endif %}>
+                            <label class="form-check-label" for="soru_{{ soru.id }}_hayir">Hayir</label>
+                        </div>
+
+                    {% elif soru.soru_tipi == 'derecelendirme' %}
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">1</span>
+                            {% for i in range(1, 6) %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       name="soru_{{ soru.id }}" id="soru_{{ soru.id }}_{{ i }}"
+                                       value="{{ i }}"
+                                       {% if request.form.get('soru_' ~ soru.id|string) == i|string %}checked{% endif %}>
+                                <label class="form-check-label" for="soru_{{ soru.id }}_{{ i }}">{{ i }}</label>
+                            </div>
+                            {% endfor %}
+                            <span class="text-muted small">5</span>
+                        </div>
+
+                    {% elif soru.soru_tipi == 'acik_uclu' %}
+                        <textarea class="form-control" name="soru_{{ soru.id }}" rows="3"
+                                  placeholder="Cevabinizi yaziniz...">{{ request.form.get('soru_' ~ soru.id|string, '') }}</textarea>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="text-end mb-4">
+                <a href="{{ url_for('anket.katilim.aktif_anketler') }}" class="btn btn-secondary me-2">Vazgec</a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-send me-1"></i>Anketi Gonder
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

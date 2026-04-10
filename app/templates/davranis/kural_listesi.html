@@ -1,0 +1,142 @@
+{% extends "davranis/_layout.html" %}
+
+{% block title %}Davranis Kurallari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Kurallar</li>
+{% endblock %}
+
+{% block davranis_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-list-check me-2"></i>Davranis Kurallari</h4>
+    <a href="{{ url_for('davranis.kural.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Kural
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Kategori</label>
+                <select name="kategori" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="akademik" {% if kategori == 'akademik' %}selected{% endif %}>Akademik</option>
+                    <option value="sosyal" {% if kategori == 'sosyal' %}selected{% endif %}>Sosyal</option>
+                    <option value="disiplin" {% if kategori == 'disiplin' %}selected{% endif %}>Disiplin</option>
+                    <option value="saglik" {% if kategori == 'saglik' %}selected{% endif %}>Saglik</option>
+                    <option value="diger" {% if kategori == 'diger' %}selected{% endif %}>Diger</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Tur</label>
+                <select name="tur" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="olumlu" {% if tur == 'olumlu' %}selected{% endif %}>Olumlu</option>
+                    <option value="olumsuz" {% if tur == 'olumsuz' %}selected{% endif %}>Olumsuz</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if kategori or tur %}
+            <div class="col-md-3">
+                <a href="{{ url_for('davranis.kural.liste') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Kural Listesi -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Kural Adi</th>
+                    <th>Kategori</th>
+                    <th>Tur</th>
+                    <th>Varsayilan Puan</th>
+                    <th>Durum</th>
+                    <th>Aciklama</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kurallar.items %}
+                <tr>
+                    <td class="fw-semibold">{{ k.ad }}</td>
+                    <td><span class="badge bg-{{ k.kategori_badge }}">{{ k.kategori_str }}</span></td>
+                    <td><span class="badge bg-{{ k.tur_badge }}">{{ k.tur_str }}</span></td>
+                    <td>
+                        <span class="fw-bold {% if k.varsayilan_puan > 0 %}text-success{% elif k.varsayilan_puan < 0 %}text-danger{% endif %}">
+                            {{ '%+d'|format(k.varsayilan_puan) }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if k.aktif %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ k.aciklama[:60] if k.aciklama else '-' }}{% if k.aciklama and k.aciklama|length > 60 %}...{% endif %}</td>
+                    <td class="text-end">
+                        <a href="{{ url_for('davranis.kural.duzenle', kural_id=k.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('davranis.kural.sil', kural_id=k.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu kurali silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="bi bi-list-check display-4 d-block mb-3"></i>
+                        Henuz davranis kurali bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if kurallar.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if kurallar.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ kurallar.prev_num }}&kategori={{ kategori }}&tur={{ tur }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in kurallar.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == kurallar.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&kategori={{ kategori }}&tur={{ tur }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if kurallar.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ kurallar.next_num }}&kategori={{ kategori }}&tur={{ tur }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

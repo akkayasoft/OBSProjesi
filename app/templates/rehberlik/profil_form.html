@@ -1,0 +1,94 @@
+{% extends "rehberlik/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('rehberlik.profil.liste') }}">Ogrenci Profilleri</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block rehberlik_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.ogrenci_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogrenci_id(class="form-select", disabled="disabled") }}
+                            <input type="hidden" name="ogrenci_id" value="{{ ogrenci.id }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.aile_durumu.label.text }}</label>
+                            {{ form.aile_durumu(class="form-select") }}
+                            {% for error in form.aile_durumu.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.kardes_sayisi.label.text }}</label>
+                            {{ form.kardes_sayisi(class="form-control") }}
+                            {% for error in form.kardes_sayisi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.ekonomik_durum.label.text }}</label>
+                            {{ form.ekonomik_durum(class="form-select") }}
+                            {% for error in form.ekonomik_durum.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.saglik_durumu.label.text }}</label>
+                            {{ form.saglik_durumu(class="form-control") }}
+                            {% for error in form.saglik_durumu.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ilgi_alanlari.label.text }}</label>
+                            {{ form.ilgi_alanlari(class="form-control") }}
+                            {% for error in form.ilgi_alanlari.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.guclu_yonler.label.text }}</label>
+                            {{ form.guclu_yonler(class="form-control") }}
+                            {% for error in form.guclu_yonler.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.gelistirilecek_yonler.label.text }}</label>
+                            {{ form.gelistirilecek_yonler(class="form-control") }}
+                            {% for error in form.gelistirilecek_yonler.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ozel_not.label.text }}</label>
+                            {{ form.ozel_not(class="form-control") }}
+                            {% for error in form.ozel_not.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('rehberlik.profil.ogrenci_profil', ogrenci_id=ogrenci.id) }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

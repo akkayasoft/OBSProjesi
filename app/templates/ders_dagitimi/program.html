@@ -1,0 +1,102 @@
+{% extends "ders_dagitimi/_layout.html" %}
+
+{% block title %}Ders Programı{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Ders Programı</li>
+{% endblock %}
+
+{% block ders_dagitimi_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-calendar-week me-2"></i>Haftalık Ders Programı</h4>
+    <a href="{{ url_for('ders_dagitimi.program.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Kayıt
+    </a>
+</div>
+
+<!-- Filtre -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Sınıf / Şube</label>
+                <select name="sube_id" class="form-select">
+                    {% for s in subeler %}
+                    <option value="{{ s.id }}" {% if s.id == sube_id %}selected{% endif %}>{{ s.tam_ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Dönem</label>
+                <input type="text" name="donem" class="form-control" value="{{ donem }}" placeholder="2025-2026">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-funnel me-1"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if secili_sube %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h6 class="mb-0">
+            <i class="bi bi-table me-2"></i>{{ secili_sube.tam_ad }} - {{ donem }} Dönemi
+        </h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 80px;">Saat</th>
+                        {% for gun in gunler %}
+                        <th class="text-center">{{ gun }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for saat in saatler %}
+                    <tr>
+                        <td class="text-center fw-bold bg-light">{{ saat }}. Ders</td>
+                        {% for gun in gunler %}
+                        <td class="text-center p-2">
+                            {% set kayit = program.get((gun, saat)) %}
+                            {% if kayit %}
+                            <div class="p-2 rounded bg-primary bg-opacity-10">
+                                <div class="fw-bold text-primary small">{{ kayit.ders.ad }}</div>
+                                <div class="text-muted small">{{ kayit.ogretmen.tam_ad }}</div>
+                                {% if kayit.derslik %}
+                                <div class="text-muted small"><i class="bi bi-geo-alt"></i> {{ kayit.derslik }}</div>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('ders_dagitimi.program.sil', program_id=kayit.id) }}"
+                                      class="mt-1" onsubmit="return confirm('Bu kaydı silmek istediğinize emin misiniz?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="Sil">
+                                        <i class="bi bi-x-circle" style="font-size: 0.7rem;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+        <p class="mt-3">Henüz sınıf/şube tanımlı değil. Önce Kayıt Yönetimi bölümünden sınıf ve şube ekleyiniz.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

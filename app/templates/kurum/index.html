@@ -1,0 +1,192 @@
+{% extends "kurum/_layout.html" %}
+
+{% block title %}Kurum Yonetimi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakis</li>
+{% endblock %}
+
+{% block kurum_content %}
+<h4 class="mb-4"><i class="bi bi-building me-2"></i>Kurum Yonetimi</h4>
+
+<!-- Kurum Bilgileri -->
+{% if kurum %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Kurum Bilgileri</h6>
+        <a href="{{ url_for('kurum.kurum_bilgi.duzenle') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Duzenle
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>{{ kurum.ad }}</h5>
+                {% if kurum.kisa_ad %}<p class="text-muted mb-1">{{ kurum.kisa_ad }}</p>{% endif %}
+                {% if kurum.slogan %}<p class="fst-italic text-muted mb-2">"{{ kurum.slogan }}"</p>{% endif %}
+                <p class="mb-1"><i class="bi bi-building me-1"></i>{{ kurum.kurum_turu_str }}</p>
+                {% if kurum.mudur_adi %}
+                <p class="mb-1"><i class="bi bi-person me-1"></i>Mudur: {{ kurum.mudur_adi }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {% if kurum.telefon %}
+                <p class="mb-1"><i class="bi bi-telephone me-1"></i>{{ kurum.telefon }}</p>
+                {% endif %}
+                {% if kurum.email %}
+                <p class="mb-1"><i class="bi bi-envelope me-1"></i>{{ kurum.email }}</p>
+                {% endif %}
+                {% if kurum.il %}
+                <p class="mb-1"><i class="bi bi-geo-alt me-1"></i>{{ kurum.il }}{% if kurum.ilce %} / {{ kurum.ilce }}{% endif %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info mb-4">
+    <i class="bi bi-info-circle me-2"></i>Henuz kurum bilgileri girilmemis.
+    <a href="{{ url_for('kurum.kurum_bilgi.duzenle') }}" class="alert-link">Kurum bilgilerini girin</a>
+</div>
+{% endif %}
+
+<!-- Istatistik Kartlari -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Aktif Ogretim Yili</p>
+                        <h5 class="mb-0">{{ aktif_ogretim_yili.ad if aktif_ogretim_yili else '-' }}</h5>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-calendar-range"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Toplam Derslik</p>
+                        <h3 class="mb-0">{{ toplam_derslik }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-door-open"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Aktif Derslik</p>
+                        <h3 class="mb-0">{{ aktif_derslik }}</h3>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Toplam Kapasite</p>
+                        <h3 class="mb-0">{{ toplam_kapasite }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Yaklasan Tatiller -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-calendar-x me-2"></i>Yaklasan Tatiller</h6>
+                <a href="{{ url_for('kurum.tatil.liste') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-list"></i> Tumunu Gor
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for t in yaklasan_tatiller %}
+                    <div class="list-group-item py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ t.ad }}</strong>
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    {{ t.baslangic_tarihi.strftime('%d.%m.%Y') }} - {{ t.bitis_tarihi.strftime('%d.%m.%Y') }}
+                                    ({{ t.gun_sayisi }} gun)
+                                </small>
+                            </div>
+                            <span class="badge bg-{{ t.tur_badge }}">{{ t.tur_str }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Yaklasan tatil bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Derslik Tur Dagilimi -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-door-open me-2"></i>Derslik Tur Dagilimi</h6>
+                <a href="{{ url_for('kurum.derslik.liste') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-list"></i> Tumunu Gor
+                </a>
+            </div>
+            <div class="card-body">
+                {% if tur_dagilimi %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Tur</th>
+                            <th class="text-end">Adet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tur, sayi in tur_dagilimi %}
+                        <tr>
+                            <td>
+                                {% set tur_map = {'sinif': 'Sinif', 'lab': 'Laboratuvar', 'spor_salonu': 'Spor Salonu', 'konferans': 'Konferans Salonu', 'kutuphane': 'Kutuphane', 'diger': 'Diger'} %}
+                                {{ tur_map.get(tur, tur) }}
+                            </td>
+                            <td class="text-end"><span class="badge bg-primary">{{ sayi }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    Henuz derslik bulunmuyor
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

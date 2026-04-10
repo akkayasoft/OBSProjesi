@@ -1,0 +1,209 @@
+{% extends "rehberlik/_layout.html" %}
+
+{% block title %}Rehberlik{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakis</li>
+{% endblock %}
+
+{% block rehberlik_content %}
+<h4 class="mb-4"><i class="bi bi-heart-pulse me-2"></i>Rehberlik Servisi</h4>
+
+<!-- Istatistik Kartlari -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Toplam Gorusme</p>
+                        <h3 class="mb-0">{{ toplam_gorusme }}</h3>
+                        <small class="text-success">{{ tamamlanan_gorusme }} tamamlandi</small>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Ogrenci Profili</p>
+                        <h3 class="mb-0">{{ toplam_profil }}</h3>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Davranis Kaydi</p>
+                        <h3 class="mb-0">{{ toplam_davranis }}</h3>
+                        <small>
+                            <span class="text-success">{{ olumlu_davranis }} olumlu</span> /
+                            <span class="text-danger">{{ olumsuz_davranis }} olumsuz</span>
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-emoji-smile"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Aktif Plan</p>
+                        <h3 class="mb-0">{{ aktif_plan }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-map"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sol Kolon: Son Gorusmeler -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Son Gorusmeler</h6>
+                <a href="{{ url_for('rehberlik.gorusme.yeni') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Yeni Gorusme
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for g in son_gorusmeler %}
+                    <a href="{{ url_for('rehberlik.gorusme.detay', gorusme_id=g.id) }}"
+                       class="list-group-item list-group-item-action py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="me-3">
+                                <strong>{{ g.konu }}</strong>
+                                <div class="mt-1">
+                                    <span class="badge bg-{{ g.gorusme_turu_badge }} me-1">{{ g.gorusme_turu_str }}</span>
+                                    <span class="badge bg-{{ g.durum_badge }}">{{ g.durum_str }}</span>
+                                    {% if g.gizlilik_seviyesi != 'normal' %}
+                                    <span class="badge bg-{{ g.gizlilik_badge }} me-1">{{ g.gizlilik_str }}</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="bi bi-person me-1"></i>{{ g.ogrenci.tam_ad }}
+                                    <span class="mx-1">|</span>
+                                    {{ g.gorusme_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                                </small>
+                            </div>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Henuz gorusme bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if son_gorusmeler %}
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('rehberlik.gorusme.liste') }}" class="text-decoration-none">
+                        Tum gorusmeleri goruntule <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sag Kolon -->
+    <div class="col-lg-5">
+        <!-- Son Davranis Kayitlari -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-emoji-smile me-2"></i>Son Davranis Kayitlari</h6>
+                <a href="{{ url_for('rehberlik.davranis.yeni') }}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-plus"></i> Yeni
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for d in son_davranislar %}
+                    <div class="list-group-item py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-{{ d.tur_badge }} me-1">{{ d.tur_str }}</span>
+                                <span class="badge bg-{{ d.kategori_badge }} me-1">{{ d.kategori_str }}</span>
+                                <strong>{{ d.ogrenci.tam_ad }}</strong>
+                                <small class="text-muted d-block">{{ d.tarih.strftime('%d.%m.%Y') }} - {{ d.aciklama[:60] }}{% if d.aciklama|length > 60 %}...{% endif %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Henuz davranis kaydi bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if son_davranislar %}
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('rehberlik.davranis.liste') }}" class="text-decoration-none">
+                        Tum kayitlari goruntule <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Aktif Planlar -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-map me-2"></i>Aktif Planlar</h6>
+                <a href="{{ url_for('rehberlik.plan.yeni') }}" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-plus"></i> Yeni
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for p in aktif_planlar %}
+                    <a href="{{ url_for('rehberlik.plan.detay', plan_id=p.id) }}" class="list-group-item list-group-item-action py-2">
+                        <div>
+                            <strong>{{ p.baslik }}</strong>
+                            <small class="text-muted d-block">
+                                <i class="bi bi-person me-1"></i>{{ p.ogrenci.tam_ad }}
+                                <span class="mx-1">|</span>
+                                {{ p.baslangic_tarihi.strftime('%d.%m.%Y') }}
+                                {% if p.bitis_tarihi %} - {{ p.bitis_tarihi.strftime('%d.%m.%Y') }}{% endif %}
+                            </small>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Aktif plan bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if aktif_planlar %}
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('rehberlik.plan.liste') }}" class="text-decoration-none">
+                        Tum planlari goruntule <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

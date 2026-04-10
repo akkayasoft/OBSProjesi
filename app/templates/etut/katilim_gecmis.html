@@ -1,0 +1,96 @@
+{% extends "etut/_layout.html" %}
+
+{% block title %}Katilim Gecmisi - {{ etut.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('etut.etut_yonetim.detay', etut_id=etut.id) }}">{{ etut.ad }}</a></li>
+<li class="breadcrumb-item active">Katilim Gecmisi</li>
+{% endblock %}
+
+{% block etut_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-clock-history me-2"></i>Katilim Gecmisi: {{ etut.ad }}</h4>
+    <a href="{{ url_for('etut.katilim.yoklama', etut_id=etut.id) }}" class="btn btn-success">
+        <i class="bi bi-check2-square me-1"></i>Yoklama Al
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if tarihler.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Toplam Ogrenci</th>
+                        <th>Katilan</th>
+                        <th>Katilmayan</th>
+                        <th>Katilim Orani</th>
+                        <th>Islem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tarihler.items %}
+                    {% set katilmayan = t.toplam - t.katilan %}
+                    {% set oran = (t.katilan / t.toplam * 100)|round(1) if t.toplam > 0 else 0 %}
+                    <tr>
+                        <td>{{ t.tarih.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ t.toplam }}</td>
+                        <td><span class="badge bg-success">{{ t.katilan }}</span></td>
+                        <td><span class="badge bg-danger">{{ katilmayan }}</span></td>
+                        <td>
+                            <div class="progress" style="height: 20px; min-width: 100px;">
+                                <div class="progress-bar {% if oran >= 80 %}bg-success{% elif oran >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                     style="width: {{ oran }}%">
+                                    {{ oran }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('etut.katilim.yoklama', etut_id=etut.id, tarih=t.tarih.isoformat()) }}"
+                               class="btn btn-sm btn-outline-primary" title="Duzenle">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if tarihler.pages > 1 %}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center mb-0">
+                {% if tarihler.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ tarihler.prev_num }}">Onceki</a>
+                </li>
+                {% endif %}
+                {% for p in tarihler.iter_pages() %}
+                {% if p %}
+                <li class="page-item {% if p == tarihler.page %}active{% endif %}">
+                    <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+                {% endfor %}
+                {% if tarihler.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ tarihler.next_num }}">Sonraki</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-clock-history display-4 d-block mb-3"></i>
+            Henuz katilim kaydi bulunmuyor.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "online_sinav/_layout.html" %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sonuc.liste') }}">Sonuçlar</a></li>
+<li class="breadcrumb-item active">{{ sinav.baslik }}</li>
+{% endblock %}
+
+{% block online_sinav_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-bar-chart me-2"></i>{{ sinav.baslik }} - Sonuçlar</h2>
+    <a href="{{ url_for('online_sinav.sonuc.liste') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Geri
+    </a>
+</div>
+
+<!-- İstatistikler -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-primary">{{ katilimlar|length }}</h3>
+                <small class="text-muted">Katılımcı</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-info">{{ ortalama }}</h3>
+                <small class="text-muted">Ortalama</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-success">{{ en_yuksek }}</h3>
+                <small class="text-muted">En Yüksek</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-danger">{{ en_dusuk }}</h3>
+                <small class="text-muted">En Düşük</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-warning">{{ medyan }}</h3>
+                <small class="text-muted">Medyan</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-success">{{ gecen_sayisi }}</h3>
+                <small class="text-muted">Geçen</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Puan Dağılımı Grafiği -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Puan Dağılımı</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dagilimChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Öğrenci Listesi -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-people me-2"></i>Öğrenci Sonuçları</h5>
+    </div>
+    <div class="card-body">
+        {% if katilimlar %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Öğrenci</th>
+                        <th>Puan</th>
+                        <th>Durum</th>
+                        <th>Sonuç</th>
+                        <th>Süre</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for katilim in katilimlar %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <strong>{{ katilim.ogrenci.ad }} {{ katilim.ogrenci.soyad }}</strong>
+                            <br><small class="text-muted">{{ katilim.ogrenci.ogrenci_no }}</small>
+                        </td>
+                        <td>
+                            {% if katilim.toplam_puan is not none %}
+                            <span class="badge bg-{{ 'success' if katilim.toplam_puan >= sinav.gecme_puani else 'danger' }} fs-6">
+                                {{ katilim.toplam_puan|round(1) }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-{{ katilim.durum_badge }}">{{ katilim.durum_str }}</span></td>
+                        <td>
+                            {% if katilim.gecti_mi is not none %}
+                                {% if katilim.gecti_mi %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Geçti</span>
+                                {% else %}
+                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Kaldı</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if katilim.baslama_zamani and katilim.bitirme_zamani %}
+                            {{ ((katilim.bitirme_zamani - katilim.baslama_zamani).total_seconds() / 60)|round(0)|int }} dk
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('online_sinav.sonuc.ogrenci_sonuc', sinav_id=sinav.id, ogrenci_id=katilim.ogrenci_id) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if sinav.sinav_turu in ['klasik', 'karisik'] %}
+                            <a href="{{ url_for('online_sinav.sonuc.puanla', katilim_id=katilim.id) }}"
+                               class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i> Puanla
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <p>Henüz katılımcı bulunmuyor.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('dagilimChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'],
+            datasets: [{
+                label: 'Öğrenci Sayısı',
+                data: {{ dagilim|tojson }},
+                backgroundColor: [
+                    '#dc3545', '#dc3545', '#dc3545', '#dc3545', '#dc3545',
+                    '#ffc107', '#ffc107', '#198754', '#198754', '#198754'
+                ],
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

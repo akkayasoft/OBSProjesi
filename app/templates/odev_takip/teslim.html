@@ -1,0 +1,99 @@
+{% extends "odev_takip/_layout.html" %}
+
+{% block title %}Teslim Takip - {{ odev.baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('odev_takip.odev.liste') }}">Odev Listesi</a></li>
+<li class="breadcrumb-item active">Teslim Takip</li>
+{% endblock %}
+
+{% block odev_takip_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-check2-square me-2"></i>Odev Teslim Takibi</h4>
+        <p class="text-muted mb-0">
+            <strong>{{ odev.baslik }}</strong> - {{ odev.ders.ad }} | {{ odev.sube.tam_ad }} |
+            Son teslim: {{ odev.son_teslim_tarihi.strftime('%d.%m.%Y') }}
+            {% if odev.gecikti_mi %}
+            <span class="badge bg-danger ms-1">Suresi Gecti</span>
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-people me-2"></i>Ogrenci Listesi</h6>
+        <span class="badge bg-primary">{{ teslimler|length }} ogrenci</span>
+    </div>
+    <div class="card-body p-0">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 50px">#</th>
+                            <th style="width: 100px">Ogrenci No</th>
+                            <th>Ad Soyad</th>
+                            <th style="width: 180px">Durum</th>
+                            <th style="width: 120px">Puan</th>
+                            <th style="width: 200px">Aciklama</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in teslimler %}
+                        <tr>
+                            <td class="text-muted">{{ loop.index }}</td>
+                            <td><strong>{{ t.ogrenci.ogrenci_no }}</strong></td>
+                            <td>{{ t.ogrenci.tam_ad }}</td>
+                            <td>
+                                <select name="durum_{{ t.ogrenci_id }}" class="form-select form-select-sm">
+                                    <option value="teslim_edilmedi" {% if t.durum == 'teslim_edilmedi' %}selected{% endif %}>Teslim Edilmedi</option>
+                                    <option value="teslim_edildi" {% if t.durum == 'teslim_edildi' %}selected{% endif %}>Teslim Edildi</option>
+                                    <option value="gecikti" {% if t.durum == 'gecikti' %}selected{% endif %}>Gecikti</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number"
+                                       name="puan_{{ t.ogrenci_id }}"
+                                       class="form-control form-control-sm"
+                                       min="0" max="100" step="0.5"
+                                       value="{{ t.puan if t.puan is not none else '' }}"
+                                       placeholder="-">
+                            </td>
+                            <td>
+                                <input type="text"
+                                       name="aciklama_{{ t.ogrenci_id }}"
+                                       class="form-control form-control-sm"
+                                       value="{{ t.aciklama or '' }}"
+                                       placeholder="Not...">
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Teslim kaydi bulunmuyor
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if teslimler %}
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Tum ogrencilerin teslim durumlarini isaretleyip kaydedin.
+                </div>
+                <div>
+                    <a href="{{ url_for('odev_takip.odev.detay', odev_id=odev.id) }}" class="btn btn-secondary me-2">Iptal</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

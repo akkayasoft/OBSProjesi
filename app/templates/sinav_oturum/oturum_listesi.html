@@ -1,0 +1,176 @@
+{% extends "sinav_oturum/_layout.html" %}
+
+{% block title %}Sinav Oturumlari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Oturumlar</li>
+{% endblock %}
+
+{% block sinav_oturum_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-journal-text me-2"></i>Sinav Oturumlari</h4>
+    <div>
+        <a href="{{ url_for('sinav_oturum.takvim.goruntule') }}" class="btn btn-outline-info me-2">
+            <i class="bi bi-calendar3 me-1"></i>Takvim
+        </a>
+        <a href="{{ url_for('sinav_oturum.oturum.yeni') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Oturum
+        </a>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Sinav Turu</label>
+                <select name="sinav_turu" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="yazili" {% if sinav_turu == 'yazili' %}selected{% endif %}>Yazili</option>
+                    <option value="sozlu" {% if sinav_turu == 'sozlu' %}selected{% endif %}>Sozlu</option>
+                    <option value="test" {% if sinav_turu == 'test' %}selected{% endif %}>Test</option>
+                    <option value="performans" {% if sinav_turu == 'performans' %}selected{% endif %}>Performans</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="planlanmis" {% if durum == 'planlanmis' %}selected{% endif %}>Planlanmis</option>
+                    <option value="devam_ediyor" {% if durum == 'devam_ediyor' %}selected{% endif %}>Devam Ediyor</option>
+                    <option value="tamamlandi" {% if durum == 'tamamlandi' %}selected{% endif %}>Tamamlandi</option>
+                    <option value="iptal" {% if durum == 'iptal' %}selected{% endif %}>Iptal</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sinif</label>
+                <select name="sinif_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for s in siniflar %}
+                    <option value="{{ s.id }}" {% if sinif_id == s.id|string %}selected{% endif %}>{{ s.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Ders</label>
+                <select name="ders_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for d in dersler %}
+                    <option value="{{ d.id }}" {% if ders_id == d.id|string %}selected{% endif %}>{{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Baslangic</label>
+                <input type="date" name="baslangic" class="form-control" value="{{ baslangic }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Bitis</label>
+                <input type="date" name="bitis" class="form-control" value="{{ bitis }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if sinav_turu or durum or sinif_id or ders_id or baslangic or bitis %}
+            <div class="col-md-2">
+                <a href="{{ url_for('sinav_oturum.oturum.liste') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Oturum Listesi -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Tarih</th>
+                    <th>Sinav Adi</th>
+                    <th>Tur</th>
+                    <th>Sinif</th>
+                    <th>Ders</th>
+                    <th>Saat</th>
+                    <th>Ogretmen</th>
+                    <th>Durum</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in oturumlar.items %}
+                <tr>
+                    <td>{{ o.tarih.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('sinav_oturum.oturum.detay', oturum_id=o.id) }}" class="text-decoration-none fw-semibold">
+                            {{ o.ad }}
+                        </a>
+                    </td>
+                    <td><span class="badge bg-{{ o.sinav_turu_badge }}">{{ o.sinav_turu_str }}</span></td>
+                    <td>{{ o.sinif.ad if o.sinif else '-' }}</td>
+                    <td>{{ o.ders.ad if o.ders else '-' }}</td>
+                    <td>{{ o.baslangic_saati.strftime('%H:%M') }} - {{ o.bitis_saati.strftime('%H:%M') }}</td>
+                    <td>{{ o.ogretmen.tam_ad if o.ogretmen else '-' }}</td>
+                    <td><span class="badge bg-{{ o.durum_badge }}">{{ o.durum_str }}</span></td>
+                    <td class="text-end">
+                        <a href="{{ url_for('sinav_oturum.oturum.detay', oturum_id=o.id) }}"
+                           class="btn btn-sm btn-outline-info" title="Detay">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('sinav_oturum.oturum.duzenle', oturum_id=o.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('sinav_oturum.oturum.sil', oturum_id=o.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu sinav oturumunu silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="bi bi-journal-text display-4 d-block mb-3"></i>
+                        Henuz sinav oturumu bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if oturumlar.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if oturumlar.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ oturumlar.prev_num }}&sinav_turu={{ sinav_turu }}&durum={{ durum }}&sinif_id={{ sinif_id }}&ders_id={{ ders_id }}&baslangic={{ baslangic }}&bitis={{ bitis }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in oturumlar.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == oturumlar.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&sinav_turu={{ sinav_turu }}&durum={{ durum }}&sinif_id={{ sinif_id }}&ders_id={{ ders_id }}&baslangic={{ baslangic }}&bitis={{ bitis }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if oturumlar.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ oturumlar.next_num }}&sinav_turu={{ sinav_turu }}&durum={{ durum }}&sinif_id={{ sinif_id }}&ders_id={{ ders_id }}&baslangic={{ baslangic }}&bitis={{ bitis }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

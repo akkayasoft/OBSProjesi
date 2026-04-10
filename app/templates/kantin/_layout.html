@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Ana Sayfa</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('kantin.menu.liste') }}">Kantin / Yemekhane</a></li>
+        {% block breadcrumb %}{% endblock %}
+    </ol></nav>
+</div>
+{% block kantin_content %}{% endblock %}
+{% endblock %}

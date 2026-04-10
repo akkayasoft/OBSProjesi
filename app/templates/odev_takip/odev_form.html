@@ -1,0 +1,85 @@
+{% extends "odev_takip/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block odev_takip_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.baslik.label(class="form-label") }}
+                        {{ form.baslik(class="form-control" + (" is-invalid" if form.baslik.errors else "")) }}
+                        {% for e in form.baslik.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.ders_id.label(class="form-label") }}
+                            {{ form.ders_id(class="form-select" + (" is-invalid" if form.ders_id.errors else "")) }}
+                            {% for e in form.ders_id.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.sube_id.label(class="form-label") }}
+                            {{ form.sube_id(class="form-select" + (" is-invalid" if form.sube_id.errors else "")) }}
+                            {% for e in form.sube_id.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.ogretmen_id.label(class="form-label") }}
+                            {{ form.ogretmen_id(class="form-select" + (" is-invalid" if form.ogretmen_id.errors else "")) }}
+                            {% for e in form.ogretmen_id.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.son_teslim_tarihi.label(class="form-label") }}
+                            {{ form.son_teslim_tarihi(class="form-control" + (" is-invalid" if form.son_teslim_tarihi.errors else "")) }}
+                            {% for e in form.son_teslim_tarihi.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.donem.label(class="form-label") }}
+                            {{ form.donem(class="form-control" + (" is-invalid" if form.donem.errors else "")) }}
+                            {% for e in form.donem.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.aciklama.label(class="form-label") }}
+                        {{ form.aciklama(class="form-control", rows="4") }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('odev_takip.odev.liste') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Geri
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

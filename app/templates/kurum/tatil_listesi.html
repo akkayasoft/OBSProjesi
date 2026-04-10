@@ -1,0 +1,106 @@
+{% extends "kurum/_layout.html" %}
+
+{% block title %}Tatiller{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Tatiller</li>
+{% endblock %}
+
+{% block kurum_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-calendar-x me-2"></i>Tatiller</h4>
+    <a href="{{ url_for('kurum.tatil.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Tatil
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Ogretim Yili</label>
+                <select name="ogretim_yili_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for oy in ogretim_yillari %}
+                    <option value="{{ oy.id }}" {% if ogretim_yili_id == oy.id %}selected{% endif %}>{{ oy.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Tur</label>
+                <select name="tur" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="resmi_tatil" {% if tur_filtre == 'resmi_tatil' %}selected{% endif %}>Resmi Tatil</option>
+                    <option value="ara_tatil" {% if tur_filtre == 'ara_tatil' %}selected{% endif %}>Ara Tatil</option>
+                    <option value="sinav_haftasi" {% if tur_filtre == 'sinav_haftasi' %}selected{% endif %}>Sinav Haftasi</option>
+                    <option value="diger" {% if tur_filtre == 'diger' %}selected{% endif %}>Diger</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if ogretim_yili_id or tur_filtre %}
+            <div class="col-md-2">
+                <a href="{{ url_for('kurum.tatil.liste') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tatil Adi</th>
+                        <th>Baslangic</th>
+                        <th>Bitis</th>
+                        <th>Sure</th>
+                        <th>Tur</th>
+                        <th>Ogretim Yili</th>
+                        <th class="text-end">Islemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tatiller %}
+                    <tr>
+                        <td><strong>{{ t.ad }}</strong></td>
+                        <td>{{ t.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ t.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ t.gun_sayisi }} gun</td>
+                        <td><span class="badge bg-{{ t.tur_badge }}">{{ t.tur_str }}</span></td>
+                        <td>{{ t.ogretim_yili.ad }}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('kurum.tatil.duzenle', id=t.id) }}"
+                               class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('kurum.tatil.sil', id=t.id) }}"
+                                  class="d-inline" onsubmit="return confirm('Bu tatili silmek istediginize emin misiniz?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Henuz tatil bulunmuyor.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

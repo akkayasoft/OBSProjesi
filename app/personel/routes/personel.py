@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask_login import login_required
+from app.utils import role_required, current_user
 from app.extensions import db
 from app.models.muhasebe import Personel
 from app.personel.forms import PersonelForm, PersonelDuzenleForm
@@ -9,6 +10,7 @@ bp = Blueprint('personel_crud', __name__)
 
 @bp.route('/')
 @login_required
+@role_required('admin',)
 def liste():
     arama = request.args.get('arama', '')
     departman = request.args.get('departman', '')
@@ -45,6 +47,7 @@ def liste():
 
 @bp.route('/yeni', methods=['GET', 'POST'])
 @login_required
+@role_required('admin',)
 def yeni():
     form = PersonelForm()
 
@@ -80,6 +83,7 @@ def yeni():
 
 @bp.route('/<int:personel_id>')
 @login_required
+@role_required('admin',)
 def detay(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     izinler = personel.izinler.order_by(db.desc('baslangic_tarihi')).all()
@@ -92,6 +96,7 @@ def detay(personel_id):
 
 @bp.route('/<int:personel_id>/duzenle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin',)
 def duzenle(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     form = PersonelDuzenleForm(obj=personel)
@@ -131,6 +136,7 @@ def duzenle(personel_id):
 
 @bp.route('/<int:personel_id>/durum', methods=['POST'])
 @login_required
+@role_required('admin',)
 def durum_degistir(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     personel.aktif = not personel.aktif

@@ -1,0 +1,108 @@
+{% extends "online_sinav/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sinav.liste') }}">Sinav Listesi</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block online_sinav_content %}
+<h4 class="mb-4"><i class="bi bi-pencil-square me-2"></i>{{ baslik }}</h4>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label">{{ form.baslik.label.text }}</label>
+                    {{ form.baslik(class="form-control" + (" is-invalid" if form.baslik.errors else "")) }}
+                    {% for e in form.baslik.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">{{ form.aciklama.label.text }}</label>
+                    {{ form.aciklama(class="form-control") }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.ders_id.label.text }}</label>
+                    {{ form.ders_id(class="form-select" + (" is-invalid" if form.ders_id.errors else "")) }}
+                    {% for e in form.ders_id.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.sube_id.label.text }}</label>
+                    {{ form.sube_id(class="form-select") }}
+                    <small class="text-muted">Bos birakilirsa tum subelere uygulanir.</small>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.sure.label.text }}</label>
+                    {{ form.sure(class="form-control" + (" is-invalid" if form.sure.errors else "")) }}
+                    {% for e in form.sure.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.baslangic_zamani.label.text }}</label>
+                    {{ form.baslangic_zamani(class="form-control" + (" is-invalid" if form.baslangic_zamani.errors else ""), type="datetime-local") }}
+                    {% for e in form.baslangic_zamani.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.bitis_zamani.label.text }}</label>
+                    {{ form.bitis_zamani(class="form-control" + (" is-invalid" if form.bitis_zamani.errors else ""), type="datetime-local") }}
+                    {% for e in form.bitis_zamani.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.sinav_turu.label.text }}</label>
+                    {{ form.sinav_turu(class="form-select") }}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.zorluk.label.text }}</label>
+                    {{ form.zorluk(class="form-select") }}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.toplam_puan.label.text }}</label>
+                    {{ form.toplam_puan(class="form-control" + (" is-invalid" if form.toplam_puan.errors else "")) }}
+                    {% for e in form.toplam_puan.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.gecme_puani.label.text }}</label>
+                    {{ form.gecme_puani(class="form-control" + (" is-invalid" if form.gecme_puani.errors else "")) }}
+                    {% for e in form.gecme_puani.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-8">
+                    <div class="d-flex gap-4 mt-3">
+                        <div class="form-check">
+                            {{ form.sorulari_karistir(class="form-check-input") }}
+                            <label class="form-check-label">{{ form.sorulari_karistir.label.text }}</label>
+                        </div>
+                        <div class="form-check">
+                            {{ form.secenekleri_karistir(class="form-check-input") }}
+                            <label class="form-check-label">{{ form.secenekleri_karistir.label.text }}</label>
+                        </div>
+                        <div class="form-check">
+                            {{ form.sonuclari_goster(class="form-check-input") }}
+                            <label class="form-check-label">{{ form.sonuclari_goster.label.text }}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('online_sinav.sinav.liste') }}" class="btn btn-outline-secondary">Iptal</a>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

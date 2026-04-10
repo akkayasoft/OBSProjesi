@@ -1,0 +1,114 @@
+{% extends "online_sinav/_layout.html" %}
+
+{% block title %}Sorular - {{ sinav.baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sinav.liste') }}">Sinav Listesi</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.baslik }}</a></li>
+<li class="breadcrumb-item active">Sorular</li>
+{% endblock %}
+
+{% block online_sinav_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-question-circle me-2"></i>Sorular</h4>
+        <p class="text-muted mb-0">{{ sinav.baslik }} - {{ sinav.ders.ad }}</p>
+    </div>
+    <a href="{{ url_for('online_sinav.soru.yeni', sinav_id=sinav.id) }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Soru Ekle
+    </a>
+</div>
+
+{% if sorular %}
+<div class="row g-3">
+    {% for soru in sorular %}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-dark me-2">{{ soru.sira }}.</span>
+                            <span class="badge bg-{{ soru.soru_turu_badge }} me-2">{{ soru.soru_turu_str }}</span>
+                            <span class="badge bg-{{ 'success' if soru.zorluk == 'kolay' else ('warning' if soru.zorluk == 'orta' else 'danger') }} me-2">{{ soru.zorluk|capitalize }}</span>
+                            <span class="badge bg-outline-dark border text-dark">{{ soru.puan }} puan</span>
+                        </div>
+                        <p class="mb-2">{{ soru.soru_metni }}</p>
+
+                        {% if soru.soru_turu == 'coktan_secmeli' %}
+                        <div class="ms-3">
+                            {% for sec in soru.secenekler.all() %}
+                            <div class="mb-1">
+                                {% if sec.dogru_mu %}
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                <strong class="text-success">{{ sec.secenek_metni }}</strong>
+                                {% else %}
+                                <i class="bi bi-circle text-muted me-1"></i>
+                                <span>{{ sec.secenek_metni }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% elif soru.soru_turu == 'dogru_yanlis' %}
+                        <div class="ms-3">
+                            {% for sec in soru.secenekler.all() %}
+                            <span class="me-3">
+                                {% if sec.dogru_mu %}
+                                <i class="bi bi-check-circle-fill text-success me-1"></i><strong class="text-success">{{ sec.secenek_metni }}</strong>
+                                {% else %}
+                                <i class="bi bi-circle text-muted me-1"></i>{{ sec.secenek_metni }}
+                                {% endif %}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% elif soru.soru_turu == 'bosluk_doldurma' %}
+                        {% set dogru = soru.secenekler.filter_by(dogru_mu=True).first() %}
+                        {% if dogru %}
+                        <div class="ms-3">
+                            <small class="text-muted">Dogru cevap: </small>
+                            <strong class="text-success">{{ dogru.secenek_metni }}</strong>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        {% if soru.aciklama %}
+                        <div class="mt-2 ms-3">
+                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>{{ soru.aciklama }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="btn-group btn-group-sm ms-3">
+                        <a href="{{ url_for('online_sinav.soru.duzenle', soru_id=soru.id) }}" class="btn btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('online_sinav.soru.sil', soru_id=soru.id) }}"
+                              onsubmit="return confirm('Bu soruyu silmek istediginize emin misiniz?')" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="mt-3 text-muted text-end">
+    <strong>Toplam: {{ sorular|length }} soru</strong> |
+    Toplam puan: {{ sorular|sum(attribute='puan') }}
+</div>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-question-circle display-4 text-muted"></i>
+        <p class="mt-3 text-muted">Henuz soru eklenmemis.</p>
+        <a href="{{ url_for('online_sinav.soru.yeni', sinav_id=sinav.id) }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Ilk Soruyu Ekle
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

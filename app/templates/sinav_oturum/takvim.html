@@ -1,0 +1,101 @@
+{% extends "sinav_oturum/_layout.html" %}
+
+{% block title %}Sinav Takvimi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Takvim</li>
+{% endblock %}
+
+{% block sinav_oturum_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Sinav Takvimi</h4>
+    <div>
+        <a href="{{ url_for('sinav_oturum.oturum.liste') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-list-ul me-1"></i>Liste Gorunumu
+        </a>
+        <a href="{{ url_for('sinav_oturum.oturum.yeni') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Oturum
+        </a>
+    </div>
+</div>
+
+<!-- Renk Aciklamasi -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <small class="text-muted me-2">Durum:</small>
+            <span><span class="badge" style="background-color: #6c757d;">&nbsp;&nbsp;</span> Planlanmis</span>
+            <span><span class="badge" style="background-color: #ffc107;">&nbsp;&nbsp;</span> Devam Ediyor</span>
+            <span><span class="badge" style="background-color: #198754;">&nbsp;&nbsp;</span> Tamamlandi</span>
+            <span><span class="badge" style="background-color: #dc3545;">&nbsp;&nbsp;</span> Iptal</span>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div id="takvim"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+<style>
+    #takvim {
+        min-height: 600px;
+    }
+    .fc-event {
+        cursor: pointer;
+    }
+    .fc-toolbar-title {
+        font-size: 1.2rem !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/locales/tr.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('takvim');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'tr',
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: {
+            url: '{{ url_for("sinav_oturum.takvim.veriler") }}',
+            failure: function() {
+                alert('Takvim verileri yuklenirken hata olustu.');
+            }
+        },
+        eventClick: function(info) {
+            if (info.event.url) {
+                info.jsEvent.preventDefault();
+                window.location.href = info.event.url;
+            }
+        },
+        eventDidMount: function(info) {
+            var props = info.event.extendedProps;
+            var tooltip = info.event.title;
+            if (props.sinif) tooltip += '\nSinif: ' + props.sinif;
+            if (props.ders) tooltip += '\nDers: ' + props.ders;
+            if (props.ogretmen) tooltip += '\nOgretmen: ' + props.ogretmen;
+            if (props.derslik) tooltip += '\nDerslik: ' + props.derslik;
+            tooltip += '\nDurum: ' + props.durum;
+            info.el.setAttribute('title', tooltip);
+        },
+        height: 'auto',
+        navLinks: true,
+        editable: false,
+        dayMaxEvents: true
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}

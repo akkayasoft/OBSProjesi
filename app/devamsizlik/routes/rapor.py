@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
+from app.utils import role_required
 from datetime import date, timedelta
 from sqlalchemy import func
 
@@ -22,6 +23,7 @@ def _sube_choices():
 
 @bp.route('/')
 @login_required
+@role_required('admin', 'ogretmen')
 def index():
     """Devamsızlık raporları ana sayfası."""
     form = DevamsizlikRaporForm(request.args, meta={'csrf': False})
@@ -111,6 +113,7 @@ def index():
 
 @bp.route('/sinif/<int:sube_id>')
 @login_required
+@role_required('admin', 'ogretmen')
 def sinif_rapor(sube_id):
     """Sınıf bazlı devamsızlık raporu."""
     sube = Sube.query.get_or_404(sube_id)
@@ -118,14 +121,18 @@ def sinif_rapor(sube_id):
     baslangic = request.args.get('baslangic')
     bitis = request.args.get('bitis')
 
-    if baslangic:
-        baslangic = date.fromisoformat(baslangic)
-    else:
-        baslangic = date.today().replace(day=1)
-    if bitis:
-        bitis = date.fromisoformat(bitis)
-    else:
-        bitis = date.today()
+    try:
+        if baslangic:
+            baslangic = date.fromisoformat(baslangic)
+        else:
+            baslangic = date.today().replace(day=1)
+        if bitis:
+            bitis = date.fromisoformat(bitis)
+        else:
+            bitis = date.today()
+    except ValueError:
+        flash('Geçersiz tarih formatı.', 'danger')
+        return redirect(url_for('devamsizlik.rapor.index'))
 
     # Aktif öğrenciler
     aktif_kayitlar = OgrenciKayit.query.filter_by(

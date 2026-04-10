@@ -1,0 +1,24 @@
+{% extends "envanter/_layout.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">{{ baslik }}</li>{% endblock %}
+{% block envanter_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0">{{ baslik }}</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-6 mb-3">{{ form.ad.label(class="form-label") }}{{ form.ad(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.barkod.label(class="form-label") }}{{ form.barkod(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.kategori.label(class="form-label") }}{{ form.kategori(class="form-select") }}</div>
+    <div class="col-md-3 mb-3">{{ form.marka.label(class="form-label") }}{{ form.marka(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.model_adi.label(class="form-label") }}{{ form.model_adi(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.seri_no.label(class="form-label") }}{{ form.seri_no(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.durum.label(class="form-label") }}{{ form.durum(class="form-select") }}</div>
+    <div class="col-md-3 mb-3">{{ form.edinme_tarihi.label(class="form-label") }}{{ form.edinme_tarihi(class="form-control", type="date") }}</div>
+    <div class="col-md-3 mb-3">{{ form.edinme_fiyati.label(class="form-label") }}{{ form.edinme_fiyati(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.konum.label(class="form-label") }}{{ form.konum(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.sorumlu_id.label(class="form-label") }}{{ form.sorumlu_id(class="form-select") }}</div>
+    <div class="col-12 mb-3">{{ form.aciklama.label(class="form-label") }}{{ form.aciklama(class="form-control") }}</div>
+</div>
+<button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Kaydet</button>
+<a href="{{ url_for('envanter.demirbas.liste') }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}

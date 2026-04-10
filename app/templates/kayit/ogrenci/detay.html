@@ -140,6 +140,14 @@
                         <i class="bi {% if belge.teslim_edildi %}bi-check-circle-fill text-success{% else %}bi-x-circle text-warning{% endif %}"
                            style="font-size:1.5rem;"></i>
                         <p class="small mb-1 mt-2">{{ belge.belge_turu_ad }}</p>
+                        {% if belge.dosya_yolu %}
+                        <a href="{{ url_for('kayit.belge.dosya_indir', belge_id=belge.id) }}"
+                           target="_blank" class="btn btn-sm btn-outline-primary mb-1"
+                           title="{{ belge.orijinal_ad or 'Dosyayı görüntüle' }}">
+                            <i class="bi bi-eye"></i> Görüntüle
+                        </a>
+                        <br>
+                        {% endif %}
                         <form method="POST" action="{{ url_for('kayit.belge.teslim_toggle', belge_id=belge.id) }}" class="d-inline">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-sm {% if belge.teslim_edildi %}btn-outline-danger{% else %}btn-outline-success{% endif %}">

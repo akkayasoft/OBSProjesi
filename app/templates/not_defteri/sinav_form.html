@@ -1,0 +1,86 @@
+{% extends "not_defteri/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('not_defteri.sinav.liste') }}">Sinavlar</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block not_defteri_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.sinav_turu_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sinav_turu_id(class="form-select") }}
+                            {% for error in form.sinav_turu_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ders_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ders_id(class="form-select") }}
+                            {% for error in form.ders_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.sube_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sube_id(class="form-select") }}
+                            {% for error in form.sube_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.ogretmen_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogretmen_id(class="form-select") }}
+                            {% for error in form.ogretmen_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.tarih.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.tarih(class="form-control", type="date") }}
+                            {% for error in form.tarih.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.donem.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.donem(class="form-control") }}
+                            {% for error in form.donem.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control", rows="3") }}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('not_defteri.sinav.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

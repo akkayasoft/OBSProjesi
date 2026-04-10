@@ -1,0 +1,252 @@
+{% extends "ayarlar/_layout.html" %}
+
+{% block title %}Sistem Ayarlari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Ayarlar</li>
+{% endblock %}
+
+{% block ayarlar_content %}
+<h4 class="mb-4"><i class="bi bi-gear me-2"></i>Sistem Ayarlari</h4>
+
+<!-- Nav tabs -->
+<ul class="nav nav-tabs mb-4" id="ayarlarTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if aktif_tab == 'genel' %}active{% endif %}" id="genel-tab"
+                data-bs-toggle="tab" data-bs-target="#genel" type="button" role="tab">
+            <i class="bi bi-sliders me-1"></i>Genel
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if aktif_tab == 'akademik' %}active{% endif %}" id="akademik-tab"
+                data-bs-toggle="tab" data-bs-target="#akademik" type="button" role="tab">
+            <i class="bi bi-mortarboard me-1"></i>Akademik
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if aktif_tab == 'muhasebe' %}active{% endif %}" id="muhasebe-tab"
+                data-bs-toggle="tab" data-bs-target="#muhasebe" type="button" role="tab">
+            <i class="bi bi-cash-stack me-1"></i>Muhasebe
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if aktif_tab == 'iletisim' %}active{% endif %}" id="iletisim-tab"
+                data-bs-toggle="tab" data-bs-target="#iletisim" type="button" role="tab">
+            <i class="bi bi-chat-left-text me-1"></i>Iletisim
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if aktif_tab == 'guvenlik' %}active{% endif %}" id="guvenlik-tab"
+                data-bs-toggle="tab" data-bs-target="#guvenlik" type="button" role="tab">
+            <i class="bi bi-shield-lock me-1"></i>Guvenlik
+        </button>
+    </li>
+</ul>
+
+<!-- Tab content -->
+<div class="tab-content" id="ayarlarTabContent">
+    <!-- Genel -->
+    <div class="tab-pane fade {% if aktif_tab == 'genel' %}show active{% endif %}" id="genel" role="tabpanel">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>Genel Ayarlar</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('ayarlar.genel.index') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% for ayar in ayarlar.genel %}
+                    <div class="mb-3 row">
+                        <label for="{{ ayar.anahtar }}" class="col-sm-3 col-form-label">
+                            {{ ayar.aciklama or ayar.anahtar }}
+                        </label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" id="{{ ayar.anahtar }}"
+                                   name="{{ ayar.anahtar }}" value="{{ ayar.deger or '' }}">
+                            <small class="text-muted">Varsayilan: {{ ayar.varsayilan or '-' }}</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">Henuz genel ayar bulunmuyor.</div>
+                    {% endfor %}
+                    {% if ayarlar.genel %}
+                    <div class="row">
+                        <div class="col-sm-6 offset-sm-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Akademik -->
+    <div class="tab-pane fade {% if aktif_tab == 'akademik' %}show active{% endif %}" id="akademik" role="tabpanel">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-mortarboard me-2"></i>Akademik Ayarlar</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('ayarlar.akademik.index') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% for ayar in ayarlar.akademik %}
+                    <div class="mb-3 row">
+                        <label for="{{ ayar.anahtar }}" class="col-sm-3 col-form-label">
+                            {{ ayar.aciklama or ayar.anahtar }}
+                        </label>
+                        <div class="col-sm-6">
+                            <input type="{{ 'number' if ayar.tur == 'number' else 'text' }}" class="form-control"
+                                   id="{{ ayar.anahtar }}" name="{{ ayar.anahtar }}" value="{{ ayar.deger or '' }}">
+                            <small class="text-muted">Varsayilan: {{ ayar.varsayilan or '-' }}</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">Henuz akademik ayar bulunmuyor.</div>
+                    {% endfor %}
+                    {% if ayarlar.akademik %}
+                    <div class="row">
+                        <div class="col-sm-6 offset-sm-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Muhasebe -->
+    <div class="tab-pane fade {% if aktif_tab == 'muhasebe' %}show active{% endif %}" id="muhasebe" role="tabpanel">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-cash-stack me-2"></i>Muhasebe Ayarlari</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('ayarlar.muhasebe_ayar.index') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% for ayar in ayarlar.muhasebe %}
+                    <div class="mb-3 row">
+                        <label for="{{ ayar.anahtar }}" class="col-sm-3 col-form-label">
+                            {{ ayar.aciklama or ayar.anahtar }}
+                        </label>
+                        <div class="col-sm-6">
+                            <input type="{{ 'number' if ayar.tur == 'number' else 'text' }}" class="form-control"
+                                   id="{{ ayar.anahtar }}" name="{{ ayar.anahtar }}" value="{{ ayar.deger or '' }}">
+                            <small class="text-muted">Varsayilan: {{ ayar.varsayilan or '-' }}</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">Henuz muhasebe ayari bulunmuyor.</div>
+                    {% endfor %}
+                    {% if ayarlar.muhasebe %}
+                    <div class="row">
+                        <div class="col-sm-6 offset-sm-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Iletisim -->
+    <div class="tab-pane fade {% if aktif_tab == 'iletisim' %}show active{% endif %}" id="iletisim" role="tabpanel">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Iletisim Ayarlari</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('ayarlar.iletisim_ayar.index') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% for ayar in ayarlar.iletisim %}
+                    <div class="mb-3 row">
+                        <label for="{{ ayar.anahtar }}" class="col-sm-3 col-form-label">
+                            {{ ayar.aciklama or ayar.anahtar }}
+                        </label>
+                        <div class="col-sm-6">
+                            {% if ayar.tur == 'boolean' %}
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="{{ ayar.anahtar }}"
+                                       name="{{ ayar.anahtar }}" value="true"
+                                       {% if ayar.deger == 'true' %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ ayar.anahtar }}">Aktif</label>
+                            </div>
+                            {% elif ayar.tur == 'email' %}
+                            <input type="email" class="form-control" id="{{ ayar.anahtar }}"
+                                   name="{{ ayar.anahtar }}" value="{{ ayar.deger or '' }}">
+                            {% else %}
+                            <input type="text" class="form-control" id="{{ ayar.anahtar }}"
+                                   name="{{ ayar.anahtar }}" value="{{ ayar.deger or '' }}">
+                            {% endif %}
+                            <small class="text-muted">Varsayilan: {{ ayar.varsayilan or '-' }}</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">Henuz iletisim ayari bulunmuyor.</div>
+                    {% endfor %}
+                    {% if ayarlar.iletisim %}
+                    <div class="row">
+                        <div class="col-sm-6 offset-sm-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guvenlik -->
+    <div class="tab-pane fade {% if aktif_tab == 'guvenlik' %}show active{% endif %}" id="guvenlik" role="tabpanel">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Guvenlik Ayarlari</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('ayarlar.guvenlik.index') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% for ayar in ayarlar.guvenlik %}
+                    <div class="mb-3 row">
+                        <label for="{{ ayar.anahtar }}" class="col-sm-3 col-form-label">
+                            {{ ayar.aciklama or ayar.anahtar }}
+                        </label>
+                        <div class="col-sm-6">
+                            <input type="{{ 'number' if ayar.tur == 'number' else 'text' }}" class="form-control"
+                                   id="{{ ayar.anahtar }}" name="{{ ayar.anahtar }}" value="{{ ayar.deger or '' }}">
+                            <small class="text-muted">Varsayilan: {{ ayar.varsayilan or '-' }}</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">Henuz guvenlik ayari bulunmuyor.</div>
+                    {% endfor %}
+                    {% if ayarlar.guvenlik %}
+                    <div class="row">
+                        <div class="col-sm-6 offset-sm-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Yedekleme linki -->
+<div class="mt-4">
+    <a href="{{ url_for('ayarlar.yedekleme.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-download me-1"></i>Yedekleme
+    </a>
+</div>
+{% endblock %}

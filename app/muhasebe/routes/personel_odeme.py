@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask_login import login_required
+from app.utils import role_required, current_user
 from app.extensions import db
 from app.models.muhasebe import Personel, PersonelOdemeKaydi, BankaHesabi
 from app.muhasebe.forms import PersonelForm, PersonelOdemeForm
@@ -10,6 +11,7 @@ bp = Blueprint('personel_odeme', __name__)
 
 @bp.route('/')
 @login_required
+@role_required('admin', 'muhasebeci')
 def liste():
     page = request.args.get('page', 1, type=int)
     personeller = Personel.query.filter_by(aktif=True).order_by(
@@ -22,6 +24,7 @@ def liste():
 
 @bp.route('/personel-ekle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def personel_ekle():
     form = PersonelForm()
     if form.validate_on_submit():
@@ -43,6 +46,7 @@ def personel_ekle():
 
 @bp.route('/<int:personel_id>')
 @login_required
+@role_required('admin', 'muhasebeci')
 def detay(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     odemeler = PersonelOdemeKaydi.query.filter_by(
@@ -55,6 +59,7 @@ def detay(personel_id):
 
 @bp.route('/<int:personel_id>/odeme-ekle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def odeme_ekle(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     form = PersonelOdemeForm()

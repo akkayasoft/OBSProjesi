@@ -1,0 +1,168 @@
+{% extends "saglik/_layout.html" %}
+
+{% block title %}Sağlık{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakış</li>
+{% endblock %}
+
+{% block saglik_content %}
+<h4 class="mb-4"><i class="bi bi-heart-pulse-fill me-2"></i>Sağlık Modülü</h4>
+
+<!-- İstatistik Kartları -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Sağlık Kayıtları</p>
+                        <h3 class="mb-0">{{ toplam_kayit }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-file-medical"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-danger border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Bugünkü Revir Ziyareti</p>
+                        <h3 class="mb-0">{{ bugunun_revir }}</h3>
+                    </div>
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-hospital"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Bekleyen Aşılar</p>
+                        <h3 class="mb-0">{{ bekleyen_asi }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-shield-plus"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Yaklaşan Taramalar</p>
+                        <h3 class="mb-0">{{ yaklasan_tarama }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-search-heart"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Son Revir Kayıtları -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-hospital me-2"></i>Son Revir Kayıtları</h6>
+                <a href="{{ url_for('saglik.revir.yeni') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Yeni Kayıt
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for r in son_revir %}
+                    <a href="{{ url_for('saglik.revir.detay', kayit_id=r.id) }}"
+                       class="list-group-item list-group-item-action py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ r.ogrenci.tam_ad }}</strong>
+                                <small class="text-muted ms-2">({{ r.ogrenci.ogrenci_no }})</small>
+                                <div class="mt-1">
+                                    <span class="badge bg-{{ r.sonuc_badge }}">{{ r.sonuc_str }}</span>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    {{ r.tarih.strftime('%d.%m.%Y %H:%M') }}
+                                </small>
+                            </div>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Henüz revir kaydı bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if son_revir %}
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('saglik.revir.liste') }}" class="text-decoration-none">
+                        Tüm revir kayıtlarını görüntüle <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Geciken Aşılar -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-shield-plus me-2"></i>Geciken Aşılar</h6>
+                <a href="{{ url_for('saglik.asi.yeni') }}" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-plus"></i> Yeni
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for a in geciken_asilar %}
+                    <div class="list-group-item py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-danger me-1">Gecikti</span>
+                                <strong>{{ a.ogrenci.tam_ad }}</strong>
+                                <small class="text-muted d-block">
+                                    {{ a.asi_adi }}
+                                    {% if a.hatirlatma_tarihi %}
+                                    - {{ a.hatirlatma_tarihi.strftime('%d.%m.%Y') }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <a href="{{ url_for('saglik.asi.duzenle', kayit_id=a.id) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Geciken aşı bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if geciken_asilar %}
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('saglik.asi.liste') }}" class="text-decoration-none">
+                        Tüm aşı kayıtlarını görüntüle <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

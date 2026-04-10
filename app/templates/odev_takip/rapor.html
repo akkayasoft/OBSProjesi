@@ -1,0 +1,200 @@
+{% extends "odev_takip/_layout.html" %}
+
+{% block title %}Odev Raporlari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Raporlar</li>
+{% endblock %}
+
+{% block odev_takip_content %}
+<h4 class="mb-4"><i class="bi bi-graph-up me-2"></i>Odev Raporlari</h4>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Rapor Turu</label>
+                <select name="rapor_turu" class="form-select">
+                    <option value="ogrenci" {% if rapor_turu == 'ogrenci' %}selected{% endif %}>Ogrenci Bazli</option>
+                    <option value="ders" {% if rapor_turu == 'ders' %}selected{% endif %}>Ders Bazli</option>
+                    <option value="sinif" {% if rapor_turu == 'sinif' %}selected{% endif %}>Sinif Bazli</option>
+                </select>
+            </div>
+            {% if rapor_turu == 'ogrenci' %}
+            <div class="col-md-3">
+                <label class="form-label">Ders</label>
+                <select name="ders_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for d in dersler %}
+                    <option value="{{ d.id }}" {% if ders_id == d.id %}selected{% endif %}>{{ d.kod }} - {{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Sinif / Sube</label>
+                <select name="sube_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for s in subeler %}
+                    <option value="{{ s.id }}" {% if sube_id == s.id %}selected{% endif %}>{{ s.tam_ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search me-1"></i>Raporla
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rapor Tablosu -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            {% if rapor_turu == 'ogrenci' %}
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Ogrenci No</th>
+                        <th>Ad Soyad</th>
+                        <th>Toplam Odev</th>
+                        <th>Teslim Edilen</th>
+                        <th>Eksik Odev</th>
+                        <th>Ortalama Puan</th>
+                        <th>Islem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rapor_verileri %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ r.ogrenci_no }}</strong></td>
+                        <td>{{ r.ad }} {{ r.soyad }}</td>
+                        <td>{{ r.toplam_odev }}</td>
+                        <td><span class="badge bg-success">{{ r.teslim_edilen or 0 }}</span></td>
+                        <td>
+                            {% if (r.eksik_odev or 0) > 0 %}
+                            <span class="badge bg-danger">{{ r.eksik_odev }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">0</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r.ortalama_puan %}
+                            <span class="badge bg-{{ 'success' if r.ortalama_puan >= 70 else ('warning' if r.ortalama_puan >= 50 else 'danger') }}">
+                                {{ "%.1f"|format(r.ortalama_puan) }}
+                            </span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('odev_takip.rapor.ogrenci_rapor', ogrenci_id=r.id) }}"
+                               class="btn btn-sm btn-outline-info" title="Detay">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">Rapor verisi bulunmuyor</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% elif rapor_turu == 'ders' %}
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Ders Kodu</th>
+                        <th>Ders Adi</th>
+                        <th>Toplam Odev</th>
+                        <th>Toplam Teslim</th>
+                        <th>Teslim Edilen</th>
+                        <th>Teslim Orani</th>
+                        <th>Ortalama Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rapor_verileri %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ r.kod }}</strong></td>
+                        <td>{{ r.ad }}</td>
+                        <td>{{ r.toplam_odev }}</td>
+                        <td>{{ r.toplam_teslim }}</td>
+                        <td><span class="badge bg-success">{{ r.teslim_edilen or 0 }}</span></td>
+                        <td>
+                            {% set oran = ((r.teslim_edilen or 0) / r.toplam_teslim * 100) if r.toplam_teslim > 0 else 0 %}
+                            <div class="progress" style="height: 20px; min-width: 80px;">
+                                <div class="progress-bar bg-{{ 'success' if oran >= 80 else ('warning' if oran >= 50 else 'danger') }}"
+                                     style="width: {{ oran }}%">
+                                    %{{ "%.1f"|format(oran) }}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if r.ortalama_puan %}
+                            {{ "%.1f"|format(r.ortalama_puan) }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">Rapor verisi bulunmuyor</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% elif rapor_turu == 'sinif' %}
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Sinif / Sube</th>
+                        <th>Toplam Odev</th>
+                        <th>Toplam Teslim</th>
+                        <th>Teslim Edilen</th>
+                        <th>Teslim Orani</th>
+                        <th>Ortalama Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rapor_verileri %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ r.sube.tam_ad }}</strong></td>
+                        <td>{{ r.toplam_odev }}</td>
+                        <td>{{ r.toplam_teslim }}</td>
+                        <td><span class="badge bg-success">{{ r.teslim_edilen }}</span></td>
+                        <td>
+                            <div class="progress" style="height: 20px; min-width: 80px;">
+                                <div class="progress-bar bg-{{ 'success' if r.teslim_orani >= 80 else ('warning' if r.teslim_orani >= 50 else 'danger') }}"
+                                     style="width: {{ r.teslim_orani }}%">
+                                    %{{ r.teslim_orani }}
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ r.ortalama_puan }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Rapor verisi bulunmuyor</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

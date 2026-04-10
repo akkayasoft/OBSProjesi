@@ -1,0 +1,109 @@
+{% extends "ders_dagitimi/_layout.html" %}
+
+{% block title %}Öğretmen Atamaları{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Öğretmen Atamaları</li>
+{% endblock %}
+
+{% block ders_dagitimi_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-person-workspace me-2"></i>Öğretmen Atamaları</h4>
+    <a href="{{ url_for('ders_dagitimi.atama.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Atama
+    </a>
+</div>
+
+<!-- Arama ve Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Öğretmen Ara</label>
+                <input type="text" name="arama" class="form-control"
+                       placeholder="Öğretmen adı..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Dönem</label>
+                <input type="text" name="donem" class="form-control" value="{{ donem }}" placeholder="2025-2026">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Ara
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Atama Tablosu -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Öğretmen</th>
+                    <th>Ders</th>
+                    <th>Sınıf / Şube</th>
+                    <th>Dönem</th>
+                    <th>Durum</th>
+                    <th class="text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in atamalar.items %}
+                <tr>
+                    <td><strong>{{ a.ogretmen.tam_ad }}</strong></td>
+                    <td>{{ a.ders.kod }} - {{ a.ders.ad }}</td>
+                    <td>{{ a.sube.tam_ad }}</td>
+                    <td>{{ a.donem }}</td>
+                    <td>
+                        {% if a.aktif %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <form method="POST" action="{{ url_for('ders_dagitimi.atama.sil', atama_id=a.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu atamayı silmek istediğinize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Henüz atama bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if atamalar.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if atamalar.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ atamalar.prev_num }}&arama={{ arama }}&donem={{ donem }}">Önceki</a></li>
+            {% endif %}
+            {% for p in atamalar.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == atamalar.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&arama={{ arama }}&donem={{ donem }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if atamalar.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ atamalar.next_num }}&arama={{ arama }}&donem={{ donem }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

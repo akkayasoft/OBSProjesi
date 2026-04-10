@@ -1,0 +1,116 @@
+{% extends "ders_programi/_layout.html" %}
+{% block title %}{{ ogretmen.ad }} {{ ogretmen.soyad }} - Ders Programı{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('ders_programi.program.ogretmen_programi') }}">Öğretmen Programı</a></li>
+<li class="breadcrumb-item active">{{ ogretmen.ad }} {{ ogretmen.soyad }}</li>
+{% endblock %}
+{% block ders_programi_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-workspace"></i> {{ ogretmen.ad }} {{ ogretmen.soyad }} - Ders Programı</h2>
+    <div>
+        <a href="{{ url_for('ders_programi.program.ogretmen_programi') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Geri
+        </a>
+    </div>
+</div>
+
+<!-- Program Tablosu -->
+<div class="card">
+    <div class="card-body table-responsive">
+        <table class="table table-bordered text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 120px;">Saat</th>
+                    {% for gun in gunler %}
+                    <th>{{ gun }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for saat in range(1, 9) %}
+                <tr>
+                    <td class="fw-bold">
+                        <small>{{ saat }}. Ders</small><br>
+                        <small class="text-muted">{{ saat_araliklari[saat] }}</small>
+                    </td>
+                    {% for gun in gunler %}
+                    <td>
+                        {% set p = tablo[gun][saat] %}
+                        {% if p %}
+                        <div class="p-1">
+                            <strong class="text-primary">{{ p.ders.ad }}</strong><br>
+                            <small class="text-muted">{{ p.sube.sinif.ad if p.sube.sinif else '' }}-{{ p.sube.ad }}</small>
+                            {% if p.derslik %}
+                            <br><small class="badge bg-light text-dark">{{ p.derslik }}</small>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Özet -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="text-primary">
+                    {% set toplam = [] %}
+                    {% for gun in gunler %}
+                        {% for saat in range(1, 9) %}
+                            {% if tablo[gun][saat] %}
+                                {% if toplam.append(1) %}{% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    {{ toplam|length }}
+                </h5>
+                <small class="text-muted">Toplam Ders Saati</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="text-success">
+                    {% set dersler = [] %}
+                    {% for gun in gunler %}
+                        {% for saat in range(1, 9) %}
+                            {% if tablo[gun][saat] and tablo[gun][saat].ders.ad not in dersler %}
+                                {% if dersler.append(tablo[gun][saat].ders.ad) %}{% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    {{ dersler|length }}
+                </h5>
+                <small class="text-muted">Farklı Ders</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="text-info">
+                    {% set subeler = [] %}
+                    {% for gun in gunler %}
+                        {% for saat in range(1, 9) %}
+                            {% if tablo[gun][saat] and tablo[gun][saat].sube_id not in subeler %}
+                                {% if subeler.append(tablo[gun][saat].sube_id) %}{% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    {{ subeler|length }}
+                </h5>
+                <small class="text-muted">Farklı Şube</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

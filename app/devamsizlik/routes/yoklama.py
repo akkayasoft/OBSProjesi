@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required, current_user
+from flask_login import login_required
+from app.utils import role_required, current_user
 from datetime import date
 
 from app.extensions import db
@@ -22,6 +23,7 @@ def _sube_choices():
 
 @bp.route('/')
 @login_required
+@role_required('admin', 'ogretmen')
 def index():
     """Yoklama ana sayfası - sınıf ve tarih seçimi."""
     form = YoklamaSecimForm()
@@ -36,20 +38,29 @@ def index():
 
 @bp.route('/al', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'ogretmen')
 def yoklama_al():
     """Tek ders saati için yoklama al."""
     sube_id = request.args.get('sube_id', type=int) or request.form.get('sube_id', type=int)
     tarih_str = request.args.get('tarih') or request.form.get('tarih')
     ders_saati = request.args.get('ders_saati', type=int) or request.form.get('ders_saati', type=int)
+    ders_saatleri = request.args.getlist('ders_saatleri', type=int) or request.form.getlist('ders_saatleri', type=int)
+
+    if not ders_saati and len(ders_saatleri) == 1:
+        ders_saati = ders_saatleri[0]
 
     if not sube_id or not tarih_str or not ders_saati:
         flash('Lütfen sınıf, tarih ve ders saati seçiniz.', 'warning')
         return redirect(url_for('devamsizlik.yoklama.index'))
 
-    if isinstance(tarih_str, str):
-        tarih = date.fromisoformat(tarih_str)
-    else:
-        tarih = tarih_str
+    try:
+        if isinstance(tarih_str, str):
+            tarih = date.fromisoformat(tarih_str)
+        else:
+            tarih = tarih_str
+    except ValueError:
+        flash('Geçersiz tarih formatı.', 'danger')
+        return redirect(url_for('devamsizlik.yoklama.index'))
 
     sube = Sube.query.get_or_404(sube_id)
 
@@ -99,6 +110,7 @@ def yoklama_al():
 
 @bp.route('/toplu', methods=['POST'])
 @login_required
+@role_required('admin', 'ogretmen')
 def toplu_yoklama():
     """Birden fazla ders saati için yoklama yönlendirme."""
     sube_id = request.form.get('sube_id', type=int)
@@ -118,7 +130,11 @@ def toplu_yoklama():
     ogrenciler = [k.ogrenci for k in aktif_kayitlar]
     ogrenciler.sort(key=lambda o: (o.soyad, o.ad))
 
-    tarih_obj = date.fromisoformat(tarih)
+    try:
+        tarih_obj = date.fromisoformat(tarih)
+    except ValueError:
+        flash('Geçersiz tarih formatı.', 'danger')
+        return redirect(url_for('devamsizlik.yoklama.index'))
 
     # Mevcut kayıtları getir
     mevcut = {}
@@ -134,6 +150,7 @@ def toplu_yoklama():
 
 @bp.route('/toplu/kaydet', methods=['POST'])
 @login_required
+@role_required('admin', 'ogretmen')
 def toplu_yoklama_kaydet():
     """Toplu yoklama kaydet."""
     sube_id = request.form.get('sube_id', type=int)
@@ -144,7 +161,11 @@ def toplu_yoklama_kaydet():
         flash('Geçersiz istek.', 'danger')
         return redirect(url_for('devamsizlik.yoklama.index'))
 
-    tarih = date.fromisoformat(tarih_str)
+    try:
+        tarih = date.fromisoformat(tarih_str)
+    except ValueError:
+        flash('Geçersiz tarih formatı.', 'danger')
+        return redirect(url_for('devamsizlik.yoklama.index'))
     sube = Sube.query.get_or_404(sube_id)
 
     aktif_kayitlar = OgrenciKayit.query.filter_by(
@@ -182,6 +203,7 @@ def toplu_yoklama_kaydet():
 
 @bp.route('/ogrenci/<int:ogrenci_id>')
 @login_required
+@role_required('admin', 'ogretmen')
 def ogrenci_devamsizlik(ogrenci_id):
     """Bir öğrencinin devamsızlık detayları."""
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)

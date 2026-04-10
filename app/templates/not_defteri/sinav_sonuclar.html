@@ -1,0 +1,159 @@
+{% extends "not_defteri/_layout.html" %}
+
+{% block title %}Sinav Sonuclari - {{ sinav.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('not_defteri.sinav.liste') }}">Sinavlar</a></li>
+<li class="breadcrumb-item active">Sonuclar</li>
+{% endblock %}
+
+{% block not_defteri_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-bar-chart me-2"></i>Sinav Sonuclari</h4>
+        <p class="text-muted mb-0">
+            <strong>{{ sinav.ad }}</strong> - {{ sinav.ders.ad }} | {{ sinav.sube.tam_ad }} | {{ sinav.tarih.strftime('%d.%m.%Y') }}
+        </p>
+    </div>
+    <a href="{{ url_for('not_defteri.sinav.not_giris', sinav_id=sinav.id) }}" class="btn btn-outline-primary">
+        <i class="bi bi-input-cursor-text me-1"></i>Not Girisi
+    </a>
+</div>
+
+<!-- Istatistik Kartlari -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-start border-primary border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Ortalama</p>
+                <h3 class="mb-0 text-primary">{{ ortalama }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-start border-success border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">En Yuksek</p>
+                <h3 class="mb-0 text-success">{{ en_yuksek }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-start border-danger border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">En Dusuk</p>
+                <h3 class="mb-0 text-danger">{{ en_dusuk }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-start border-info border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Standart Sapma</p>
+                <h3 class="mb-0 text-info">{{ std_sapma }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Not Dagilimi Grafigi -->
+    {% if dagilim %}
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Not Dagilimi</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="dagilimChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Ogrenci Listesi -->
+    <div class="col-lg-{{ '7' if dagilim else '12' }}">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-people me-2"></i>Ogrenci Notlari</h6>
+                <span class="badge bg-primary">{{ notlar|length }} ogrenci</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Ogrenci No</th>
+                                <th>Ad Soyad</th>
+                                <th class="text-center">Puan</th>
+                                <th class="text-center">Harf Notu</th>
+                                <th>Aciklama</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for n in notlar|sort(attribute='puan', reverse=true) %}
+                            <tr>
+                                <td class="text-muted">{{ loop.index }}</td>
+                                <td><strong>{{ n.ogrenci.ogrenci_no }}</strong></td>
+                                <td>{{ n.ogrenci.tam_ad }}</td>
+                                <td class="text-center">
+                                    <span class="fw-bold">{{ n.puan }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% set renk = 'success' if n.puan >= 75 else ('primary' if n.puan >= 65 else ('warning' if n.puan >= 50 else 'danger')) %}
+                                    <span class="badge bg-{{ renk }}">{{ n.harf_notu }}</span>
+                                </td>
+                                <td class="text-muted small">{{ n.aciklama or '' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    Henuz not girisi yapilmamis
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if dagilim %}
+<script>
+new Chart(document.getElementById('dagilimChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ dagilim.keys()|list|tojson }},
+        datasets: [{
+            label: 'Ogrenci Sayisi',
+            data: {{ dagilim.values()|list|tojson }},
+            backgroundColor: [
+                '#198754', '#198754', '#198754',
+                '#0d6efd', '#0d6efd',
+                '#ffc107', '#ffc107',
+                '#dc3545', '#dc3545'
+            ],
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

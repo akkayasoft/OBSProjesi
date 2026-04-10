@@ -1,0 +1,93 @@
+{% extends "iletisim/_layout.html" %}
+
+{% block title %}Giden Kutusu{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Giden Kutusu</li>
+{% endblock %}
+
+{% block iletisim_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-send me-2"></i>Giden Kutusu</h4>
+    <div>
+        <a href="{{ url_for('iletisim.mesaj.gelen_kutusu') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-inbox me-1"></i>Gelen Kutusu
+        </a>
+        <a href="{{ url_for('iletisim.mesaj.yeni') }}" class="btn btn-primary">
+            <i class="bi bi-pencil-square me-1"></i>Yeni Mesaj
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for m in mesajlar.items %}
+            <div class="list-group-item py-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="me-3 flex-grow-1">
+                        <a href="{{ url_for('iletisim.mesaj.oku', mesaj_id=m.id) }}" class="text-decoration-none">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="text-muted me-1">Kime:</span>
+                                <strong class="text-dark">{{ m.alici.tam_ad }}</strong>
+                                {% if m.okundu %}
+                                <span class="badge bg-success ms-2">Okundu</span>
+                                {% else %}
+                                <span class="badge bg-secondary ms-2">Okunmadı</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-dark">{{ m.konu }}</div>
+                            <small class="text-muted">
+                                {{ m.icerik[:100] }}{% if m.icerik|length > 100 %}...{% endif %}
+                            </small>
+                        </a>
+                    </div>
+                    <div class="text-end text-nowrap">
+                        <small class="text-muted d-block">{{ m.created_at.strftime('%d.%m.%Y') }}</small>
+                        <small class="text-muted d-block">{{ m.created_at.strftime('%H:%M') }}</small>
+                        <form method="POST" action="{{ url_for('iletisim.mesaj.sil', mesaj_id=m.id) }}" class="mt-1">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil"
+                                    onclick="return confirm('Bu mesajı silmek istediğinize emin misiniz?')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="list-group-item text-center text-muted py-5">
+                <i class="bi bi-send" style="font-size: 2rem;"></i>
+                <p class="mt-2 mb-0">Henüz gönderilmiş mesaj yok</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% if mesajlar.pages > 1 %}
+<nav class="mt-3">
+    <ul class="pagination justify-content-center">
+        {% if mesajlar.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ mesajlar.prev_num }}">Önceki</a>
+        </li>
+        {% endif %}
+        {% for p in mesajlar.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == mesajlar.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if mesajlar.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ mesajlar.next_num }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

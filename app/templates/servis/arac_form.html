@@ -1,0 +1,20 @@
+{% extends "servis/_layout.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">{{ baslik }}</li>{% endblock %}
+{% block servis_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-bus-front me-2"></i>{{ baslik }}</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-4 mb-3">{{ form.plaka.label(class="form-label") }}{{ form.plaka(class="form-control") }}{% for e in form.plaka.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+    <div class="col-md-4 mb-3">{{ form.marka.label(class="form-label") }}{{ form.marka(class="form-control") }}</div>
+    <div class="col-md-4 mb-3">{{ form.model.label(class="form-label") }}{{ form.model(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.kapasite.label(class="form-label") }}{{ form.kapasite(class="form-control") }}</div>
+    <div class="col-md-4 mb-3">{{ form.sofor_adi.label(class="form-label") }}{{ form.sofor_adi(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.sofor_telefon.label(class="form-label") }}{{ form.sofor_telefon(class="form-control") }}</div>
+    <div class="col-md-2 mb-3 d-flex align-items-end"><div class="form-check">{{ form.aktif(class="form-check-input") }}{{ form.aktif.label(class="form-check-label") }}</div></div>
+    <div class="col-md-6 mb-3">{{ form.guzergah_id.label(class="form-label") }}{{ form.guzergah_id(class="form-select") }}</div>
+</div>
+<button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Kaydet</button>
+<a href="{{ url_for('servis.arac.liste') }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}

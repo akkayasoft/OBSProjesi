@@ -1,0 +1,48 @@
+{% extends "sinav_oturum/_layout.html" %}
+
+{% block title %}Gozetmen Ata - {{ oturum.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('sinav_oturum.oturum.liste') }}">Oturumlar</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('sinav_oturum.oturum.detay', oturum_id=oturum.id) }}">{{ oturum.ad }}</a></li>
+<li class="breadcrumb-item active">Gozetmen Ata</li>
+{% endblock %}
+
+{% block sinav_oturum_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Gozetmen Ata - {{ oturum.ad }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label">{{ form.ogretmen_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogretmen_id(class="form-select") }}
+                            {% for error in form.ogretmen_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.gorev.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.gorev(class="form-select") }}
+                            {% for error in form.gorev.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('sinav_oturum.oturum.detay', oturum_id=oturum.id) }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

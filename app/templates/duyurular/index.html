@@ -1,0 +1,203 @@
+{% extends "duyurular/_layout.html" %}
+
+{% block title %}Duyurular{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakış</li>
+{% endblock %}
+
+{% block duyurular_content %}
+<h4 class="mb-4"><i class="bi bi-megaphone me-2"></i>Duyurular ve Ajanda</h4>
+
+<!-- İstatistik Kartları -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Aktif Duyuru</p>
+                        <h3 class="mb-0">{{ toplam_duyuru }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-card-text"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Yaklaşan Etkinlik</p>
+                        <h3 class="mb-0">{{ toplam_etkinlik }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Bekleyen Hatırlatma</p>
+                        <h3 class="mb-0">{{ bekleyen_hatirlatma }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sol Kolon: Duyurular -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-card-text me-2"></i>Son Duyurular</h6>
+                <a href="{{ url_for('duyurular.duyuru.yeni') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Yeni Duyuru
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for d in duyurular %}
+                    <a href="{{ url_for('duyurular.duyuru.detay', duyuru_id=d.id) }}"
+                       class="list-group-item list-group-item-action py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="me-3">
+                                {% if d.sabitlenmis %}
+                                <i class="bi bi-pin-angle-fill text-primary me-1" title="Sabitlenmiş"></i>
+                                {% endif %}
+                                <strong>{{ d.baslik }}</strong>
+                                <div class="mt-1">
+                                    <span class="badge bg-{{ d.kategori_badge }} me-1">{{ d.kategori_str }}</span>
+                                    {% if d.oncelik != 'normal' %}
+                                    <span class="badge bg-{{ d.oncelik_badge }}">{{ d.oncelik_str }}</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    {{ d.yayinlanma_tarihi.strftime('%d.%m.%Y %H:%M') }} - {{ d.yayinlayan.tam_ad }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted"><i class="bi bi-eye me-1"></i>{{ d.okunma_sayisi }}</small>
+                            </div>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Henüz duyuru bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if duyurular %}
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('duyurular.duyuru.liste') }}" class="text-decoration-none">
+                        Tüm duyuruları görüntüle <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ Kolon: Etkinlikler ve Hatırlatmalar -->
+    <div class="col-lg-5">
+        <!-- Yaklaşan Etkinlikler -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Yaklaşan Etkinlikler</h6>
+                <a href="{{ url_for('duyurular.etkinlik.takvim') }}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-calendar"></i> Takvim
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for e in yaklasan_etkinlikler %}
+                    <div class="list-group-item py-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3 text-center" style="min-width: 50px;">
+                                <div class="rounded p-1" style="background-color: {{ e.renk }}20; color: {{ e.renk }};">
+                                    <small class="d-block fw-bold">{{ e.baslangic_tarihi.strftime('%d') }}</small>
+                                    <small>{{ e.baslangic_tarihi.strftime('%b') }}</small>
+                                </div>
+                            </div>
+                            <div>
+                                <strong>{{ e.baslik }}</strong>
+                                <small class="text-muted d-block">
+                                    <i class="{{ e.tur_icon }} me-1"></i>{{ e.tur_str }}
+                                    {% if e.konum %} - <i class="bi bi-geo-alt me-1"></i>{{ e.konum }}{% endif %}
+                                </small>
+                                <small class="text-muted">
+                                    {% if e.tum_gun %}
+                                    Tüm gün
+                                    {% else %}
+                                    {{ e.baslangic_tarihi.strftime('%H:%M') }} - {{ e.bitis_tarihi.strftime('%H:%M') }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Yaklaşan etkinlik bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Hatırlatmalar -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-bell me-2"></i>Bekleyen Hatırlatmalar</h6>
+                <a href="{{ url_for('duyurular.hatirlatma.yeni') }}" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-plus"></i> Yeni
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for h in hatirlatmalar %}
+                    <div class="list-group-item py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-{{ h.oncelik_badge }} me-1">{{ h.oncelik_str }}</span>
+                                {{ h.baslik }}
+                                <small class="text-muted d-block">{{ h.tarih.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </div>
+                            <form method="POST" action="{{ url_for('duyurular.hatirlatma.tamamla', hatirlatma_id=h.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Tamamla">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Bekleyen hatırlatma bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if hatirlatmalar %}
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('duyurular.hatirlatma.liste') }}" class="text-decoration-none">
+                        Tüm hatırlatmaları görüntüle <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

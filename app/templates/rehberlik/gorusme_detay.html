@@ -1,0 +1,87 @@
+{% extends "rehberlik/_layout.html" %}
+
+{% block title %}{{ gorusme.konu }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('rehberlik.gorusme.liste') }}">Gorusmeler</a></li>
+<li class="breadcrumb-item active">{{ gorusme.konu[:50] }}</li>
+{% endblock %}
+
+{% block rehberlik_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-{{ gorusme.gorusme_turu_badge }} me-1">{{ gorusme.gorusme_turu_str }}</span>
+                        <span class="badge bg-{{ gorusme.durum_badge }} me-1">{{ gorusme.durum_str }}</span>
+                        {% if gorusme.gizlilik_seviyesi != 'normal' %}
+                        <span class="badge bg-{{ gorusme.gizlilik_badge }} me-1">{{ gorusme.gizlilik_str }}</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{{ url_for('rehberlik.gorusme.duzenle', gorusme_id=gorusme.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil me-1"></i>Duzenle
+                        </a>
+                        <form method="POST" action="{{ url_for('rehberlik.gorusme.sil', gorusme_id=gorusme.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu gorusmeyi silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash me-1"></i>Sil
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h4 class="mb-3">{{ gorusme.konu }}</h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Ogrenci:</strong>
+                        <a href="{{ url_for('rehberlik.profil.ogrenci_profil', ogrenci_id=gorusme.ogrenci.id) }}">
+                            {{ gorusme.ogrenci.tam_ad }}
+                        </a>
+                        ({{ gorusme.ogrenci.ogrenci_no }})
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Rehber:</strong> {{ gorusme.rehber.tam_ad }}
+                    </div>
+                </div>
+
+                {% if gorusme.icerik %}
+                <div class="mb-4">
+                    <h6>Icerik</h6>
+                    <div style="white-space: pre-wrap;">{{ gorusme.icerik }}</div>
+                </div>
+                {% endif %}
+
+                {% if gorusme.sonuc_ve_oneri %}
+                <div class="mb-4">
+                    <h6>Sonuc ve Oneriler</h6>
+                    <div style="white-space: pre-wrap;">{{ gorusme.sonuc_ve_oneri }}</div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-between align-items-center text-muted small">
+                    <div>
+                        <i class="bi bi-calendar me-1"></i>{{ gorusme.gorusme_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                    </div>
+                    <div>
+                        <i class="bi bi-clock me-1"></i>Olusturulma: {{ gorusme.created_at.strftime('%d.%m.%Y %H:%M') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="{{ url_for('rehberlik.gorusme.liste') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Gorusme Listesine Don
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

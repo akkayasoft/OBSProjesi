@@ -1,0 +1,45 @@
+{% extends "ogrenci_portal/_layout.html" %}
+
+{% block title %}Duyurular{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Duyurular</li>
+{% endblock %}
+
+{% block portal_content %}
+<h4 class="mb-4"><i class="bi bi-megaphone me-2"></i>Duyurular</h4>
+
+{% if duyurular %}
+{% for d in duyurular %}
+<div class="card shadow-sm mb-3 {% if d.sabitlenmis %}border-warning{% endif %}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                {% if d.sabitlenmis %}
+                <i class="bi bi-pin-angle-fill text-warning me-1"></i>
+                {% endif %}
+                <strong class="fs-6">{{ d.baslik }}</strong>
+            </div>
+            <div>
+                <span class="badge bg-{{ d.oncelik_badge }} me-1">{{ d.oncelik_str }}</span>
+                <span class="badge bg-{{ d.kategori_badge }}">{{ d.kategori_str }}</span>
+            </div>
+        </div>
+        <p class="mb-2">{{ d.icerik }}</p>
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                <i class="bi bi-person me-1"></i>{{ d.yayinlayan.tam_ad }}
+            </small>
+            <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>{{ d.yayinlanma_tarihi.strftime('%d.%m.%Y %H:%M') }}
+            </small>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>Henüz duyuru bulunmuyor.
+</div>
+{% endif %}
+{% endblock %}

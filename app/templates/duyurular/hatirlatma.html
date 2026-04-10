@@ -1,0 +1,87 @@
+{% extends "duyurular/_layout.html" %}
+
+{% block title %}Hatırlatmalar{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Hatırlatmalar</li>
+{% endblock %}
+
+{% block duyurular_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bell me-2"></i>Hatırlatmalar</h4>
+    <a href="{{ url_for('duyurular.hatirlatma.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Hatırlatma
+    </a>
+</div>
+
+{% macro hatirlatma_grubu(baslik, icon, renk, hatirlatmalar) %}
+{% if hatirlatmalar %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white">
+        <h6 class="mb-0">
+            <i class="bi {{ icon }} me-2 text-{{ renk }}"></i>{{ baslik }}
+            <span class="badge bg-{{ renk }} ms-2">{{ hatirlatmalar|length }}</span>
+        </h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for h in hatirlatmalar %}
+            <div class="list-group-item py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <form method="POST" action="{{ url_for('duyurular.hatirlatma.tamamla', hatirlatma_id=h.id) }}" class="me-3">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm {% if h.tamamlandi %}btn-success{% else %}btn-outline-secondary{% endif %}"
+                                    title="{{ 'Geri Al' if h.tamamlandi else 'Tamamla' }}">
+                                <i class="bi {% if h.tamamlandi %}bi-check-circle-fill{% else %}bi-circle{% endif %}"></i>
+                            </button>
+                        </form>
+                        <div>
+                            <span class="{% if h.tamamlandi %}text-decoration-line-through text-muted{% endif %}">
+                                <strong>{{ h.baslik }}</strong>
+                            </span>
+                            <span class="badge bg-{{ h.oncelik_badge }} ms-2">{{ h.oncelik_str }}</span>
+                            {% if h.aciklama %}
+                            <small class="text-muted d-block">{{ h.aciklama }}</small>
+                            {% endif %}
+                            <small class="text-muted d-block">
+                                <i class="bi bi-clock me-1"></i>{{ h.tarih.strftime('%d.%m.%Y %H:%M') }}
+                            </small>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ url_for('duyurular.hatirlatma.sil', hatirlatma_id=h.id) }}"
+                          onsubmit="return confirm('Bu hatırlatmayı silmek istediğinize emin misiniz?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{{ hatirlatma_grubu('Bugün', 'bi-calendar-day', 'danger', bugun) }}
+{{ hatirlatma_grubu('Yarın', 'bi-calendar-plus', 'warning', yarin) }}
+{{ hatirlatma_grubu('Bu Hafta', 'bi-calendar-week', 'primary', bu_hafta) }}
+{{ hatirlatma_grubu('Gelecek', 'bi-calendar-range', 'info', gelecek) }}
+{{ hatirlatma_grubu('Tamamlanan', 'bi-check-circle', 'success', tamamlanan) }}
+
+{% if not bugun and not yarin and not bu_hafta and not gelecek and not tamamlanan %}
+<div class="card">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-bell display-4 d-block mb-3"></i>
+        Henüz hatırlatma bulunmuyor.
+        <div class="mt-3">
+            <a href="{{ url_for('duyurular.hatirlatma.yeni') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>İlk Hatırlatmayı Oluştur
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

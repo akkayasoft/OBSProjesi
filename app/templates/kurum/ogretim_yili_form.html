@@ -1,0 +1,68 @@
+{% extends "kurum/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kurum.ogretim_yili.liste') }}">Ogretim Yillari</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block kurum_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-calendar-range me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.baslangic_tarihi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.baslangic_tarihi(class="form-control", type="date") }}
+                            {% for error in form.baslangic_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.bitis_tarihi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.bitis_tarihi(class="form-control", type="date") }}
+                            {% for error in form.bitis_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.yariyil_baslangic.label.text }}</label>
+                            {{ form.yariyil_baslangic(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.yariyil_bitis.label.text }}</label>
+                            {{ form.yariyil_bitis(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check">
+                                {{ form.aktif(class="form-check-input") }}
+                                <label class="form-check-label" for="aktif">Aktif ogretim yili</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('kurum.ogretim_yili.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

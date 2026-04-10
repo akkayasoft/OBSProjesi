@@ -1,0 +1,17 @@
+{% extends "belge/_layout.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">{{ baslik }}</li>{% endblock %}
+{% block belge_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0">{{ baslik }}</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-8 mb-3">{{ form.baslik.label(class="form-label") }}{{ form.baslik(class="form-control") }}</div>
+    <div class="col-md-4 mb-3">{{ form.kategori.label(class="form-label") }}{{ form.kategori(class="form-select") }}</div>
+    <div class="col-md-4 mb-3">{{ form.erisim.label(class="form-label") }}{{ form.erisim(class="form-select") }}</div>
+    <div class="col-md-4 mb-3 d-flex align-items-end"><div class="form-check">{{ form.aktif(class="form-check-input") }}{{ form.aktif.label(class="form-check-label") }}</div></div>
+    <div class="col-12 mb-3">{{ form.aciklama.label(class="form-label") }}{{ form.aciklama(class="form-control") }}</div>
+</div>
+<button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Kaydet</button>
+<a href="{{ url_for('belge.belge_yonetim.liste') }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}

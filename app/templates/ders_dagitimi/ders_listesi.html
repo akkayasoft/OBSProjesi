@@ -1,0 +1,135 @@
+{% extends "ders_dagitimi/_layout.html" %}
+
+{% block title %}Ders Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dersler</li>
+{% endblock %}
+
+{% block ders_dagitimi_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-journal-text me-2"></i>Ders Listesi</h4>
+    <a href="{{ url_for('ders_dagitimi.ders.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Ders
+    </a>
+</div>
+
+<!-- Arama ve Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Ders Ara</label>
+                <input type="text" name="arama" class="form-control"
+                       placeholder="Ders adı veya kodu..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Kategori</label>
+                <select name="kategori" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="Matematik" {% if kategori == 'Matematik' %}selected{% endif %}>Matematik</option>
+                    <option value="Fen" {% if kategori == 'Fen' %}selected{% endif %}>Fen Bilimleri</option>
+                    <option value="Sosyal" {% if kategori == 'Sosyal' %}selected{% endif %}>Sosyal Bilimler</option>
+                    <option value="Dil" {% if kategori == 'Dil' %}selected{% endif %}>Dil</option>
+                    <option value="Sanat" {% if kategori == 'Sanat' %}selected{% endif %}>Sanat</option>
+                    <option value="Spor" {% if kategori == 'Spor' %}selected{% endif %}>Spor</option>
+                    <option value="Bilisim" {% if kategori == 'Bilisim' %}selected{% endif %}>Bilişim</option>
+                    <option value="Diger" {% if kategori == 'Diger' %}selected{% endif %}>Diğer</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Sınıf Seviyesi</label>
+                <select name="seviye" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="9" {% if seviye == '9' %}selected{% endif %}>9. Sınıf</option>
+                    <option value="10" {% if seviye == '10' %}selected{% endif %}>10. Sınıf</option>
+                    <option value="11" {% if seviye == '11' %}selected{% endif %}>11. Sınıf</option>
+                    <option value="12" {% if seviye == '12' %}selected{% endif %}>12. Sınıf</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Ara
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Ders Tablosu -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Ders Kodu</th>
+                    <th>Ders Adı</th>
+                    <th>Kategori</th>
+                    <th>Sınıf</th>
+                    <th>Haftalık Saat</th>
+                    <th>Durum</th>
+                    <th class="text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in dersler.items %}
+                <tr>
+                    <td><strong>{{ d.kod }}</strong></td>
+                    <td>{{ d.ad }}</td>
+                    <td>{{ d.kategori }}</td>
+                    <td>{{ d.sinif_seviyesi_str }}</td>
+                    <td>{{ d.haftalik_saat }} saat</td>
+                    <td>
+                        {% if d.aktif %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('ders_dagitimi.ders.duzenle', ders_id=d.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('ders_dagitimi.ders.sil', ders_id=d.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu dersi silmek istediğinize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Henüz ders bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if dersler.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if dersler.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ dersler.prev_num }}&arama={{ arama }}&kategori={{ kategori }}&seviye={{ seviye }}">Önceki</a></li>
+            {% endif %}
+            {% for p in dersler.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == dersler.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&arama={{ arama }}&kategori={{ kategori }}&seviye={{ seviye }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if dersler.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ dersler.next_num }}&arama={{ arama }}&kategori={{ kategori }}&seviye={{ seviye }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

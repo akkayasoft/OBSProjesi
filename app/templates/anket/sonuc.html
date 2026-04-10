@@ -1,0 +1,176 @@
+{% extends "anket/_layout.html" %}
+
+{% block title %}{{ anket.baslik }} - Sonuclar{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('anket.yonetim.detay', anket_id=anket.id) }}">{{ anket.baslik }}</a></li>
+<li class="breadcrumb-item active">Sonuclar</li>
+{% endblock %}
+
+{% block anket_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bar-chart me-2"></i>{{ anket.baslik }} - Sonuclar</h4>
+    <a href="{{ url_for('anket.yonetim.detay', anket_id=anket.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Ankete Don
+    </a>
+</div>
+
+<!-- Ozet Bilgiler -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ katilimci_sayisi }}</h3>
+                <small class="text-muted">Toplam Katilimci</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ sonuclar|length }}</h3>
+                <small class="text-muted">Toplam Soru</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3><span class="badge bg-{{ anket.durum_badge }}">{{ anket.durum_str }}</span></h3>
+                <small class="text-muted">Anket Durumu</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-secondary">{{ anket.hedef_kitle_str }}</h3>
+                <small class="text-muted">Hedef Kitle</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Soru Sonuclari -->
+{% for s in sonuclar %}
+<div class="card mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0">
+            <span class="badge bg-primary me-2">{{ s.soru.sira }}</span>
+            {{ s.soru.soru_metni }}
+            <span class="badge bg-light text-dark ms-2">{{ s.toplam_cevap }} cevap</span>
+        </h6>
+    </div>
+    <div class="card-body">
+        {% if s.soru.soru_tipi in ('coktan_secmeli', 'evet_hayir', 'derecelendirme') %}
+            {% if s.soru.soru_tipi == 'derecelendirme' and s.ortalama is defined %}
+            <div class="mb-3">
+                <strong>Ortalama Puan:</strong>
+                <span class="badge bg-warning text-dark fs-6">{{ s.ortalama }} / 5</span>
+            </div>
+            {% endif %}
+
+            <!-- Bar Grafik -->
+            {% for d in s.dagilim %}
+            <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span>{{ d.secenek }}</span>
+                    <span class="text-muted small">{{ d.sayi }} kisi ({{ d.oran }}%)</span>
+                </div>
+                <div class="progress" style="height: 24px;">
+                    <div class="progress-bar" role="progressbar"
+                         style="width: {{ d.oran }}%"
+                         aria-valuenow="{{ d.oran }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ d.oran }}%
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Chart.js Grafik -->
+            <div class="mt-4">
+                <canvas id="chart_{{ s.soru.id }}" height="200"></canvas>
+            </div>
+
+        {% elif s.soru.soru_tipi == 'acik_uclu' %}
+            {% if s.yanitlar %}
+            <div class="list-group">
+                {% for yanit in s.yanitlar %}
+                <div class="list-group-item">
+                    <i class="bi bi-chat-left-text me-2 text-muted"></i>{{ yanit }}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">Henuz yanit yok.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center text-muted py-4">
+        <i class="bi bi-bar-chart display-4 d-block mb-3"></i>
+        Henuz sonuc bulunmuyor.
+    </div>
+</div>
+{% endfor %}
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var renk_paleti = [
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 99, 132, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)',
+        'rgba(199, 199, 199, 0.7)',
+        'rgba(83, 102, 255, 0.7)',
+        'rgba(255, 99, 255, 0.7)',
+        'rgba(99, 255, 132, 0.7)',
+    ];
+
+    {% for s in sonuclar %}
+    {% if s.soru.soru_tipi in ('coktan_secmeli', 'evet_hayir', 'derecelendirme') %}
+    (function() {
+        var ctx = document.getElementById('chart_{{ s.soru.id }}');
+        if (!ctx) return;
+        var labels = {{ s.chart_labels|safe }};
+        var data = {{ s.chart_data|safe }};
+        new Chart(ctx, {
+            type: '{{ "bar" if s.soru.soru_tipi == "derecelendirme" else "doughnut" }}',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Cevap Sayisi',
+                    data: data,
+                    backgroundColor: renk_paleti.slice(0, labels.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: '{{ "bottom" if s.soru.soru_tipi != "derecelendirme" else "top" }}'
+                    }
+                },
+                {% if s.soru.soru_tipi == 'derecelendirme' %}
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+                {% endif %}
+            }
+        });
+    })();
+    {% endif %}
+    {% endfor %}
+});
+</script>
+{% endblock %}

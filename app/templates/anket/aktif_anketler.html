@@ -1,0 +1,59 @@
+{% extends "anket/_layout.html" %}
+
+{% block title %}Aktif Anketler{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Aktif Anketler</li>
+{% endblock %}
+
+{% block anket_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Aktif Anketler</h4>
+</div>
+
+<div class="row">
+    {% for anket in anketler %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ anket.baslik }}</h5>
+                {% if anket.aciklama %}
+                <p class="card-text text-muted small">{{ anket.aciklama[:150] }}{% if anket.aciklama|length > 150 %}...{% endif %}</p>
+                {% endif %}
+                <div class="mb-3">
+                    <span class="badge bg-{{ anket.durum_badge }}">{{ anket.durum_str }}</span>
+                    {% if anket.anonim %}
+                    <span class="badge bg-info">Anonim</span>
+                    {% endif %}
+                </div>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="bi bi-calendar me-1"></i>{{ anket.baslangic_tarihi.strftime('%d.%m.%Y') }} - {{ anket.bitis_tarihi.strftime('%d.%m.%Y') }}</li>
+                    <li><i class="bi bi-people me-1"></i>Hedef: {{ anket.hedef_kitle_str }}</li>
+                    <li><i class="bi bi-list-ol me-1"></i>{{ anket.sorular.count() }} soru</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-white">
+                {% if anket.id in cevaplanan_ids %}
+                <button class="btn btn-outline-success w-100" disabled>
+                    <i class="bi bi-check-circle me-1"></i>Tamamlandi
+                </button>
+                {% else %}
+                <a href="{{ url_for('anket.katilim.doldur', anket_id=anket.id) }}" class="btn btn-primary w-100">
+                    <i class="bi bi-pencil-square me-1"></i>Anketi Doldur
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-clipboard2-data display-4 d-block mb-3"></i>
+                Su anda doldurulabilecek aktif anket bulunmuyor.
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "ogretmen_portal/_layout.html" %}
+
+{% block title %}Yoklama{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Yoklama</li>
+{% endblock %}
+
+{% block portal_content %}
+<h4 class="mb-4"><i class="bi bi-clipboard-check me-2"></i>Yoklama - {{ bugun.strftime('%d.%m.%Y') }}</h4>
+
+{% if not personel %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>Personel kaydınız bulunamadı.
+</div>
+{% else %}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-calendar-day me-2"></i>Bugunun Dersleri</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for d in bugunun_dersleri %}
+            <div class="list-group-item py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ d.ders_saati }}. Ders</strong> - {{ d.ders.ad }}
+                        <small class="text-muted d-block">
+                            <i class="bi bi-people me-1"></i>{{ d.sube.tam_ad }}
+                            {% if d.derslik %}
+                            <i class="bi bi-door-open ms-2 me-1"></i>{{ d.derslik }}
+                            {% endif %}
+                        </small>
+                    </div>
+                    <a href="{{ url_for('devamsizlik.yoklama.index') }}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-clipboard-check me-1"></i>Yoklama Al
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="list-group-item text-center text-muted py-4">
+                Bugun ders bulunmuyor
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

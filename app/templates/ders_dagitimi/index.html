@@ -1,0 +1,185 @@
+{% extends "ders_dagitimi/_layout.html" %}
+
+{% block title %}Ders Dağıtımı{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakış</li>
+{% endblock %}
+
+{% block ders_dagitimi_content %}
+<h4 class="mb-4"><i class="bi bi-book me-2"></i>Ders Dağıtımı</h4>
+
+<!-- İstatistik Kartları -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Toplam Ders</p>
+                        <h3 class="mb-0">{{ toplam_ders }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Program Kayıtları</p>
+                        <h3 class="mb-0">{{ toplam_program }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Öğretmen Ataması</p>
+                        <h3 class="mb-0">{{ toplam_atama }}</h3>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-person-workspace"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hızlı Erişim ve Grafik -->
+<div class="row g-4">
+    <!-- Hızlı Erişim -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Hızlı Erişim</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('ders_dagitimi.ders.liste') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-journal-text me-3 text-primary"></i>
+                        <div>
+                            <strong>Dersler</strong>
+                            <p class="mb-0 small text-muted">Ders listesini görüntüle ve yönet</p>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('ders_dagitimi.ders.yeni') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-plus-circle me-3 text-success"></i>
+                        <div>
+                            <strong>Yeni Ders Ekle</strong>
+                            <p class="mb-0 small text-muted">Sisteme yeni ders tanımla</p>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('ders_dagitimi.program.liste') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-calendar-week me-3 text-warning"></i>
+                        <div>
+                            <strong>Ders Programı</strong>
+                            <p class="mb-0 small text-muted">Haftalık ders programını görüntüle</p>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('ders_dagitimi.atama.liste') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-person-workspace me-3 text-info"></i>
+                        <div>
+                            <strong>Öğretmen Atamaları</strong>
+                            <p class="mb-0 small text-muted">Öğretmen-ders atamalarını yönet</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kategori Dağılımı -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Kategoriye Göre Dersler</h6>
+            </div>
+            <div class="card-body">
+                {% if kategori_labels %}
+                <canvas id="kategoriChart" height="280"></canvas>
+                {% else %}
+                <p class="text-muted text-center py-5">Henüz ders verisi bulunmuyor</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Son Eklenen Dersler -->
+{% if son_dersler %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Son Eklenen Dersler</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ders Kodu</th>
+                                <th>Ders Adı</th>
+                                <th>Kategori</th>
+                                <th>Sınıf Seviyesi</th>
+                                <th>Haftalık Saat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in son_dersler %}
+                            <tr>
+                                <td><strong>{{ d.kod }}</strong></td>
+                                <td>{{ d.ad }}</td>
+                                <td>{{ d.kategori }}</td>
+                                <td>{{ d.sinif_seviyesi_str }}</td>
+                                <td>{{ d.haftalik_saat }} saat</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% if kategori_labels %}
+new Chart(document.getElementById('kategoriChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ kategori_labels|tojson }},
+        datasets: [{
+            data: {{ kategori_values|tojson }},
+            backgroundColor: [
+                '#0d6efd', '#198754', '#ffc107', '#dc3545', '#6610f2',
+                '#0dcaf0', '#fd7e14', '#6f42c1', '#20c997', '#d63384'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

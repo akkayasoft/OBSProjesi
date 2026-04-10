@@ -18,25 +18,25 @@
                 <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Yoklama Seçimi</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('devamsizlik.yoklama.yoklama_al') }}">
-                    {{ form.hidden_tag() }}
+                <form method="POST" action="{{ url_for('devamsizlik.yoklama.toplu_yoklama') }}">
+                    {{ toplu_form.hidden_tag() }}
 
                     <div class="mb-3">
                         <label class="form-label"><strong>Sınıf / Şube</strong></label>
-                        {{ form.sube_id(class="form-select form-select-lg") }}
-                        {% if form.sube_id.errors %}
+                        {{ toplu_form.sube_id(class="form-select form-select-lg") }}
+                        {% if toplu_form.sube_id.errors %}
                         <div class="invalid-feedback d-block">
-                            {% for error in form.sube_id.errors %}{{ error }}{% endfor %}
+                            {% for error in toplu_form.sube_id.errors %}{{ error }}{% endfor %}
                         </div>
                         {% endif %}
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label"><strong>Tarih</strong></label>
-                        {{ form.tarih(class="form-control form-control-lg") }}
-                        {% if form.tarih.errors %}
+                        {{ toplu_form.tarih(class="form-control form-control-lg") }}
+                        {% if toplu_form.tarih.errors %}
                         <div class="invalid-feedback d-block">
-                            {% for error in form.tarih.errors %}{{ error }}{% endfor %}
+                            {% for error in toplu_form.tarih.errors %}{{ error }}{% endfor %}
                         </div>
                         {% endif %}
                     </div>

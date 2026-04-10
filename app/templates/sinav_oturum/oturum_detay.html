@@ -1,0 +1,175 @@
+{% extends "sinav_oturum/_layout.html" %}
+
+{% block title %}{{ oturum.ad }} - Sinav Detay{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('sinav_oturum.oturum.liste') }}">Oturumlar</a></li>
+<li class="breadcrumb-item active">{{ oturum.ad }}</li>
+{% endblock %}
+
+{% block sinav_oturum_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">
+        <i class="bi bi-journal-text me-2"></i>{{ oturum.ad }}
+        <span class="badge bg-{{ oturum.durum_badge }} ms-2">{{ oturum.durum_str }}</span>
+    </h4>
+    <div>
+        <a href="{{ url_for('sinav_oturum.oturum.duzenle', oturum_id=oturum.id) }}" class="btn btn-outline-warning">
+            <i class="bi bi-pencil me-1"></i>Duzenle
+        </a>
+        <form method="POST" action="{{ url_for('sinav_oturum.oturum.sil', oturum_id=oturum.id) }}"
+              class="d-inline" onsubmit="return confirm('Bu sinav oturumunu silmek istediginize emin misiniz?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-1"></i>Sil
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Oturum Bilgileri -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Oturum Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong>Sinav Adi:</strong>
+                        <p class="mb-0">{{ oturum.ad }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Sinav Turu:</strong>
+                        <p class="mb-0"><span class="badge bg-{{ oturum.sinav_turu_badge }}">{{ oturum.sinav_turu_str }}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Tarih:</strong>
+                        <p class="mb-0">{{ oturum.tarih.strftime('%d.%m.%Y') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Saat:</strong>
+                        <p class="mb-0">{{ oturum.baslangic_saati.strftime('%H:%M') }} - {{ oturum.bitis_saati.strftime('%H:%M') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Sinif:</strong>
+                        <p class="mb-0">{{ oturum.sinif.ad if oturum.sinif else '-' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Ders:</strong>
+                        <p class="mb-0">{{ oturum.ders.ad if oturum.ders else '-' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Ogretmen:</strong>
+                        <p class="mb-0">{{ oturum.ogretmen.tam_ad if oturum.ogretmen else '-' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Derslik:</strong>
+                        <p class="mb-0">{{ oturum.derslik or '-' }}</p>
+                    </div>
+                    {% if oturum.aciklama %}
+                    <div class="col-md-12">
+                        <strong>Aciklama:</strong>
+                        <p class="mb-0">{{ oturum.aciklama }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6">
+                        <strong>Olusturulma Tarihi:</strong>
+                        <p class="mb-0">{{ oturum.created_at.strftime('%d.%m.%Y %H:%M') if oturum.created_at else '-' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gozetmenler -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Gozetmenler</h5>
+                <a href="{{ url_for('sinav_oturum.gozetmen.ata', oturum_id=oturum.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Gozetmen Ata
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ogretmen</th>
+                            <th>Gorev</th>
+                            <th class="text-end">Islem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in oturum.gozetmenler.all() %}
+                        <tr>
+                            <td>{{ g.ogretmen.tam_ad if g.ogretmen else '-' }}</td>
+                            <td><span class="badge bg-{{ g.gorev_badge }}">{{ g.gorev_str }}</span></td>
+                            <td class="text-end">
+                                <form method="POST"
+                                      action="{{ url_for('sinav_oturum.gozetmen.kaldir', oturum_id=oturum.id, gozetmen_id=g.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Bu gozetmeni kaldirmak istediginize emin misiniz?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Kaldir">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">
+                                Henuz gozetmen atanmamis.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Durum Degistir -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Durum Degistir</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('sinav_oturum.oturum.durum_degistir', oturum_id=oturum.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <select name="durum" class="form-select">
+                            <option value="planlanmis" {% if oturum.durum == 'planlanmis' %}selected{% endif %}>Planlanmis</option>
+                            <option value="devam_ediyor" {% if oturum.durum == 'devam_ediyor' %}selected{% endif %}>Devam Ediyor</option>
+                            <option value="tamamlandi" {% if oturum.durum == 'tamamlandi' %}selected{% endif %}>Tamamlandi</option>
+                            <option value="iptal" {% if oturum.durum == 'iptal' %}selected{% endif %}>Iptal</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-circle me-1"></i>Durumu Guncelle
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Ozet</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Gozetmen Sayisi</span>
+                        <span class="badge bg-primary rounded-pill">{{ oturum.gozetmenler.count() }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Sinav Suresi</span>
+                        <span class="text-muted">{{ oturum.baslangic_saati.strftime('%H:%M') }} - {{ oturum.bitis_saati.strftime('%H:%M') }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

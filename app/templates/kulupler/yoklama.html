@@ -1,0 +1,92 @@
+{% extends "kulupler/_layout.html" %}
+
+{% block title %}Yoklama - {{ etkinlik.baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kulupler.etkinlik.liste') }}">Etkinlikler</a></li>
+<li class="breadcrumb-item active">Yoklama</li>
+{% endblock %}
+
+{% block kulupler_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-clipboard-check me-2"></i>Yoklama</h4>
+        <p class="text-muted mb-0">
+            {{ kulup.ad }} - {{ etkinlik.baslik }}
+            ({{ etkinlik.tarih.strftime('%d.%m.%Y %H:%M') }})
+        </p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Ogrenci No</th>
+                            <th>Ad Soyad</th>
+                            <th>Sinif</th>
+                            <th>Katilim Durumu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in uyeler %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ u.ogrenci.ogrenci_no }}</td>
+                            <td>{{ u.ogrenci.ad }} {{ u.ogrenci.soyad }}</td>
+                            <td>{{ u.ogrenci.sinif or '-' }}</td>
+                            <td>
+                                {% set mevcut = mevcut_kayitlar.get(u.ogrenci_id, '') %}
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="durum_{{ u.ogrenci_id }}"
+                                           id="katildi_{{ u.ogrenci_id }}" value="katildi"
+                                           {% if mevcut == 'katildi' %}checked{% endif %}>
+                                    <label class="btn btn-outline-success btn-sm" for="katildi_{{ u.ogrenci_id }}">
+                                        <i class="bi bi-check-lg me-1"></i>Katildi
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="durum_{{ u.ogrenci_id }}"
+                                           id="katilmadi_{{ u.ogrenci_id }}" value="katilmadi"
+                                           {% if mevcut == 'katilmadi' or not mevcut %}checked{% endif %}>
+                                    <label class="btn btn-outline-danger btn-sm" for="katilmadi_{{ u.ogrenci_id }}">
+                                        <i class="bi bi-x-lg me-1"></i>Katilmadi
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="durum_{{ u.ogrenci_id }}"
+                                           id="izinli_{{ u.ogrenci_id }}" value="izinli"
+                                           {% if mevcut == 'izinli' %}checked{% endif %}>
+                                    <label class="btn btn-outline-warning btn-sm" for="izinli_{{ u.ogrenci_id }}">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Izinli
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Bu kulupte aktif uye bulunmuyor.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if uyeler %}
+            <div class="text-end mt-3">
+                <a href="{{ url_for('kulupler.etkinlik.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i>Yoklamayi Kaydet
+                </button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

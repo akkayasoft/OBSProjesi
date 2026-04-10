@@ -1,12 +1,13 @@
 from datetime import date, timedelta
 from decimal import Decimal
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask_login import login_required
+from app.utils import role_required, current_user
 from app.extensions import db
 from app.models.muhasebe import (
     Ogrenci, OdemePlani, Taksit, Odeme, BankaHesabi
 )
-from app.muhasebe.forms import OgrenciForm, OdemePlaniForm, OdemeForm
+from app.muhasebe.forms import OdemePlaniForm, OdemeForm
 from app.muhasebe.utils import makbuz_no_uret, banka_hareketi_olustur
 
 bp = Blueprint('ogrenci_odeme', __name__)
@@ -14,6 +15,7 @@ bp = Blueprint('ogrenci_odeme', __name__)
 
 @bp.route('/')
 @login_required
+@role_required('admin', 'muhasebeci')
 def liste():
     page = request.args.get('page', 1, type=int)
     arama = request.args.get('q', '')
@@ -36,30 +38,10 @@ def liste():
                            ogrenciler=ogrenciler, arama=arama)
 
 
-@bp.route('/ogrenci-ekle', methods=['GET', 'POST'])
-@login_required
-def ogrenci_ekle():
-    form = OgrenciForm()
-    if form.validate_on_submit():
-        ogrenci = Ogrenci(
-            ogrenci_no=form.ogrenci_no.data,
-            ad=form.ad.data,
-            soyad=form.soyad.data,
-            sinif=form.sinif.data,
-            veli_ad=form.veli_ad.data,
-            veli_telefon=form.veli_telefon.data
-        )
-        db.session.add(ogrenci)
-        db.session.commit()
-        flash('Öğrenci başarıyla eklendi.', 'success')
-        return redirect(url_for('muhasebe.ogrenci_odeme.liste'))
-
-    return render_template('muhasebe/ogrenci_odeme/ogrenci_form.html',
-                           form=form, baslik='Yeni Öğrenci Ekle')
-
 
 @bp.route('/<int:ogrenci_id>')
 @login_required
+@role_required('admin', 'muhasebeci')
 def detay(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     planlar = OdemePlani.query.filter_by(ogrenci_id=ogrenci_id).order_by(
@@ -72,6 +54,7 @@ def detay(ogrenci_id):
 
 @bp.route('/<int:ogrenci_id>/plan-olustur', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def plan_olustur(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     form = OdemePlaniForm()
@@ -118,6 +101,7 @@ def plan_olustur(ogrenci_id):
 
 @bp.route('/taksit/<int:taksit_id>/odeme', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def odeme_yap(taksit_id):
     taksit = Taksit.query.get_or_404(taksit_id)
     ogrenci = taksit.odeme_plani.ogrenci
@@ -169,6 +153,7 @@ def odeme_yap(taksit_id):
 
 @bp.route('/odeme/<int:odeme_id>/makbuz')
 @login_required
+@role_required('admin', 'muhasebeci')
 def makbuz(odeme_id):
     odeme = Odeme.query.get_or_404(odeme_id)
     ogrenci = odeme.taksit.odeme_plani.ogrenci
@@ -178,6 +163,7 @@ def makbuz(odeme_id):
 
 @bp.route('/geciken')
 @login_required
+@role_required('admin', 'muhasebeci')
 def geciken():
     bugun = date.today()
     geciken_taksitler = Taksit.query.filter(

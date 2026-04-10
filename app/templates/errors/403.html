@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Erişim Engellendi{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="mb-4">
+                <i class="bi bi-shield-lock text-danger" style="font-size: 5rem;"></i>
+            </div>
+            <h1 class="display-4 fw-bold text-danger">403</h1>
+            <h2 class="mb-3">Erişim Engellendi</h2>
+            <p class="text-muted mb-4">
+                Bu sayfaya erişim yetkiniz bulunmamaktadır.
+                Yetkili olduğunuzu düşünüyorsanız sistem yöneticisi ile iletişime geçiniz.
+            </p>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                <i class="bi bi-house-door me-2"></i>Ana Sayfaya Dön
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

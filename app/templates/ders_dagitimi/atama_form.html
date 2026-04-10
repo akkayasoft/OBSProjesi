@@ -1,0 +1,61 @@
+{% extends "ders_dagitimi/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('ders_dagitimi.atama.liste') }}">Öğretmen Atamaları</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block ders_dagitimi_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ogretmen_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogretmen_id(class="form-select") }}
+                            {% for error in form.ogretmen_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ders_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ders_id(class="form-select") }}
+                            {% for error in form.ders_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.sube_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sube_id(class="form-select") }}
+                            {% for error in form.sube_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.donem.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.donem(class="form-control") }}
+                            {% for error in form.donem.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('ders_dagitimi.atama.liste') }}" class="btn btn-secondary me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -32,33 +32,59 @@ body {
 /* === Sidebar === */
 .sidebar {
     width: 260px;
-    min-height: calc(100vh - 56px);
+    height: calc(100vh - 56px);
     margin-top: 56px;
     position: fixed;
     left: 0;
     top: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     transition: all 0.3s;
     z-index: 1030;
 }
 
-.sidebar-content {
-    padding: 1rem 0;
+/* Özel scrollbar stili */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
 }
 
-.sidebar-section {
-    margin-bottom: 0.25rem;
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
 }
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* Firefox scrollbar */
+.sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-content {
+    padding: 0.75rem 0 2rem 0;
+}
+
+/* sidebar-section spacing is below sub-link */
 
 .sidebar-link {
     display: flex;
     align-items: center;
-    padding: 0.7rem 1.25rem;
+    padding: 0.5rem 1rem;
     color: #adb5bd;
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     transition: all 0.2s;
     border-left: 3px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-link:hover {
@@ -87,8 +113,14 @@ body {
 }
 
 .sub-link {
-    padding-left: 2.5rem;
-    font-size: 0.85rem;
+    padding-left: 2.25rem;
+    font-size: 0.8rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+
+.sidebar-section {
+    margin-bottom: 0.1rem;
 }
 
 /* === Page Content === */

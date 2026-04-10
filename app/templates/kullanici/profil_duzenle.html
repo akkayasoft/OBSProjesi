@@ -1,0 +1,51 @@
+{% extends "kullanici/_layout.html" %}
+
+{% block title %}Profil Duzenle{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kullanici.profil.profil') }}">Profilim</a></li>
+<li class="breadcrumb-item active">Duzenle</li>
+{% endblock %}
+
+{% block kullanici_content %}
+<h4 class="mb-4"><i class="bi bi-pencil me-2"></i>Profili Duzenle</h4>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('kullanici.profil.profil_duzenle') }}">
+            {{ form.hidden_tag() }}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.ad.label.text }}</label>
+                    {{ form.ad(class="form-control" + (" is-invalid" if form.ad.errors else "")) }}
+                    {% for error in form.ad.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.soyad.label.text }}</label>
+                    {{ form.soyad(class="form-control" + (" is-invalid" if form.soyad.errors else "")) }}
+                    {% for error in form.soyad.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.email.label.text }}</label>
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                    {% for error in form.email.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>Guncelle
+                </button>
+                <a href="{{ url_for('kullanici.profil.profil') }}" class="btn btn-outline-secondary ms-2">
+                    <i class="bi bi-x-lg me-1"></i>Iptal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

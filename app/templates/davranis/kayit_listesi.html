@@ -1,0 +1,166 @@
+{% extends "davranis/_layout.html" %}
+
+{% block title %}Davranis Degerlendirme Kayitlari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Kayitlar</li>
+{% endblock %}
+
+{% block davranis_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Davranis Degerlendirme Kayitlari</h4>
+    <div>
+        <a href="{{ url_for('davranis.rapor.genel') }}" class="btn btn-outline-info me-2">
+            <i class="bi bi-bar-chart me-1"></i>Raporlar
+        </a>
+        <a href="{{ url_for('davranis.kayit.yeni') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Kayit
+        </a>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Tur</label>
+                <select name="tur" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="olumlu" {% if tur == 'olumlu' %}selected{% endif %}>Olumlu</option>
+                    <option value="olumsuz" {% if tur == 'olumsuz' %}selected{% endif %}>Olumsuz</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Kategori</label>
+                <select name="kategori" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="akademik" {% if kategori == 'akademik' %}selected{% endif %}>Akademik</option>
+                    <option value="sosyal" {% if kategori == 'sosyal' %}selected{% endif %}>Sosyal</option>
+                    <option value="disiplin" {% if kategori == 'disiplin' %}selected{% endif %}>Disiplin</option>
+                    <option value="saglik" {% if kategori == 'saglik' %}selected{% endif %}>Saglik</option>
+                    <option value="diger" {% if kategori == 'diger' %}selected{% endif %}>Diger</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sinif</label>
+                <select name="sinif_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for s in siniflar %}
+                    <option value="{{ s.id }}" {% if sinif_id == s.id|string %}selected{% endif %}>{{ s.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Baslangic</label>
+                <input type="date" name="baslangic" class="form-control" value="{{ baslangic }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Bitis</label>
+                <input type="date" name="bitis" class="form-control" value="{{ bitis }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if tur or kategori or sinif_id or ogrenci_id or baslangic or bitis %}
+            <div class="col-md-2">
+                <a href="{{ url_for('davranis.kayit.liste') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Kayit Listesi -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Tarih</th>
+                    <th>Ogrenci</th>
+                    <th>Ogretmen</th>
+                    <th>Sinif</th>
+                    <th>Tur</th>
+                    <th>Kategori</th>
+                    <th>Puan</th>
+                    <th>Aciklama</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kayitlar.items %}
+                <tr>
+                    <td>{{ k.tarih.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('davranis.rapor.ogrenci_rapor', ogrenci_id=k.ogrenci.id) }}" class="text-decoration-none">
+                            {{ k.ogrenci.tam_ad }}
+                        </a>
+                    </td>
+                    <td>{{ k.ogretmen.tam_ad }}</td>
+                    <td>{{ k.sinif.ad if k.sinif else '-' }}</td>
+                    <td><span class="badge bg-{{ k.tur_badge }}">{{ k.tur_str }}</span></td>
+                    <td><span class="badge bg-{{ k.kategori_badge }}">{{ k.kategori_str }}</span></td>
+                    <td>
+                        <span class="fw-bold {% if k.puan > 0 %}text-success{% elif k.puan < 0 %}text-danger{% endif %}">
+                            {{ '%+d'|format(k.puan) }}
+                        </span>
+                    </td>
+                    <td>{{ k.aciklama[:60] }}{% if k.aciklama|length > 60 %}...{% endif %}</td>
+                    <td class="text-end">
+                        <a href="{{ url_for('davranis.kayit.duzenle', kayit_id=k.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('davranis.kayit.sil', kayit_id=k.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu kaydi silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="bi bi-clipboard-check display-4 d-block mb-3"></i>
+                        Henuz davranis degerlendirme kaydi bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if kayitlar.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if kayitlar.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ kayitlar.prev_num }}&tur={{ tur }}&kategori={{ kategori }}&sinif_id={{ sinif_id }}&ogrenci_id={{ ogrenci_id }}&baslangic={{ baslangic }}&bitis={{ bitis }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in kayitlar.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == kayitlar.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&tur={{ tur }}&kategori={{ kategori }}&sinif_id={{ sinif_id }}&ogrenci_id={{ ogrenci_id }}&baslangic={{ baslangic }}&bitis={{ bitis }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if kayitlar.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ kayitlar.next_num }}&tur={{ tur }}&kategori={{ kategori }}&sinif_id={{ sinif_id }}&ogrenci_id={{ ogrenci_id }}&baslangic={{ baslangic }}&bitis={{ bitis }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

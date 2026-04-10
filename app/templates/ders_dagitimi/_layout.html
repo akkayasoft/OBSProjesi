@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Ana Sayfa</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('ders_dagitimi.dashboard.index') }}">Ders Dağıtımı</a></li>
+            {% block breadcrumb %}{% endblock %}
+        </ol>
+    </nav>
+</div>
+
+{% block ders_dagitimi_content %}{% endblock %}
+{% endblock %}

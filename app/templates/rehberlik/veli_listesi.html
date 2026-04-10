@@ -1,0 +1,131 @@
+{% extends "rehberlik/_layout.html" %}
+
+{% block title %}Veli Gorusmeleri{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Veli Gorusmeleri</li>
+{% endblock %}
+
+{% block rehberlik_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-people me-2"></i>Veli Gorusmeleri</h4>
+    <a href="{{ url_for('rehberlik.veli.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Veli Gorusmesi
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Gorusme Turu</label>
+                <select name="tur" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="yuz_yuze" {% if tur == 'yuz_yuze' %}selected{% endif %}>Yuz Yuze</option>
+                    <option value="telefon" {% if tur == 'telefon' %}selected{% endif %}>Telefon</option>
+                    <option value="online" {% if tur == 'online' %}selected{% endif %}>Online</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Arama</label>
+                <input type="text" name="arama" class="form-control" placeholder="Konu veya veli adinda ara..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if tur or arama %}
+            <div class="col-md-2">
+                <a href="{{ url_for('rehberlik.veli.liste') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Veli Gorusme Listesi -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Tarih</th>
+                    <th>Ogrenci</th>
+                    <th>Veli</th>
+                    <th>Tur</th>
+                    <th>Konu</th>
+                    <th>Gorusen</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in gorusmeler.items %}
+                <tr>
+                    <td>{{ g.gorusme_tarihi.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                        <a href="{{ url_for('rehberlik.profil.ogrenci_profil', ogrenci_id=g.ogrenci.id) }}" class="text-decoration-none">
+                            {{ g.ogrenci.tam_ad }}
+                        </a>
+                    </td>
+                    <td>{{ g.veli_adi }}</td>
+                    <td><span class="badge bg-{{ g.gorusme_turu_badge }}">{{ g.gorusme_turu_str }}</span></td>
+                    <td>{{ g.konu[:60] }}{% if g.konu|length > 60 %}...{% endif %}</td>
+                    <td>{{ g.gorusen.tam_ad }}</td>
+                    <td class="text-end">
+                        <a href="{{ url_for('rehberlik.veli.duzenle', gorusme_id=g.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('rehberlik.veli.sil', gorusme_id=g.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu gorusmeyi silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="bi bi-people display-4 d-block mb-3"></i>
+                        Henuz veli gorusmesi bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if gorusmeler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if gorusmeler.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ gorusmeler.prev_num }}&tur={{ tur }}&arama={{ arama }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in gorusmeler.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == gorusmeler.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&tur={{ tur }}&arama={{ arama }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if gorusmeler.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ gorusmeler.next_num }}&tur={{ tur }}&arama={{ arama }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

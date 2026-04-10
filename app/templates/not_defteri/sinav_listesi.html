@@ -1,0 +1,135 @@
+{% extends "not_defteri/_layout.html" %}
+
+{% block title %}Sinav Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Sinavlar</li>
+{% endblock %}
+
+{% block not_defteri_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Sinav Listesi</h4>
+    <a href="{{ url_for('not_defteri.sinav.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Sinav
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Ders</label>
+                <select name="ders_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for d in dersler %}
+                    <option value="{{ d.id }}" {% if ders_id == d.id %}selected{% endif %}>{{ d.kod }} - {{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Sinif / Sube</label>
+                <select name="sube_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for s in subeler %}
+                    <option value="{{ s.id }}" {% if sube_id == s.id %}selected{% endif %}>{{ s.tam_ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Sinav Tablosu -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Sinav Adi</th>
+                    <th>Tur</th>
+                    <th>Ders</th>
+                    <th>Sinif/Sube</th>
+                    <th>Ogretmen</th>
+                    <th>Tarih</th>
+                    <th>Ortalama</th>
+                    <th class="text-center">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sinavlar.items %}
+                <tr>
+                    <td><strong>{{ s.ad }}</strong></td>
+                    <td><span class="badge bg-secondary">{{ s.sinav_turu.ad }}</span></td>
+                    <td>{{ s.ders.ad }}</td>
+                    <td>{{ s.sube.tam_ad }}</td>
+                    <td>{{ s.ogretmen.tam_ad }}</td>
+                    <td>{{ s.tarih.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        {% if s.not_ortalamasi > 0 %}
+                        <span class="badge bg-{{ 'success' if s.not_ortalamasi >= 70 else ('warning' if s.not_ortalamasi >= 50 else 'danger') }}">
+                            {{ s.not_ortalamasi }}
+                        </span>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('not_defteri.sinav.not_giris', sinav_id=s.id) }}"
+                           class="btn btn-sm btn-outline-primary" title="Not Giris">
+                            <i class="bi bi-input-cursor-text"></i>
+                        </a>
+                        <a href="{{ url_for('not_defteri.sinav.sonuclar', sinav_id=s.id) }}"
+                           class="btn btn-sm btn-outline-info" title="Sonuclar">
+                            <i class="bi bi-bar-chart"></i>
+                        </a>
+                        <a href="{{ url_for('not_defteri.sinav.duzenle', sinav_id=s.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('not_defteri.sinav.sil', sinav_id=s.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu sinavi silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">Henuz sinav bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if sinavlar.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if sinavlar.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ sinavlar.prev_num }}&ders_id={{ ders_id or '' }}&sube_id={{ sube_id or '' }}">Onceki</a></li>
+            {% endif %}
+            {% for p in sinavlar.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == sinavlar.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&ders_id={{ ders_id or '' }}&sube_id={{ sube_id or '' }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if sinavlar.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ sinavlar.next_num }}&ders_id={{ ders_id or '' }}&sube_id={{ sube_id or '' }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

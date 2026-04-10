@@ -1,0 +1,148 @@
+{% extends "odev_takip/_layout.html" %}
+
+{% block title %}Ogrenci Odev Raporu - {{ ogrenci.tam_ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('odev_takip.rapor.index') }}">Raporlar</a></li>
+<li class="breadcrumb-item active">Ogrenci Raporu</li>
+{% endblock %}
+
+{% block odev_takip_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">{{ ogrenci.tam_ad }}</h4>
+        <p class="text-muted mb-0">
+            <strong>{{ ogrenci.ogrenci_no }}</strong>
+            {% if sube %} | {{ sube.tam_ad }}{% endif %}
+        </p>
+    </div>
+    <a href="{{ url_for('odev_takip.rapor.index') }}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left me-1"></i>Raporlara Don
+    </a>
+</div>
+
+<!-- Ozet Kartlari -->
+<div class="row g-4 mb-4">
+    <div class="col-md-2">
+        <div class="card border-start border-primary border-4">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ toplam }}</h3>
+                <small class="text-muted">Toplam Odev</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-start border-success border-4">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-success">{{ teslim_edilen }}</h3>
+                <small class="text-muted">Teslim Edildi</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-start border-danger border-4">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-danger">{{ geciken }}</h3>
+                <small class="text-muted">Geciken</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-start border-warning border-4">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-warning">{{ eksik }}</h3>
+                <small class="text-muted">Eksik</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-start border-info border-4">
+            <div class="card-body text-center">
+                <h3 class="mb-1">%{{ tamamlanma }}</h3>
+                <small class="text-muted">Tamamlanma</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-start border-secondary border-4">
+            <div class="card-body text-center">
+                <h3 class="mb-1">{{ puan_ortalamasi }}</h3>
+                <small class="text-muted">Puan Ort.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tamamlanma Cubugu -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h6 class="mb-3">Genel Tamamlanma Orani</h6>
+        <div class="progress" style="height: 30px;">
+            <div class="progress-bar bg-success" style="width: {{ tamamlanma }}%">
+                %{{ tamamlanma }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Odev Detaylari -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-list-task me-2"></i>Odev Detaylari</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Odev</th>
+                        <th>Ders</th>
+                        <th>Son Teslim</th>
+                        <th>Durum</th>
+                        <th>Teslim Tarihi</th>
+                        <th>Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in teslimler %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="{{ url_for('odev_takip.odev.detay', odev_id=t.odev.id) }}">
+                                {{ t.odev.baslik }}
+                            </a>
+                        </td>
+                        <td>{{ t.odev.ders.ad }}</td>
+                        <td>{{ t.odev.son_teslim_tarihi.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            {% if t.durum == 'teslim_edildi' %}
+                            <span class="badge bg-success">Teslim Edildi</span>
+                            {% elif t.durum == 'gecikti' %}
+                            <span class="badge bg-danger">Gecikti</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Teslim Edilmedi</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ t.teslim_tarihi.strftime('%d.%m.%Y') if t.teslim_tarihi else '-' }}</td>
+                        <td>
+                            {% if t.puan is not none %}
+                            <span class="badge bg-{{ 'success' if t.puan >= 70 else ('warning' if t.puan >= 50 else 'danger') }}">
+                                {{ t.puan }}
+                            </span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Odev kaydi bulunmuyor</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends "duyurular/_layout.html" %}
+
+{% block title %}Duyuru Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Duyuru Listesi</li>
+{% endblock %}
+
+{% block duyurular_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-card-text me-2"></i>Duyuru Listesi</h4>
+    <a href="{{ url_for('duyurular.duyuru.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Duyuru
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Kategori</label>
+                <select name="kategori" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="genel" {% if kategori == 'genel' %}selected{% endif %}>Genel</option>
+                    <option value="akademik" {% if kategori == 'akademik' %}selected{% endif %}>Akademik</option>
+                    <option value="idari" {% if kategori == 'idari' %}selected{% endif %}>İdari</option>
+                    <option value="etkinlik" {% if kategori == 'etkinlik' %}selected{% endif %}>Etkinlik</option>
+                    <option value="acil" {% if kategori == 'acil' %}selected{% endif %}>Acil</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Arama</label>
+                <input type="text" name="arama" class="form-control" placeholder="Başlık veya içerikte ara..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if kategori or arama %}
+            <div class="col-md-2">
+                <a href="{{ url_for('duyurular.duyuru.liste') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Duyuru Listesi -->
+<div class="row g-3">
+    {% for d in duyurular.items %}
+    <div class="col-12">
+        <div class="card shadow-sm {% if d.sabitlenmis %}border-primary{% endif %} {% if d.suresi_doldu %}opacity-50{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if d.sabitlenmis %}
+                            <i class="bi bi-pin-angle-fill text-primary me-2" title="Sabitlenmiş"></i>
+                            {% endif %}
+                            <h5 class="mb-0">
+                                <a href="{{ url_for('duyurular.duyuru.detay', duyuru_id=d.id) }}" class="text-decoration-none">
+                                    {{ d.baslik }}
+                                </a>
+                            </h5>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-{{ d.kategori_badge }} me-1">{{ d.kategori_str }}</span>
+                            {% if d.oncelik != 'normal' %}
+                            <span class="badge bg-{{ d.oncelik_badge }} me-1">{{ d.oncelik_str }}</span>
+                            {% endif %}
+                            <span class="badge bg-light text-dark me-1">
+                                <i class="bi bi-people me-1"></i>{{ d.hedef_kitle_str }}
+                            </span>
+                            {% if d.suresi_doldu %}
+                            <span class="badge bg-dark">Süresi Dolmuş</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted mb-1">{{ d.icerik[:150] }}{% if d.icerik|length > 150 %}...{% endif %}</p>
+                        <small class="text-muted">
+                            <i class="bi bi-person me-1"></i>{{ d.yayinlayan.tam_ad }}
+                            <span class="mx-2">|</span>
+                            <i class="bi bi-calendar me-1"></i>{{ d.yayinlanma_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                            <span class="mx-2">|</span>
+                            <i class="bi bi-eye me-1"></i>{{ d.okunma_sayisi }} okunma
+                        </small>
+                    </div>
+                    <div class="ms-3 text-nowrap">
+                        <form method="POST" action="{{ url_for('duyurular.duyuru.sabitle', duyuru_id=d.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-{{ 'primary' if d.sabitlenmis else 'secondary' }}"
+                                    title="{{ 'Sabitlemeyi Kaldır' if d.sabitlenmis else 'Sabitle' }}">
+                                <i class="bi bi-pin-angle{% if d.sabitlenmis %}-fill{% endif %}"></i>
+                            </button>
+                        </form>
+                        <a href="{{ url_for('duyurular.duyuru.duzenle', duyuru_id=d.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('duyurular.duyuru.sil', duyuru_id=d.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-card-text display-4 d-block mb-3"></i>
+                Henüz duyuru bulunmuyor.
+                <div class="mt-3">
+                    <a href="{{ url_for('duyurular.duyuru.yeni') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>İlk Duyuruyu Oluştur
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if duyurular.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if duyurular.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ duyurular.prev_num }}&kategori={{ kategori }}&arama={{ arama }}">Önceki</a>
+        </li>
+        {% endif %}
+        {% for p in duyurular.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == duyurular.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&kategori={{ kategori }}&arama={{ arama }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if duyurular.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ duyurular.next_num }}&kategori={{ kategori }}&arama={{ arama }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

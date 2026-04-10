@@ -1,0 +1,36 @@
+{% extends "saglik/_layout.html" %}
+
+{% block title %}Revir Detay{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('saglik.revir.liste') }}">Revir Kayıtları</a></li>
+<li class="breadcrumb-item active">Detay</li>
+{% endblock %}
+
+{% block saglik_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-hospital me-2"></i>Revir Kaydı Detayı</h5>
+                <span class="badge bg-{{ kayit.sonuc_badge }} fs-6">{{ kayit.sonuc_str }}</span>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><th class="w-25">Öğrenci</th><td><strong>{{ kayit.ogrenci.tam_ad }}</strong> ({{ kayit.ogrenci.ogrenci_no }})</td></tr>
+                    <tr><th>Tarih</th><td>{{ kayit.tarih.strftime('%d.%m.%Y %H:%M') }}</td></tr>
+                    <tr><th>Şikayet</th><td>{{ kayit.sikayet }}</td></tr>
+                    <tr><th>Yapılan İşlem</th><td>{{ kayit.yapilan_islem }}</td></tr>
+                    <tr><th>Verilen İlaç</th><td>{{ kayit.verilen_ilac or '-' }}</td></tr>
+                    <tr><th>İlgilenen</th><td>{{ kayit.ilgilenen.tam_ad }}</td></tr>
+                </table>
+            </div>
+            <div class="card-footer bg-white text-end">
+                <a href="{{ url_for('saglik.revir.liste') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Geri Dön
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

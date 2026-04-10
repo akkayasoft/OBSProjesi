@@ -1,0 +1,24 @@
+{% extends "yurt/_layout.html" %}
+{% block title %}Yurt Yoklama{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Yoklama</li>{% endblock %}
+{% block yurt_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="bi bi-clipboard-check me-2"></i>Yurt Yoklama</h4>
+    <a href="{{ url_for('yurt.yoklama.gecmis') }}" class="btn btn-outline-info"><i class="bi bi-clock-history me-1"></i>Gecmis</a>
+</div>
+<div class="row">
+{% for o in odalar %}
+<div class="col-md-3 mb-3">
+    <div class="card h-100">
+        <div class="card-body text-center">
+            <h6>Oda {{ o.oda_no }}</h6>
+            <p class="text-muted small mb-2">{{ o.dolu_yatak }} ogrenci</p>
+            {% if o.dolu_yatak > 0 %}
+            <a href="{{ url_for('yurt.yoklama.al', oda_id=o.id) }}" class="btn btn-sm btn-primary"><i class="bi bi-clipboard-check me-1"></i>Yoklama Al</a>
+            {% else %}<span class="text-muted small">Bos oda</span>{% endif %}
+        </div>
+    </div>
+</div>
+{% else %}<div class="col-12"><div class="alert alert-info">Aktif oda bulunamadi.</div></div>{% endfor %}
+</div>
+{% endblock %}

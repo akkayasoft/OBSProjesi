@@ -1,0 +1,73 @@
+{% extends "kurum/_layout.html" %}
+
+{% block title %}Ogretim Yillari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Ogretim Yillari</li>
+{% endblock %}
+
+{% block kurum_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-calendar-range me-2"></i>Ogretim Yillari</h4>
+    <a href="{{ url_for('kurum.ogretim_yili.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Ogretim Yili
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ogretim Yili</th>
+                        <th>Baslangic</th>
+                        <th>Bitis</th>
+                        <th>Yariyil Baslangic</th>
+                        <th>Yariyil Bitis</th>
+                        <th>Durum</th>
+                        <th class="text-end">Islemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for oy in ogretim_yillari %}
+                    <tr>
+                        <td><strong>{{ oy.ad }}</strong></td>
+                        <td>{{ oy.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ oy.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ oy.yariyil_baslangic.strftime('%d.%m.%Y') if oy.yariyil_baslangic else '-' }}</td>
+                        <td>{{ oy.yariyil_bitis.strftime('%d.%m.%Y') if oy.yariyil_bitis else '-' }}</td>
+                        <td>
+                            {% if oy.aktif %}
+                            <span class="badge bg-success">Aktif</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Pasif</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('kurum.ogretim_yili.duzenle', id=oy.id) }}"
+                               class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('kurum.ogretim_yili.sil', id=oy.id) }}"
+                                  class="d-inline" onsubmit="return confirm('Bu ogretim yilini silmek istediginize emin misiniz?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Henuz ogretim yili bulunmuyor.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

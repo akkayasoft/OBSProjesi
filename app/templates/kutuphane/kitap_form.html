@@ -1,0 +1,21 @@
+{% extends "kutuphane/_layout.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">{{ baslik }}</li>{% endblock %}
+{% block kutuphane_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0">{{ baslik }}</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-8 mb-3">{{ form.baslik.label(class="form-label") }}{{ form.baslik(class="form-control") }}</div>
+    <div class="col-md-4 mb-3">{{ form.isbn.label(class="form-label") }}{{ form.isbn(class="form-control") }}</div>
+    <div class="col-md-4 mb-3">{{ form.yazar.label(class="form-label") }}{{ form.yazar(class="form-control") }}</div>
+    <div class="col-md-4 mb-3">{{ form.yayinevi.label(class="form-label") }}{{ form.yayinevi(class="form-control") }}</div>
+    <div class="col-md-2 mb-3">{{ form.yayin_yili.label(class="form-label") }}{{ form.yayin_yili(class="form-control") }}</div>
+    <div class="col-md-2 mb-3">{{ form.adet.label(class="form-label") }}{{ form.adet(class="form-control") }}</div>
+    <div class="col-md-4 mb-3">{{ form.kategori.label(class="form-label") }}{{ form.kategori(class="form-select") }}</div>
+    <div class="col-md-4 mb-3">{{ form.raf_no.label(class="form-label") }}{{ form.raf_no(class="form-control") }}</div>
+    <div class="col-12 mb-3">{{ form.aciklama.label(class="form-label") }}{{ form.aciklama(class="form-control") }}</div>
+</div>
+<button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Kaydet</button>
+<a href="{{ url_for('kutuphane.kitap.liste') }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}

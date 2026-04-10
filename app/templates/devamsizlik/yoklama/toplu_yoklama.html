@@ -1,0 +1,116 @@
+{% extends "devamsizlik/_layout.html" %}
+
+{% block title %}Toplu Yoklama{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('devamsizlik.yoklama.index') }}">Yoklama Al</a></li>
+<li class="breadcrumb-item active">Toplu Yoklama</li>
+{% endblock %}
+
+{% block devamsizlik_content %}
+<div class="alert alert-info">
+    <strong>{{ sube.tam_ad }}</strong> - <strong>{{ tarih.strftime('%d.%m.%Y') }}</strong>
+    <br>
+    <small>Seçilen ders saatleri: {{ ders_saatleri | join(', ') }}</small>
+</div>
+
+<form method="POST" action="{{ url_for('devamsizlik.yoklama.toplu_yoklama_kaydet') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="sube_id" value="{{ sube.id }}">
+    <input type="hidden" name="tarih" value="{{ tarih.isoformat() }}">
+    {% for ds in ders_saatleri %}
+    <input type="hidden" name="ders_saatleri" value="{{ ds }}">
+    {% endfor %}
+
+    {% if ogrenciler %}
+        {% for ds in ders_saatleri %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>{{ ds }}. Ders</strong>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%">#</th>
+                                <th style="width: 30%">Öğrenci</th>
+                                <th style="width: 45%">Durum</th>
+                                <th style="width: 20%">Not</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ogrenci in ogrenciler %}
+                            {% set kayit = mevcut.get(ds, {}).get(ogrenci.id) %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <strong>{{ ogrenci.tam_ad }}</strong><br>
+                                    <small class="text-muted">{{ ogrenci.ogrenci_no }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <input type="radio" class="btn-check"
+                                               name="durum_{{ ds }}_{{ ogrenci.id }}" value="mevcut"
+                                               id="durum_{{ ds }}_{{ ogrenci.id }}_mevcut"
+                                               {% if not kayit %}checked{% endif %}>
+                                        <label class="btn btn-outline-success btn-sm"
+                                               for="durum_{{ ds }}_{{ ogrenci.id }}_mevcut">Hazır</label>
+
+                                        <input type="radio" class="btn-check"
+                                               name="durum_{{ ds }}_{{ ogrenci.id }}" value="devamsiz"
+                                               id="durum_{{ ds }}_{{ ogrenci.id }}_devamsiz"
+                                               {% if kayit and kayit.durum == 'devamsiz' %}checked{% endif %}>
+                                        <label class="btn btn-outline-danger btn-sm"
+                                               for="durum_{{ ds }}_{{ ogrenci.id }}_devamsiz">Devamsız</label>
+
+                                        <input type="radio" class="btn-check"
+                                               name="durum_{{ ds }}_{{ ogrenci.id }}" value="gec"
+                                               id="durum_{{ ds }}_{{ ogrenci.id }}_gec"
+                                               {% if kayit and kayit.durum == 'gec' %}checked{% endif %}>
+                                        <label class="btn btn-outline-warning btn-sm"
+                                               for="durum_{{ ds }}_{{ ogrenci.id }}_gec">Geç</label>
+
+                                        <input type="radio" class="btn-check"
+                                               name="durum_{{ ds }}_{{ ogrenci.id }}" value="izinli"
+                                               id="durum_{{ ds }}_{{ ogrenci.id }}_izinli"
+                                               {% if kayit and kayit.durum == 'izinli' %}checked{% endif %}>
+                                        <label class="btn btn-outline-info btn-sm"
+                                               for="durum_{{ ds }}_{{ ogrenci.id }}_izinli">İzinli</label>
+
+                                        <input type="radio" class="btn-check"
+                                               name="durum_{{ ds }}_{{ ogrenci.id }}" value="raporlu"
+                                               id="durum_{{ ds }}_{{ ogrenci.id }}_raporlu"
+                                               {% if kayit and kayit.durum == 'raporlu' %}checked{% endif %}>
+                                        <label class="btn btn-outline-secondary btn-sm"
+                                               for="durum_{{ ds }}_{{ ogrenci.id }}_raporlu">Raporlu</label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm"
+                                           name="aciklama_{{ ds }}_{{ ogrenci.id }}"
+                                           value="{{ kayit.aciklama if kayit else '' }}"
+                                           placeholder="Opsiyonel not">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-lg me-2"></i>Toplu Yoklamayı Kaydet
+            </button>
+            <a href="{{ url_for('devamsizlik.yoklama.index') }}" class="btn btn-secondary btn-lg">
+                <i class="bi bi-x-lg me-2"></i>İptal
+            </a>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">Bu sınıfta aktif öğrenci bulunmamaktadır.</div>
+    {% endif %}
+</form>
+{% endblock %}

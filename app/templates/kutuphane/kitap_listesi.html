@@ -1,0 +1,27 @@
+{% extends "kutuphane/_layout.html" %}
+{% block title %}Kitaplar{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Kitaplar</li>{% endblock %}
+{% block kutuphane_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="bi bi-book me-2"></i>Kitaplar</h4>
+    <a href="{{ url_for('kutuphane.kitap.yeni') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Yeni Kitap</a>
+</div>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="row g-2 align-items-center">
+<div class="col-md-5"><input type="text" name="arama" class="form-control form-control-sm" placeholder="Kitap, yazar veya ISBN ara..." value="{{ arama }}"></div>
+<div class="col-auto"><select name="kategori" class="form-select form-select-sm"><option value="">Tum Kategoriler</option>
+{% for k, v in [('roman','Roman'),('hikaye','Hikaye'),('siir','Siir'),('bilim','Bilim'),('tarih','Tarih'),('ders_kitabi','Ders Kitabi'),('ansiklopedi','Ansiklopedi'),('diger','Diger')] %}
+<option value="{{ k }}" {% if kategori==k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></div>
+<div class="col-auto"><button class="btn btn-sm btn-primary">Ara</button></div></form></div></div>
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0"><thead class="table-light">
+<tr><th>Baslik</th><th>Yazar</th><th>Kategori</th><th>Raf</th><th>Adet</th><th>Musait</th><th class="text-end">Islemler</th></tr></thead><tbody>
+{% for k in kitaplar.items %}<tr>
+<td><a href="{{ url_for('kutuphane.kitap.detay', kitap_id=k.id) }}" class="fw-semibold text-decoration-none">{{ k.baslik }}</a></td>
+<td>{{ k.yazar }}</td><td>{{ k.kategori }}</td><td>{{ k.raf_no or '-' }}</td><td>{{ k.adet }}</td>
+<td><span class="badge bg-{% if k.mevcut_adet > 0 %}success{% else %}danger{% endif %}">{{ k.mevcut_adet }}</span></td>
+<td class="text-end"><a href="{{ url_for('kutuphane.kitap.duzenle', kitap_id=k.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+<form method="POST" action="{{ url_for('kutuphane.kitap.sil', kitap_id=k.id) }}" class="d-inline" onsubmit="return confirm('Silmek istediginize emin misiniz?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+</tr>{% else %}<tr><td colspan="7" class="text-center text-muted py-4">Kitap bulunamadi.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

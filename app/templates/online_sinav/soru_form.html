@@ -1,0 +1,179 @@
+{% extends "online_sinav/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sinav.liste') }}">Sinav Listesi</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.baslik }}</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.soru.liste', sinav_id=sinav.id) }}">Sorular</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block online_sinav_content %}
+<h4 class="mb-4"><i class="bi bi-pencil-square me-2"></i>{{ baslik }}</h4>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" novalidate id="soruForm">
+            {{ form.hidden_tag() }}
+
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label">{{ form.soru_metni.label.text }}</label>
+                    {{ form.soru_metni(class="form-control" + (" is-invalid" if form.soru_metni.errors else "")) }}
+                    {% for e in form.soru_metni.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.soru_turu.label.text }}</label>
+                    {{ form.soru_turu(class="form-select", id="soruTuru") }}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.puan.label.text }}</label>
+                    {{ form.puan(class="form-control" + (" is-invalid" if form.puan.errors else "")) }}
+                    {% for e in form.puan.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.zorluk.label.text }}</label>
+                    {{ form.zorluk(class="form-select") }}
+                </div>
+
+                <!-- Coktan Secmeli Secenekler -->
+                <div class="col-12" id="seceneklerAlani" style="display:none;">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-list-ul me-1"></i>Secenekler</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="secenekListesi">
+                                {% if soru is defined and soru and soru.soru_turu == 'coktan_secmeli' %}
+                                    {% for sec in soru.secenekler.all() %}
+                                    <div class="input-group mb-2 secenek-satir">
+                                        <div class="input-group-text">
+                                            <input type="radio" name="dogru_secenek" value="{{ loop.index0 }}" {{ 'checked' if sec.dogru_mu }}>
+                                        </div>
+                                        <input type="text" name="secenek_metni[]" class="form-control" value="{{ sec.secenek_metni }}" placeholder="Secenek {{ loop.index }}">
+                                        <button type="button" class="btn btn-outline-danger btn-secenek-sil" onclick="secenekSil(this)">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for i in range(4) %}
+                                    <div class="input-group mb-2 secenek-satir">
+                                        <div class="input-group-text">
+                                            <input type="radio" name="dogru_secenek" value="{{ i }}" {{ 'checked' if i == 0 }}>
+                                        </div>
+                                        <input type="text" name="secenek_metni[]" class="form-control" placeholder="Secenek {{ i + 1 }}">
+                                        <button type="button" class="btn btn-outline-danger btn-secenek-sil" onclick="secenekSil(this)">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="secenekEkle()">
+                                <i class="bi bi-plus-circle me-1"></i>Secenek Ekle
+                            </button>
+                            <div class="mt-2">
+                                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Dogru cevabi radyo butonu ile isaretleyin.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dogru/Yanlis -->
+                <div class="col-12" id="dogruYanlisAlani" style="display:none;">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-check-circle me-1"></i>Dogru Cevap</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check form-check-inline">
+                                <input type="radio" name="dogru_yanlis_cevap" value="true" class="form-check-input" id="dyTrue"
+                                    {% if soru is defined and soru and soru.soru_turu == 'dogru_yanlis' %}
+                                        {% set ds = soru.secenekler.filter_by(dogru_mu=True).first() %}
+                                        {{ 'checked' if ds and ds.secenek_metni == 'Doğru' }}
+                                    {% else %}checked{% endif %}>
+                                <label class="form-check-label" for="dyTrue">Dogru</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" name="dogru_yanlis_cevap" value="false" class="form-check-input" id="dyFalse"
+                                    {% if soru is defined and soru and soru.soru_turu == 'dogru_yanlis' %}
+                                        {% set ds = soru.secenekler.filter_by(dogru_mu=True).first() %}
+                                        {{ 'checked' if ds and ds.secenek_metni == 'Yanlış' }}
+                                    {% endif %}>
+                                <label class="form-check-label" for="dyFalse">Yanlis</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bosluk Doldurma -->
+                <div class="col-12" id="boslukAlani" style="display:none;">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-input-cursor-text me-1"></i>Dogru Cevap</h6>
+                        </div>
+                        <div class="card-body">
+                            <input type="text" name="bosluk_cevap" class="form-control" placeholder="Dogru cevabi giriniz"
+                                value="{% if soru is defined and soru and soru.soru_turu == 'bosluk_doldurma' %}{% set ds = soru.secenekler.filter_by(dogru_mu=True).first() %}{{ ds.secenek_metni if ds else '' }}{% endif %}">
+                            <small class="text-muted mt-1 d-block">Ogrencinin cevabi bu deger ile karsilastirilacaktir (buyuk/kucuk harf duyarsiz).</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">{{ form.aciklama.label.text }}</label>
+                    {{ form.aciklama(class="form-control") }}
+                </div>
+            </div>
+
+            <hr>
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('online_sinav.soru.liste', sinav_id=sinav.id) }}" class="btn btn-outline-secondary">Iptal</a>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var soruTuru = document.getElementById('soruTuru');
+    function turuDegisti() {
+        var val = soruTuru.value;
+        document.getElementById('seceneklerAlani').style.display = (val === 'coktan_secmeli') ? '' : 'none';
+        document.getElementById('dogruYanlisAlani').style.display = (val === 'dogru_yanlis') ? '' : 'none';
+        document.getElementById('boslukAlani').style.display = (val === 'bosluk_doldurma') ? '' : 'none';
+    }
+    soruTuru.addEventListener('change', turuDegisti);
+    turuDegisti();
+});
+
+var secenekSayaci = document.querySelectorAll('.secenek-satir').length;
+
+function secenekEkle() {
+    var liste = document.getElementById('secenekListesi');
+    var idx = liste.querySelectorAll('.secenek-satir').length;
+    var div = document.createElement('div');
+    div.className = 'input-group mb-2 secenek-satir';
+    div.innerHTML = '<div class="input-group-text"><input type="radio" name="dogru_secenek" value="' + idx + '"></div>' +
+        '<input type="text" name="secenek_metni[]" class="form-control" placeholder="Secenek ' + (idx + 1) + '">' +
+        '<button type="button" class="btn btn-outline-danger btn-secenek-sil" onclick="secenekSil(this)"><i class="bi bi-x"></i></button>';
+    liste.appendChild(div);
+}
+
+function secenekSil(btn) {
+    var satir = btn.closest('.secenek-satir');
+    satir.remove();
+    // Radyo degerlerini guncelle
+    var satirlar = document.querySelectorAll('#secenekListesi .secenek-satir');
+    satirlar.forEach(function(s, i) {
+        s.querySelector('input[type="radio"]').value = i;
+    });
+}
+</script>
+{% endblock %}

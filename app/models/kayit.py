@@ -148,9 +148,11 @@ class OgrenciBelge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ogrenci_id = db.Column(db.Integer, db.ForeignKey('ogrenciler.id'), nullable=False)
     belge_turu = db.Column(db.String(50), nullable=False)
-    # nufus_cuzdani, ogrenim_belgesi, fotograf, saglik_raporu, ikametgah, nakil_belgesi, diger
+    # karteks, nufus_cuzdani, ogrenim_belgesi, fotograf, saglik_raporu, ikametgah, nakil_belgesi, diger
     teslim_edildi = db.Column(db.Boolean, default=False)
     teslim_tarihi = db.Column(db.Date, nullable=True)
+    dosya_yolu = db.Column(db.String(300), nullable=True)
+    orijinal_ad = db.Column(db.String(255), nullable=True)
     aciklama = db.Column(db.Text, nullable=True)
 
     ogrenci = db.relationship('Ogrenci', backref=db.backref('belgeler', lazy='dynamic'))
@@ -158,6 +160,7 @@ class OgrenciBelge(db.Model):
     @property
     def belge_turu_ad(self):
         tur_map = {
+            'karteks': 'Kayıt Karteksi',
             'nufus_cuzdani': 'Nüfus Cüzdanı Fotokopisi',
             'ogrenim_belgesi': 'Öğrenim Belgesi',
             'fotograf': 'Vesikalık Fotoğraf',

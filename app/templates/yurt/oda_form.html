@@ -1,0 +1,19 @@
+{% extends "yurt/_layout.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">{{ baslik }}</li>{% endblock %}
+{% block yurt_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0">{{ baslik }}</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-3 mb-3">{{ form.oda_no.label(class="form-label") }}{{ form.oda_no(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.bina.label(class="form-label") }}{{ form.bina(class="form-control") }}</div>
+    <div class="col-md-2 mb-3">{{ form.kat.label(class="form-label") }}{{ form.kat(class="form-control") }}</div>
+    <div class="col-md-2 mb-3">{{ form.kapasite.label(class="form-label") }}{{ form.kapasite(class="form-control") }}</div>
+    <div class="col-md-2 mb-3">{{ form.cinsiyet.label(class="form-label") }}{{ form.cinsiyet(class="form-select") }}</div>
+    <div class="col-md-3 mb-3">{{ form.durum.label(class="form-label") }}{{ form.durum(class="form-select") }}</div>
+    <div class="col-12 mb-3">{{ form.aciklama.label(class="form-label") }}{{ form.aciklama(class="form-control") }}</div>
+</div>
+<button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Kaydet</button>
+<a href="{{ url_for('yurt.oda.liste') }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}

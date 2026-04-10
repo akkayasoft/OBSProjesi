@@ -1,0 +1,170 @@
+{% extends "ortak_sinav/_layout.html" %}
+
+{% block title %}Sonuc Girisi - {{ sinav.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('ortak_sinav.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.ad }}</a></li>
+<li class="breadcrumb-item active">Sonuc Girisi</li>
+{% endblock %}
+
+{% block ortak_sinav_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Sonuc Girisi: {{ sinav.ad }}</h4>
+    <a href="{{ url_for('ortak_sinav.sinav.detay', sinav_id=sinav.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Sinav Detayina Don
+    </a>
+</div>
+
+<div class="row">
+    <!-- Sube Linkleri -->
+    <div class="col-md-3 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Toplu Giris (Subeye Gore)</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for s in subeler %}
+                <a href="{{ url_for('ortak_sinav.sonuc.toplu_giris', sinav_id=sinav.id, sube_id=s.id) }}"
+                   class="list-group-item list-group-item-action {% if sube is defined and sube and sube.id == s.id %}active{% endif %}">
+                    {{ s.tam_ad }}
+                </a>
+                {% else %}
+                <div class="list-group-item text-muted">Bu seviyede sube bulunmuyor.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        {% if toplu is defined and toplu %}
+        <!-- Toplu Sonuc Girisi -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">{{ sube.tam_ad }} - Toplu Sonuc Girisi</h6>
+                <span class="text-muted small">Toplam Puan: {{ sinav.toplam_puan }}</span>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Ogrenci No</th>
+                                    <th>Ogrenci Adi</th>
+                                    <th class="text-center" style="width:12%">Puan</th>
+                                    <th class="text-center" style="width:10%">Dogru</th>
+                                    <th class="text-center" style="width:10%">Yanlis</th>
+                                    <th class="text-center" style="width:10%">Bos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ogr in ogrenciler %}
+                                {% set mevcut = mevcut_sonuclar.get(ogr.id) %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ ogr.ogrenci_no }}</td>
+                                    <td>{{ ogr.tam_ad }}</td>
+                                    <td>
+                                        <input type="number" name="puan_{{ ogr.id }}"
+                                               class="form-control form-control-sm text-center"
+                                               value="{{ mevcut.puan if mevcut else '' }}"
+                                               min="0" max="{{ sinav.toplam_puan }}" step="0.5">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="dogru_{{ ogr.id }}"
+                                               class="form-control form-control-sm text-center"
+                                               value="{{ mevcut.dogru_sayisi if mevcut and mevcut.dogru_sayisi is not none else '' }}"
+                                               min="0" max="{{ sinav.soru_sayisi }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="yanlis_{{ ogr.id }}"
+                                               class="form-control form-control-sm text-center"
+                                               value="{{ mevcut.yanlis_sayisi if mevcut and mevcut.yanlis_sayisi is not none else '' }}"
+                                               min="0" max="{{ sinav.soru_sayisi }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="bos_{{ ogr.id }}"
+                                               class="form-control form-control-sm text-center"
+                                               value="{{ mevcut.bos_sayisi if mevcut and mevcut.bos_sayisi is not none else '' }}"
+                                               min="0" max="{{ sinav.soru_sayisi }}">
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        Bu subede aktif ogrenci bulunmuyor.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if ogrenciler %}
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Sonuclari Kaydet
+                        </button>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <!-- Tekil Sonuc Girisi -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Tekil Sonuc Girisi</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ogrenci_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogrenci_id(class="form-select") }}
+                            {% for error in form.ogrenci_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.sube_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sube_id(class="form-select") }}
+                            {% for error in form.sube_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.puan.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.puan(class="form-control", min="0", max=sinav.toplam_puan) }}
+                            {% for error in form.puan.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                            <small class="form-text text-muted">Toplam puan: {{ sinav.toplam_puan }}</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.dogru_sayisi.label.text }}</label>
+                            {{ form.dogru_sayisi(class="form-control", min="0", max=sinav.soru_sayisi) }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.yanlis_sayisi.label.text }}</label>
+                            {{ form.yanlis_sayisi(class="form-control", min="0", max=sinav.soru_sayisi) }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.bos_sayisi.label.text }}</label>
+                            {{ form.bos_sayisi(class="form-control", min="0", max=sinav.soru_sayisi) }}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

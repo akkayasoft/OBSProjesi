@@ -1,0 +1,75 @@
+{% extends "saglik/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('saglik.tarama.liste') }}">Sağlık Taraması</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block saglik_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-search-heart me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.ogrenci_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogrenci_id(class="form-select") }}
+                            {% for error in form.ogrenci_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.tarama_tarihi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.tarama_tarihi(class="form-control") }}
+                            {% for error in form.tarama_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.tarama_turu.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.tarama_turu(class="form-select") }}
+                            {% for error in form.tarama_turu.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.sonuc.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sonuc(class="form-select") }}
+                            {% for error in form.sonuc.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.bulgular.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.bulgular(class="form-control") }}
+                            {% for error in form.bulgular.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.oneri.label.text }}</label>
+                            {{ form.oneri(class="form-control") }}
+                            {% for error in form.oneri.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('saglik.tarama.liste') }}" class="btn btn-secondary me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

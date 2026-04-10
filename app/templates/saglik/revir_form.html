@@ -1,0 +1,75 @@
+{% extends "saglik/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('saglik.revir.liste') }}">Revir Kayıtları</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block saglik_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-hospital me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label">{{ form.ogrenci_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogrenci_id(class="form-select") }}
+                            {% for error in form.ogrenci_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.tarih.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.tarih(class="form-control") }}
+                            {% for error in form.tarih.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.sikayet.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sikayet(class="form-control") }}
+                            {% for error in form.sikayet.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.yapilan_islem.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.yapilan_islem(class="form-control") }}
+                            {% for error in form.yapilan_islem.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.verilen_ilac.label.text }}</label>
+                            {{ form.verilen_ilac(class="form-control") }}
+                            {% for error in form.verilen_ilac.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.sonuc.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sonuc(class="form-select") }}
+                            {% for error in form.sonuc.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('saglik.revir.liste') }}" class="btn btn-secondary me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

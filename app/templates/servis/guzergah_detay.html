@@ -1,0 +1,46 @@
+{% extends "servis/_layout.html" %}
+{% block title %}{{ guzergah.ad }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('servis.guzergah.liste') }}">Guzergahlar</a></li>
+<li class="breadcrumb-item active">{{ guzergah.ad }}</li>
+{% endblock %}
+{% block servis_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><span class="badge bg-primary me-2">{{ guzergah.kod }}</span>{{ guzergah.ad }}</h4>
+    <div>
+        <a href="{{ url_for('servis.guzergah.duzenle', guzergah_id=guzergah.id) }}" class="btn btn-warning"><i class="bi bi-pencil me-1"></i>Duzenle</a>
+        <form method="POST" action="{{ url_for('servis.guzergah.sil', guzergah_id=guzergah.id) }}" class="d-inline" onsubmit="return confirm('Silmek istediginize emin misiniz?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-danger"><i class="bi bi-trash me-1"></i>Sil</button>
+        </form>
+    </div>
+</div>
+<div class="row mb-4">
+    <div class="col-md-6"><div class="card h-100"><div class="card-header"><h6 class="mb-0">Bilgiler</h6></div><div class="card-body">
+        <p><strong>Guzergah:</strong> {{ guzergah.baslangic_noktasi }} → {{ guzergah.bitis_noktasi }}</p>
+        {% if guzergah.mesafe_km %}<p><strong>Mesafe:</strong> {{ guzergah.mesafe_km }} km</p>{% endif %}
+        {% if guzergah.tahmini_sure %}<p><strong>Sure:</strong> {{ guzergah.tahmini_sure }} dk</p>{% endif %}
+        {% if guzergah.aciklama %}<p><strong>Aciklama:</strong> {{ guzergah.aciklama }}</p>{% endif %}
+        {% if arac %}<p><strong>Arac:</strong> {{ arac.plaka }} ({{ arac.marka }} {{ arac.model }}) - Sofor: {{ arac.sofor_adi }}</p>{% endif %}
+    </div></div></div>
+    <div class="col-md-6"><div class="card h-100"><div class="card-header d-flex justify-content-between">
+        <h6 class="mb-0">Duraklar ({{ duraklar|length }})</h6>
+        <a href="{{ url_for('servis.durak.yeni', guzergah_id=guzergah.id) }}" class="btn btn-sm btn-primary"><i class="bi bi-plus"></i></a>
+    </div><div class="card-body p-0">
+        <table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>#</th><th>Durak</th><th>Varis</th><th></th></tr></thead><tbody>
+        {% for d in duraklar %}<tr><td>{{ d.sira }}</td><td>{{ d.ad }}</td><td>{{ d.tahmini_varis or '-' }}</td>
+        <td class="text-end"><a href="{{ url_for('servis.durak.duzenle', durak_id=d.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a></td></tr>
+        {% else %}<tr><td colspan="4" class="text-center text-muted">Henuz durak yok.</td></tr>{% endfor %}
+        </tbody></table>
+    </div></div></div>
+</div>
+<div class="card"><div class="card-header d-flex justify-content-between"><h6 class="mb-0">Kayitli Ogrenciler ({{ kayitlar|length }})</h6>
+<a href="{{ url_for('servis.kayit.yeni') }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>Kayit Ekle</a></div>
+<div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead class="table-light">
+<tr><th>Ogrenci</th><th>Durak</th><th>Yon</th><th>Durum</th></tr></thead><tbody>
+{% for k in kayitlar %}<tr><td>{{ k.ogrenci.tam_ad }}</td><td>{{ k.durak.ad if k.durak else '-' }}</td>
+<td><span class="badge bg-{{ k.binis_yonu_badge }}">{{ k.binis_yonu_str }}</span></td>
+<td><span class="badge bg-{{ k.durum_badge }}">{{ k.durum_str }}</span></td></tr>
+{% else %}<tr><td colspan="4" class="text-center text-muted">Henuz kayit yok.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

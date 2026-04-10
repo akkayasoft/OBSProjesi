@@ -1,0 +1,27 @@
+{% extends "kutuphane/_layout.html" %}
+{% block title %}Odunc Kayitlari{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Odunc</li>{% endblock %}
+{% block kutuphane_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="bi bi-arrow-left-right me-2"></i>Odunc Kayitlari</h4>
+    <a href="{{ url_for('kutuphane.odunc.yeni') }}" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Odunc Ver</a>
+</div>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="row g-2 align-items-center">
+<div class="col-auto"><select name="durum" class="form-select form-select-sm"><option value="">Tum Durumlar</option>
+<option value="odunc" {% if durum=='odunc' %}selected{% endif %}>Odunc</option>
+<option value="iade_edildi" {% if durum=='iade_edildi' %}selected{% endif %}>Iade Edildi</option></select></div>
+<div class="col-auto"><button class="btn btn-sm btn-primary">Filtrele</button></div></form></div></div>
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0"><thead class="table-light">
+<tr><th>Kitap</th><th>Kisi</th><th>Odunc Tarihi</th><th>Son Iade</th><th>Durum</th><th class="text-end">Islem</th></tr></thead><tbody>
+{% for k in kayitlar.items %}<tr>
+<td>{{ k.kitap.baslik }}</td><td>{{ k.alan_kisi }}</td>
+<td>{{ k.odunc_tarihi.strftime('%d.%m.%Y') }}</td><td>{{ k.son_iade_tarihi.strftime('%d.%m.%Y') }}</td>
+<td><span class="badge bg-{{ k.durum_badge }}">{{ k.durum_str }}</span>{% if k.gecikti_mi %} <span class="badge bg-danger">Gecikti!</span>{% endif %}</td>
+<td class="text-end">{% if k.durum == 'odunc' %}
+<form method="POST" action="{{ url_for('kutuphane.odunc.iade', odunc_id=k.id) }}" class="d-inline">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button class="btn btn-sm btn-success"><i class="bi bi-check me-1"></i>Iade Al</button></form>{% endif %}</td>
+</tr>{% else %}<tr><td colspan="6" class="text-center text-muted py-4">Kayit bulunamadi.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

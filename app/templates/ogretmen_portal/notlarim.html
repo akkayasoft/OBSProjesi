@@ -1,0 +1,66 @@
+{% extends "ogretmen_portal/_layout.html" %}
+
+{% block title %}Notlarim{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Notlarim</li>
+{% endblock %}
+
+{% block portal_content %}
+<h4 class="mb-4"><i class="bi bi-journal-check me-2"></i>Sinavlarim ve Notlarim</h4>
+
+{% if not personel %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>Personel kaydınız bulunamadı.
+</div>
+{% else %}
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sinav Adi</th>
+                        <th>Ders</th>
+                        <th>Sinif</th>
+                        <th>Tur</th>
+                        <th>Tarih</th>
+                        <th class="text-center">Ortalama</th>
+                        <th class="text-center">Not Girilen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sinav in sinavlar %}
+                    <tr>
+                        <td><strong>{{ sinav.ad }}</strong></td>
+                        <td>{{ sinav.ders.ad }}</td>
+                        <td>{{ sinav.sube.tam_ad }}</td>
+                        <td><span class="badge bg-secondary">{{ sinav.sinav_turu.ad }}</span></td>
+                        <td>{{ sinav.tarih.strftime('%d.%m.%Y') }}</td>
+                        <td class="text-center">
+                            {% if sinav.not_ortalamasi > 0 %}
+                            <span class="badge bg-{{ 'success' if sinav.not_ortalamasi >= 70 else ('warning' if sinav.not_ortalamasi >= 50 else 'danger') }}">
+                                {{ sinav.not_ortalamasi }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">{{ sinav.not_girilen_sayi }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Henuz sinav bulunmuyor
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

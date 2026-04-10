@@ -1,0 +1,76 @@
+{% extends "saglik/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('saglik.asi.liste') }}">Aşı Takip</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block saglik_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-shield-plus me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.ogrenci_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ogrenci_id(class="form-select") }}
+                            {% for error in form.ogrenci_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.asi_adi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.asi_adi(class="form-control") }}
+                            {% for error in form.asi_adi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.durum.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.durum(class="form-select") }}
+                            {% for error in form.durum.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.asi_tarihi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.asi_tarihi(class="form-control") }}
+                            {% for error in form.asi_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.hatirlatma_tarihi.label.text }}</label>
+                            {{ form.hatirlatma_tarihi(class="form-control") }}
+                            <small class="text-muted">Sonraki doz tarihi (isteğe bağlı)</small>
+                            {% for error in form.hatirlatma_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control") }}
+                            {% for error in form.aciklama.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('saglik.asi.liste') }}" class="btn btn-secondary me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

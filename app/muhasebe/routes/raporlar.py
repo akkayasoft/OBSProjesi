@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from io import BytesIO
 from flask import Blueprint, render_template, request, send_file, jsonify
 from flask_login import login_required
+from app.utils import role_required
 from sqlalchemy import func, extract
 from app.extensions import db
 from app.models.muhasebe import (
@@ -15,6 +16,7 @@ bp = Blueprint('raporlar', __name__)
 
 @bp.route('/')
 @login_required
+@role_required('admin', 'muhasebeci')
 def genel():
     bugun = date.today()
     yil = request.args.get('yil', bugun.year, type=int)
@@ -116,6 +118,7 @@ def genel():
 
 @bp.route('/export/<rapor_turu>')
 @login_required
+@role_required('admin', 'muhasebeci')
 def export(rapor_turu):
     try:
         from openpyxl import Workbook

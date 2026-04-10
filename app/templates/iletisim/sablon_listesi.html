@@ -1,0 +1,56 @@
+{% extends "iletisim/_layout.html" %}
+
+{% block title %}Mesaj Şablonları{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Şablonlar</li>
+{% endblock %}
+
+{% block iletisim_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-file-text me-2"></i>Mesaj Şablonları</h4>
+    <a href="{{ url_for('iletisim.sablon.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Şablon
+    </a>
+</div>
+
+<div class="row g-3">
+    {% for s in sablonlar %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">{{ s.baslik }}</h6>
+                <span class="badge bg-{{ s.kategori_badge }}">{{ s.kategori_str }}</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-0">{{ s.icerik[:150] }}{% if s.icerik|length > 150 %}...{% endif %}</p>
+            </div>
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ s.created_at.strftime('%d.%m.%Y') }}</small>
+                <div>
+                    <a href="{{ url_for('iletisim.sablon.duzenle', sablon_id=s.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('iletisim.sablon.sil', sablon_id=s.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Bu şablonu silmek istediğinize emin misiniz?')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-file-text" style="font-size: 2rem;"></i>
+                <p class="mt-2 mb-0">Henüz şablon oluşturulmamış</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

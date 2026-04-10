@@ -1,0 +1,125 @@
+{% extends "rehberlik/_layout.html" %}
+
+{% block title %}Ogrenci Profilleri{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Ogrenci Profilleri</li>
+{% endblock %}
+
+{% block rehberlik_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Ogrenci Profilleri</h4>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Arama</label>
+                <input type="text" name="arama" class="form-control" placeholder="Ad, soyad veya ogrenci no ile ara..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Ara
+                </button>
+            </div>
+            {% if arama %}
+            <div class="col-md-2">
+                <a href="{{ url_for('rehberlik.profil.liste') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Ogrenci Listesi -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Ogrenci No</th>
+                    <th>Ad Soyad</th>
+                    <th>Sinif</th>
+                    <th>Profil</th>
+                    <th>Gorusme</th>
+                    <th>Davranis</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in ogrenciler.items %}
+                <tr>
+                    <td>{{ o.ogrenci_no }}</td>
+                    <td>
+                        <a href="{{ url_for('rehberlik.profil.ogrenci_profil', ogrenci_id=o.id) }}" class="text-decoration-none">
+                            <strong>{{ o.tam_ad }}</strong>
+                        </a>
+                    </td>
+                    <td>{{ o.sinif or '-' }}</td>
+                    <td>
+                        {% if o.rehberlik_profili %}
+                        <span class="badge bg-success">Mevcut</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Yok</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-info">{{ o.rehberlik_gorusmeleri.count() }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-warning text-dark">{{ o.davranis_kayitlari.count() }}</span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('rehberlik.profil.ogrenci_profil', ogrenci_id=o.id) }}"
+                           class="btn btn-sm btn-outline-primary" title="Profil Goruntule">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('rehberlik.profil.profil_duzenle', ogrenci_id=o.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Profil Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Ogrenci bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if ogrenciler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if ogrenciler.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ ogrenciler.prev_num }}&arama={{ arama }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in ogrenciler.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == ogrenciler.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&arama={{ arama }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if ogrenciler.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ ogrenciler.next_num }}&arama={{ arama }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

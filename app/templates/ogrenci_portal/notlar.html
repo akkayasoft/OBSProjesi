@@ -1,0 +1,79 @@
+{% extends "ogrenci_portal/_layout.html" %}
+
+{% block title %}Notlarım{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Notlarım</li>
+{% endblock %}
+
+{% block portal_content %}
+<h4 class="mb-4"><i class="bi bi-journal-check me-2"></i>Notlarım</h4>
+
+{% if not ogrenci %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>Öğrenci kaydınız bulunamadı.
+</div>
+{% elif not dersler %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>Henüz not kaydınız bulunmuyor.
+</div>
+{% else %}
+
+{% for ders_data in dersler %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-book me-2"></i>{{ ders_data.ders.ad }}
+            <small class="text-muted">({{ ders_data.ders.kod }})</small>
+        </h6>
+        <span class="badge bg-{% if ders_data.ortalama >= 70 %}success{% elif ders_data.ortalama >= 50 %}warning{% else %}danger{% endif %} fs-6">
+            Ortalama: {{ ders_data.ortalama }}
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sınav Adı</th>
+                        <th>Türü</th>
+                        <th>Tarih</th>
+                        <th class="text-center">Puan</th>
+                        <th class="text-center">Harf Notu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nk in ders_data.notlar %}
+                    <tr>
+                        <td>{{ nk.sinav_ad }}</td>
+                        <td><span class="badge bg-secondary">{{ nk.sinav_turu }}</span></td>
+                        <td>{{ nk.tarih.strftime('%d.%m.%Y') if nk.tarih else '-' }}</td>
+                        <td class="text-center">
+                            {% if nk.puan is not none %}
+                            <span class="fw-bold {% if nk.puan >= 70 %}text-success{% elif nk.puan >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ nk.puan }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if nk.harf_notu %}
+                            <span class="badge bg-{% if nk.harf_notu in ['AA', 'BA', 'BB'] %}success{% elif nk.harf_notu in ['CB', 'CC'] %}primary{% elif nk.harf_notu in ['DC', 'DD'] %}warning{% else %}danger{% endif %}">
+                                {{ nk.harf_notu }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endif %}
+{% endblock %}

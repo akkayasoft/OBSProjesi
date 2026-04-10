@@ -1,0 +1,64 @@
+{% extends "kullanici/_layout.html" %}
+
+{% block title %}Profilim{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Profilim</li>
+{% endblock %}
+
+{% block kullanici_content %}
+<h4 class="mb-4"><i class="bi bi-person-circle me-2"></i>Profilim</h4>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Profil Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th class="text-muted" style="width: 200px;">Kullanici Adi</th>
+                        <td><strong>{{ kullanici.username }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Ad Soyad</th>
+                        <td>{{ kullanici.tam_ad }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">E-posta</th>
+                        <td>{{ kullanici.email }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Rol</th>
+                        <td>
+                            {% set rol_badge = {'admin': 'danger', 'ogretmen': 'primary', 'veli': 'success', 'ogrenci': 'info', 'muhasebeci': 'warning'} %}
+                            <span class="badge bg-{{ rol_badge.get(kullanici.rol, 'secondary') }}">{{ kullanici.rol_str }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Kayit Tarihi</th>
+                        <td>{{ kullanici.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') if kullanici.olusturma_tarihi else '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Islemler</h6>
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a href="{{ url_for('kullanici.profil.profil_duzenle') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-2"></i>Profili Duzenle
+                </a>
+                <a href="{{ url_for('kullanici.profil.sifre_degistir') }}" class="btn btn-outline-warning">
+                    <i class="bi bi-key me-2"></i>Sifre Degistir
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

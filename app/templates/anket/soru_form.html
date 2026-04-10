@@ -1,0 +1,89 @@
+{% extends "anket/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('anket.yonetim.detay', anket_id=anket.id) }}">{{ anket.baslik }}</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block anket_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-question-circle me-2"></i>{{ baslik }}</h5>
+                <small class="text-muted">Anket: {{ anket.baslik }}</small>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.soru_metni.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.soru_metni(class="form-control") }}
+                            {% for error in form.soru_metni.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.soru_tipi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.soru_tipi(class="form-select", id="soru_tipi") }}
+                            {% for error in form.soru_tipi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.sira.label.text }}</label>
+                            {{ form.sira(class="form-control", min="0") }}
+                            {% for error in form.sira.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mt-4 pt-2">
+                                <div class="form-check">
+                                    {{ form.zorunlu(class="form-check-input") }}
+                                    <label class="form-check-label" for="zorunlu">{{ form.zorunlu.label.text }}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12" id="secenekler_alani">
+                            <label class="form-label">{{ form.secenekler.label.text }}</label>
+                            {{ form.secenekler(class="form-control") }}
+                            {% for error in form.secenekler.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                            <small class="form-text text-muted">Sadece "Coktan Secmeli" soru tipi icin gereklidir. Her satira bir secenek yaziniz.</small>
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('anket.yonetim.detay', anket_id=anket.id) }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var soruTipi = document.getElementById('soru_tipi');
+    var seceneklerAlani = document.getElementById('secenekler_alani');
+
+    function toggleSecenekler() {
+        if (soruTipi.value === 'coktan_secmeli') {
+            seceneklerAlani.style.display = '';
+        } else {
+            seceneklerAlani.style.display = 'none';
+        }
+    }
+
+    soruTipi.addEventListener('change', toggleSecenekler);
+    toggleSecenekler();
+});
+</script>
+{% endblock %}

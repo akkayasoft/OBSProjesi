@@ -1,0 +1,164 @@
+{% extends "odev_takip/_layout.html" %}
+
+{% block title %}Odev Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Odev Listesi</li>
+{% endblock %}
+
+{% block odev_takip_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-list-task me-2"></i>Odev Listesi</h4>
+    <a href="{{ url_for('odev_takip.odev.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Odev
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Ders</label>
+                <select name="ders_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for d in dersler %}
+                    <option value="{{ d.id }}" {% if ders_id == d.id %}selected{% endif %}>{{ d.kod }} - {{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sinif / Sube</label>
+                <select name="sube_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for s in subeler %}
+                    <option value="{{ s.id }}" {% if sube_id == s.id %}selected{% endif %}>{{ s.tam_ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="aktif" {% if durum == 'aktif' %}selected{% endif %}>Aktif</option>
+                    <option value="gecikti" {% if durum == 'gecikti' %}selected{% endif %}>Suresi Gecen</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Baslangic Tarihi</label>
+                <input type="date" name="tarih_baslangic" class="form-control" value="{{ tarih_baslangic or '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Bitis Tarihi</label>
+                <input type="date" name="tarih_bitis" class="form-control" value="{{ tarih_bitis or '' }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Odev Tablosu -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Odev Basligi</th>
+                    <th>Ders</th>
+                    <th>Sinif/Sube</th>
+                    <th>Ogretmen</th>
+                    <th>Son Teslim</th>
+                    <th>Durum</th>
+                    <th>Teslim Orani</th>
+                    <th class="text-center">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in odevler.items %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('odev_takip.odev.detay', odev_id=o.id) }}">
+                            <strong>{{ o.baslik }}</strong>
+                        </a>
+                    </td>
+                    <td>{{ o.ders.ad }}</td>
+                    <td>{{ o.sube.tam_ad }}</td>
+                    <td>{{ o.ogretmen.tam_ad }}</td>
+                    <td>{{ o.son_teslim_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        {% if o.gecikti_mi %}
+                        <span class="badge bg-danger">Suresi Gecti</span>
+                        {% else %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px; min-width: 80px;">
+                            <div class="progress-bar bg-{{ 'success' if o.teslim_orani >= 80 else ('warning' if o.teslim_orani >= 50 else 'danger') }}"
+                                 style="width: {{ o.teslim_orani }}%">
+                                %{{ o.teslim_orani }}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('odev_takip.odev.detay', odev_id=o.id) }}"
+                           class="btn btn-sm btn-outline-info" title="Detay">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('odev_takip.odev.teslim', odev_id=o.id) }}"
+                           class="btn btn-sm btn-outline-primary" title="Teslim Takip">
+                            <i class="bi bi-check2-square"></i>
+                        </a>
+                        <a href="{{ url_for('odev_takip.odev.istatistik', odev_id=o.id) }}"
+                           class="btn btn-sm btn-outline-success" title="Istatistik">
+                            <i class="bi bi-bar-chart"></i>
+                        </a>
+                        <a href="{{ url_for('odev_takip.odev.duzenle', odev_id=o.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('odev_takip.odev.sil', odev_id=o.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu odevi silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">Henuz odev bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if odevler.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if odevler.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ odevler.prev_num }}&ders_id={{ ders_id or '' }}&sube_id={{ sube_id or '' }}&durum={{ durum or '' }}">Onceki</a></li>
+            {% endif %}
+            {% for p in odevler.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == odevler.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&ders_id={{ ders_id or '' }}&sube_id={{ sube_id or '' }}&durum={{ durum or '' }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if odevler.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ odevler.next_num }}&ders_id={{ ders_id or '' }}&sube_id={{ sube_id or '' }}&durum={{ durum or '' }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

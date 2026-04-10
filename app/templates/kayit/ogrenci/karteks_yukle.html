@@ -1,0 +1,55 @@
+{% extends "kayit/_layout.html" %}
+
+{% block title %}Karteks Yükle{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kayit.ogrenci.liste') }}">Öğrenci Listesi</a></li>
+<li class="breadcrumb-item active">Karteks Yükle</li>
+{% endblock %}
+
+{% block kayit_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-camera me-2"></i>Karteks Yükle</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Taranmış karteks görselini yükleyin. Bir sonraki adımda karteks
+                    sayfanın sol tarafında büyütülebilir bir önizleme olarak gösterilecek,
+                    sağdaki forma karteks üzerindeki bilgileri bakarak doldurabileceksiniz.
+                    Form kaydedilince karteks otomatik olarak öğrencinin belgelerine
+                    eklenir.
+                </p>
+
+                <div class="alert alert-info small mb-4">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Desteklenen formatlar: PNG, JPG, JPEG, TIFF, BMP, WEBP.
+                    Maksimum boyut 16 MB. PDF kartekslerinizi önce görsele çevirmeniz
+                    gerekir (ekran görüntüsü veya PDF→JPG dönüştürücü).
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.karteks.label.text }}</label>
+                        {{ form.karteks(class="form-control", accept="image/*") }}
+                        {% for error in form.karteks.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('kayit.ogrenci.yeni_kayit') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Karteks Olmadan Devam Et
+                        </a>
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

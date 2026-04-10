@@ -1,0 +1,98 @@
+{% extends "karne/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('karne.karne_routes.detay', karne_id=karne.id) }}">{{ karne.ogrenci.tam_ad }}</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block karne_content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.ogrenci_id.label(class="form-label") }}
+                            {{ form.ogrenci_id(class="form-select") }}
+                            {% for error in form.ogrenci_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.sinif_id.label(class="form-label") }}
+                            {{ form.sinif_id(class="form-select") }}
+                            {% for error in form.sinif_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.donem.label(class="form-label") }}
+                            {{ form.donem(class="form-select") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.ogretim_yili.label(class="form-label") }}
+                            {{ form.ogretim_yili(class="form-control") }}
+                            {% for error in form.ogretim_yili.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.durum.label(class="form-label") }}
+                            {{ form.durum(class="form-select") }}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="mb-3">Davranis ve Devamsizlik</h6>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.davranis_notu.label(class="form-label") }}
+                            {{ form.davranis_notu(class="form-select") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.devamsizlik_ozetsiz.label(class="form-label") }}
+                            {{ form.devamsizlik_ozetsiz(class="form-control") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.devamsizlik_ozetli.label(class="form-label") }}
+                            {{ form.devamsizlik_ozetli(class="form-control") }}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="mb-3">Notlar</h6>
+
+                    <div class="mb-3">
+                        {{ form.sinif_ogretmeni_notu.label(class="form-label") }}
+                        {{ form.sinif_ogretmeni_notu(class="form-control") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.mudur_notu.label(class="form-label") }}
+                        {{ form.mudur_notu(class="form-control") }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('karne.karne_routes.detay', karne_id=karne.id) }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Geri Don
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

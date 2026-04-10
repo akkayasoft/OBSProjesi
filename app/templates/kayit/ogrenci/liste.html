@@ -9,9 +9,14 @@
 {% block kayit_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-people me-2"></i>Öğrenci Listesi</h4>
-    <a href="{{ url_for('kayit.ogrenci.yeni_kayit') }}" class="btn btn-primary">
-        <i class="bi bi-person-plus me-1"></i>Yeni Öğrenci Kaydı
-    </a>
+    <div>
+        <a href="{{ url_for('kayit.ogrenci.karteks_yukle') }}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-camera me-1"></i>Karteks ile Hızlı Kayıt
+        </a>
+        <a href="{{ url_for('kayit.ogrenci.yeni_kayit') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus me-1"></i>Yeni Öğrenci Kaydı
+        </a>
+    </div>
 </div>
 
 <!-- Arama ve Filtreler -->

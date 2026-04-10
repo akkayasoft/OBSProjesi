@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask_login import login_required
+from app.utils import role_required, current_user
 from app.extensions import db
 from app.models.muhasebe import GelirGiderKaydi, GelirGiderKategorisi, BankaHesabi
 from app.muhasebe.forms import GelirGiderForm, KategoriForm
@@ -10,6 +11,7 @@ bp = Blueprint('gelir_gider', __name__)
 
 @bp.route('/')
 @login_required
+@role_required('admin', 'muhasebeci')
 def liste():
     page = request.args.get('page', 1, type=int)
     tur_filtre = request.args.get('tur', '')
@@ -37,6 +39,7 @@ def liste():
 
 @bp.route('/ekle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def ekle():
     form = GelirGiderForm()
 
@@ -77,6 +80,7 @@ def ekle():
 
 @bp.route('/<int:id>/duzenle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def duzenle(id):
     kayit = GelirGiderKaydi.query.get_or_404(id)
     form = GelirGiderForm(obj=kayit)
@@ -106,6 +110,7 @@ def duzenle(id):
 
 @bp.route('/<int:id>/sil', methods=['POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def sil(id):
     kayit = GelirGiderKaydi.query.get_or_404(id)
     db.session.delete(kayit)
@@ -116,6 +121,7 @@ def sil(id):
 
 @bp.route('/kategoriler', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def kategoriler():
     form = KategoriForm()
 
@@ -135,6 +141,7 @@ def kategoriler():
 
 @bp.route('/kategoriler/<int:id>/sil', methods=['POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def kategori_sil(id):
     kategori = GelirGiderKategorisi.query.get_or_404(id)
     if kategori.kayitlar.count() > 0:

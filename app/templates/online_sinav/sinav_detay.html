@@ -1,0 +1,166 @@
+{% extends "online_sinav/_layout.html" %}
+
+{% block title %}{{ sinav.baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sinav.liste') }}">Sinav Listesi</a></li>
+<li class="breadcrumb-item active">{{ sinav.baslik }}</li>
+{% endblock %}
+
+{% block online_sinav_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>{{ sinav.baslik }}</h4>
+    <div class="btn-group">
+        <a href="{{ url_for('online_sinav.sinav.duzenle', sinav_id=sinav.id) }}" class="btn btn-outline-warning">
+            <i class="bi bi-pencil me-1"></i>Duzenle
+        </a>
+        <a href="{{ url_for('online_sinav.soru.liste', sinav_id=sinav.id) }}" class="btn btn-outline-success">
+            <i class="bi bi-question-circle me-1"></i>Sorular ({{ sinav.soru_sayisi }})
+        </a>
+        <a href="{{ url_for('online_sinav.sonuc.sinav_sonuclari', sinav_id=sinav.id) }}" class="btn btn-outline-info">
+            <i class="bi bi-bar-chart me-1"></i>Sonuclar
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sinav Bilgileri -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Sinav Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">Ders</small>
+                        <p class="mb-1 fw-bold">{{ sinav.ders.ad }} ({{ sinav.ders.kod }})</p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">Sube</small>
+                        <p class="mb-1 fw-bold">{{ sinav.sube.tam_ad if sinav.sube else 'Tum Subeler' }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Sinav Turu</small>
+                        <p class="mb-1"><span class="badge bg-primary">{{ sinav.sinav_turu_str }}</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Zorluk</small>
+                        <p class="mb-1"><span class="badge bg-{{ sinav.zorluk_badge }}">{{ sinav.zorluk_str }}</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Sure</small>
+                        <p class="mb-1 fw-bold">{{ sinav.sure }} dakika</p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Baslangic</small>
+                        <p class="mb-1">{{ sinav.baslangic_zamani.strftime('%d.%m.%Y %H:%M') }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Bitis</small>
+                        <p class="mb-1">{{ sinav.bitis_zamani.strftime('%d.%m.%Y %H:%M') }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Durum</small>
+                        <p class="mb-1"><span class="badge bg-{{ sinav.durum_badge }} fs-6">{{ sinav.durum_str }}</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Toplam Puan</small>
+                        <p class="mb-1 fw-bold">{{ sinav.toplam_puan }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Gecme Puani</small>
+                        <p class="mb-1 fw-bold">{{ sinav.gecme_puani }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Olusturan</small>
+                        <p class="mb-1">{{ sinav.olusturan.tam_ad }}</p>
+                    </div>
+                    {% if sinav.aciklama %}
+                    <div class="col-12">
+                        <small class="text-muted">Aciklama</small>
+                        <p class="mb-1">{{ sinav.aciklama }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="col-12">
+                        <div class="d-flex gap-3">
+                            {% if sinav.sorulari_karistir %}
+                            <span class="badge bg-info"><i class="bi bi-shuffle me-1"></i>Sorular karistirilacak</span>
+                            {% endif %}
+                            {% if sinav.secenekleri_karistir %}
+                            <span class="badge bg-info"><i class="bi bi-shuffle me-1"></i>Secenekler karistirilacak</span>
+                            {% endif %}
+                            {% if sinav.sonuclari_goster %}
+                            <span class="badge bg-success"><i class="bi bi-eye me-1"></i>Sonuclar gorunur</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hizli Islemler -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Hizli Islemler</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('online_sinav.soru.yeni', sinav_id=sinav.id) }}" class="btn btn-success">
+                        <i class="bi bi-plus-circle me-1"></i>Soru Ekle
+                    </a>
+                    <a href="{{ url_for('online_sinav.uygula.baslat', sinav_id=sinav.id) }}" class="btn btn-primary">
+                        <i class="bi bi-play-circle me-1"></i>Sinavi Baslat (Simulasyon)
+                    </a>
+                    <a href="{{ url_for('online_sinav.sonuc.sinav_sonuclari', sinav_id=sinav.id) }}" class="btn btn-info text-white">
+                        <i class="bi bi-bar-chart me-1"></i>Sonuclari Gor
+                    </a>
+                    <form method="POST" action="{{ url_for('online_sinav.sinav.aktif_toggle', sinav_id=sinav.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-{{ 'danger' if sinav.aktif else 'success' }} w-100">
+                            <i class="bi bi-{{ 'pause-circle' if sinav.aktif else 'play-circle' }} me-1"></i>
+                            {{ 'Pasif Yap' if sinav.aktif else 'Aktif Yap' }}
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('online_sinav.sinav.sil', sinav_id=sinav.id) }}"
+                          onsubmit="return confirm('Bu sinavi silmek istediginize emin misiniz?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-trash me-1"></i>Sinavi Sil
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Istatistikler -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Istatistikler</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Soru Sayisi</span>
+                        <strong>{{ sinav.soru_sayisi }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Katilimci</span>
+                        <strong>{{ sinav.katilimci_sayisi }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Tamamlanan</span>
+                        <strong>{{ sinav.tamamlanan_sayisi }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Ortalama Puan</span>
+                        <strong>{{ sinav.ortalama_puan }}</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "iletisim/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('iletisim.mesaj.gelen_kutusu') }}">Gelen Kutusu</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block iletisim_content %}
+<h4 class="mb-4"><i class="bi bi-pencil-square me-2"></i>{{ baslik }}</h4>
+
+{% if orijinal is defined and orijinal %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-light">
+        <small class="text-muted">
+            <i class="bi bi-reply me-1"></i>Yanıtlanan mesaj - {{ orijinal.gonderen.tam_ad }} ({{ orijinal.created_at.strftime('%d.%m.%Y %H:%M') }})
+        </small>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-0" style="white-space: pre-wrap;">{{ orijinal.icerik }}</p>
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.alici_id.label(class="form-label") }}
+                {{ form.alici_id(class="form-select") }}
+                {% for error in form.alici_id.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.konu.label(class="form-label") }}
+                {{ form.konu(class="form-control") }}
+                {% for error in form.konu.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.icerik.label(class="form-label") }}
+                {{ form.icerik(class="form-control") }}
+                {% for error in form.icerik.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-between">
+                {{ form.submit(class="btn btn-primary") }}
+                <a href="{{ url_for('iletisim.mesaj.gelen_kutusu') }}" class="btn btn-outline-secondary">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

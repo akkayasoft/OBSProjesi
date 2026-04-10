@@ -1,0 +1,120 @@
+{% extends "iletisim/_layout.html" %}
+
+{% block title %}{{ mesaj.baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('iletisim.toplu.liste') }}">Toplu Mesajlar</a></li>
+<li class="breadcrumb-item active">Detay</li>
+{% endblock %}
+
+{% block iletisim_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-send me-2"></i>{{ mesaj.baslik }}</h4>
+    <div>
+        {% if mesaj.durum == 'beklemede' %}
+        <form method="POST" action="{{ url_for('iletisim.toplu.gonder', mesaj_id=mesaj.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Mesajı göndermek istediğinize emin misiniz?')">
+                <i class="bi bi-send-fill me-1"></i>Gönder
+            </button>
+        </form>
+        {% endif %}
+        <a href="{{ url_for('iletisim.toplu.liste') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Geri
+        </a>
+    </div>
+</div>
+
+<!-- Mesaj Bilgileri -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Mesaj İçeriği</h6>
+            </div>
+            <div class="card-body">
+                <div style="white-space: pre-wrap;">{{ mesaj.icerik }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Bilgiler</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted">Durum:</td>
+                        <td><span class="badge bg-{{ mesaj.durum_badge }}">{{ mesaj.durum_str }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Hedef:</td>
+                        <td>{{ mesaj.hedef_grup_str }}{% if mesaj.hedef_sinif %} ({{ mesaj.hedef_sinif }}){% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Tür:</td>
+                        <td>{{ mesaj.gonderim_turu_str }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Gönderen:</td>
+                        <td>{{ mesaj.gonderen.tam_ad }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Oluşturma:</td>
+                        <td>{{ mesaj.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    </tr>
+                    {% if mesaj.gonderim_tarihi %}
+                    <tr>
+                        <td class="text-muted">Gönderim:</td>
+                        <td>{{ mesaj.gonderim_tarihi.strftime('%d.%m.%Y %H:%M') }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td class="text-muted">Alıcı:</td>
+                        <td>{{ mesaj.basarili_gonderim }}/{{ mesaj.toplam_alici }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alıcı Listesi -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-people me-1"></i>Alıcı Listesi ({{ alicilar|length }})</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Ad Soyad</th>
+                        <th>İletişim</th>
+                        <th>Durum</th>
+                        <th>Hata</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in alicilar %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ a.alici_adi }}</td>
+                        <td>{{ a.alici_iletisim }}</td>
+                        <td><span class="badge bg-{{ a.durum_badge }}">{{ a.durum_str }}</span></td>
+                        <td><small class="text-danger">{{ a.hata_mesaji or '' }}</small></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">Alıcı bulunamadı</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

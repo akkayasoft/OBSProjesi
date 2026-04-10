@@ -1,0 +1,241 @@
+{% extends "karne/_layout.html" %}
+
+{% block title %}Karne Detay - {{ karne.ogrenci.tam_ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ karne.ogrenci.tam_ad }} - Karne Detay</li>
+{% endblock %}
+
+{% block karne_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">
+        <i class="bi bi-file-earmark-text me-2"></i>{{ karne.ogrenci.tam_ad }} - Karne
+    </h4>
+    <div>
+        {% if karne.durum == 'taslak' %}
+        <form method="POST" action="{{ url_for('karne.karne_routes.onayla', karne_id=karne.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-success" onclick="return confirm('Karneyi onaylamak istediginize emin misiniz?')">
+                <i class="bi bi-check-circle me-1"></i>Onayla
+            </button>
+        </form>
+        {% endif %}
+        <a href="{{ url_for('karne.karne_routes.duzenle', karne_id=karne.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil me-1"></i>Duzenle
+        </a>
+        <a href="{{ url_for('karne.karne_routes.yazdir', karne_id=karne.id) }}" class="btn btn-info" target="_blank">
+            <i class="bi bi-printer me-1"></i>Yazdir
+        </a>
+        <form method="POST" action="{{ url_for('karne.karne_routes.sil', karne_id=karne.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Bu karneyi silmek istediginize emin misiniz?')">
+                <i class="bi bi-trash me-1"></i>Sil
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Ogrenci ve Karne Bilgileri -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person me-2"></i>Ogrenci Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <th class="text-muted" style="width: 40%">Ogrenci No:</th>
+                        <td>{{ karne.ogrenci.ogrenci_no }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Ad Soyad:</th>
+                        <td>{{ karne.ogrenci.tam_ad }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Sinif:</th>
+                        <td>{{ karne.sinif.ad }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Karne Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <th class="text-muted" style="width: 40%">Donem:</th>
+                        <td>{{ karne.donem }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Ogretim Yili:</th>
+                        <td>{{ karne.ogretim_yili }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Durum:</th>
+                        <td><span class="badge bg-{{ karne.durum_badge }}">{{ karne.durum_str }}</span></td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Genel Ortalama:</th>
+                        <td>
+                            {% if karne.genel_ortalama %}
+                            <span class="fw-bold fs-5 {% if karne.genel_ortalama >= 70 %}text-success{% elif karne.genel_ortalama >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(karne.genel_ortalama) }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">Hesaplanmadi</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Davranis ve Devamsizlik -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-emoji-smile me-2"></i>Davranis Notu</h6></div>
+            <div class="card-body text-center">
+                <span class="fs-4 fw-bold">{{ karne.davranis_notu or '-' }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-calendar-x me-2"></i>Devamsizlik</h6></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-around text-center">
+                    <div>
+                        <div class="text-muted small">Ozursuz</div>
+                        <span class="fs-4 fw-bold text-danger">{{ karne.devamsizlik_ozetsiz or 0 }}</span>
+                        <div class="text-muted small">gun</div>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Ozurlu</div>
+                        <span class="fs-4 fw-bold text-warning">{{ karne.devamsizlik_ozetli or 0 }}</span>
+                        <div class="text-muted small">gun</div>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Toplam</div>
+                        <span class="fs-4 fw-bold">{{ karne.toplam_devamsizlik }}</span>
+                        <div class="text-muted small">gun</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Olusturulma</h6></div>
+            <div class="card-body text-center">
+                <span class="fs-5">{{ karne.created_at.strftime('%d.%m.%Y') }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ders Notlari -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-journal-bookmark me-2"></i>Ders Notlari</h6>
+        <a href="{{ url_for('karne.karne_routes.ders_notu_ekle', karne_id=karne.id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Ders Notu Ekle
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ders Adi</th>
+                        <th>Ders Kodu</th>
+                        <th class="text-center">1. Sinav</th>
+                        <th class="text-center">2. Sinav</th>
+                        <th class="text-center">3. Sinav</th>
+                        <th class="text-center">Performans</th>
+                        <th class="text-center">Proje</th>
+                        <th class="text-center">Ortalama</th>
+                        <th class="text-center">Yilsonu</th>
+                        <th class="text-center">Harf</th>
+                        <th class="text-end">Islemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dn in ders_notlari %}
+                    <tr>
+                        <td class="fw-semibold">{{ dn.ders_adi }}</td>
+                        <td><small class="text-muted">{{ dn.ders_kodu or '-' }}</small></td>
+                        <td class="text-center">{{ "%.0f"|format(dn.sinav1) if dn.sinav1 is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.sinav2) if dn.sinav2 is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.sinav3) if dn.sinav3 is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.performans) if dn.performans is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.proje) if dn.proje is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.2f"|format(dn.ortalama) if dn.ortalama is not none else '-' }}</td>
+                        <td class="text-center fw-bold {% if dn.yilsonu and dn.yilsonu >= 70 %}text-success{% elif dn.yilsonu and dn.yilsonu >= 50 %}text-warning{% elif dn.yilsonu %}text-danger{% endif %}">
+                            {{ "%.2f"|format(dn.yilsonu) if dn.yilsonu is not none else '-' }}
+                        </td>
+                        <td class="text-center"><span class="badge bg-secondary">{{ dn.harf_notu or '-' }}</span></td>
+                        <td class="text-end text-nowrap">
+                            <a href="{{ url_for('karne.karne_routes.ders_notu_duzenle', karne_id=karne.id, ders_notu_id=dn.id) }}"
+                               class="btn btn-sm btn-outline-warning" title="Duzenle">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST"
+                                  action="{{ url_for('karne.karne_routes.ders_notu_sil', karne_id=karne.id, ders_notu_id=dn.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Bu ders notunu silmek istediginize emin misiniz?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="11" class="text-center text-muted py-4">
+                            Henuz ders notu eklenmemis.
+                            <a href="{{ url_for('karne.karne_routes.ders_notu_ekle', karne_id=karne.id) }}">Ders notu ekle</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Ogretmen ve Mudur Notlari -->
+{% if karne.sinif_ogretmeni_notu or karne.mudur_notu %}
+<div class="row mb-4">
+    {% if karne.sinif_ogretmeni_notu %}
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-chat-quote me-2"></i>Sinif Ogretmeni Notu</h6></div>
+            <div class="card-body">
+                <p class="mb-0">{{ karne.sinif_ogretmeni_notu }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if karne.mudur_notu %}
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-chat-quote me-2"></i>Mudur Notu</h6></div>
+            <div class="card-body">
+                <p class="mb-0">{{ karne.mudur_notu }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "duyurular/_layout.html" %}
+
+{% block title %}Etkinlik Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Etkinlik Listesi</li>
+{% endblock %}
+
+{% block duyurular_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Etkinlik Listesi</h4>
+    <div>
+        <a href="{{ url_for('duyurular.etkinlik.takvim') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-calendar me-1"></i>Takvim Görünümü
+        </a>
+        <a href="{{ url_for('duyurular.etkinlik.yeni') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Etkinlik
+        </a>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Tür</label>
+                <select name="tur" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="toplanti" {% if tur == 'toplanti' %}selected{% endif %}>Toplantı</option>
+                    <option value="sinav" {% if tur == 'sinav' %}selected{% endif %}>Sınav</option>
+                    <option value="kutlama" {% if tur == 'kutlama' %}selected{% endif %}>Kutlama</option>
+                    <option value="gezi" {% if tur == 'gezi' %}selected{% endif %}>Gezi</option>
+                    <option value="spor" {% if tur == 'spor' %}selected{% endif %}>Spor</option>
+                    <option value="diger" {% if tur == 'diger' %}selected{% endif %}>Diğer</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Etkinlik Tablosu -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Etkinlik Adı</th>
+                    <th>Tür</th>
+                    <th>Başlangıç</th>
+                    <th>Bitiş</th>
+                    <th>Konum</th>
+                    <th class="text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in etkinlikler.items %}
+                <tr>
+                    <td style="width: 10px;">
+                        <span class="d-inline-block rounded-circle" style="width: 12px; height: 12px; background-color: {{ e.renk }};"></span>
+                    </td>
+                    <td>
+                        <strong>{{ e.baslik }}</strong>
+                        {% if e.aciklama %}
+                        <br><small class="text-muted">{{ e.aciklama[:80] }}{% if e.aciklama|length > 80 %}...{% endif %}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">
+                            <i class="{{ e.tur_icon }} me-1"></i>{{ e.tur_str }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ e.baslangic_tarihi.strftime('%d.%m.%Y') }}
+                        {% if not e.tum_gun %}
+                        <br><small class="text-muted">{{ e.baslangic_tarihi.strftime('%H:%M') }}</small>
+                        {% else %}
+                        <br><small class="text-muted">Tüm gün</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ e.bitis_tarihi.strftime('%d.%m.%Y') }}
+                        {% if not e.tum_gun %}
+                        <br><small class="text-muted">{{ e.bitis_tarihi.strftime('%H:%M') }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if e.konum %}
+                        <i class="bi bi-geo-alt me-1"></i>{{ e.konum }}
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('duyurular.etkinlik.duzenle', etkinlik_id=e.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('duyurular.etkinlik.sil', etkinlik_id=e.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu etkinliği silmek istediğinize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Henüz etkinlik bulunmuyor</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if etkinlikler.pages > 1 %}
+    <nav class="p-3">
+        <ul class="pagination justify-content-center mb-0">
+            {% if etkinlikler.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ etkinlikler.prev_num }}&tur={{ tur }}">Önceki</a></li>
+            {% endif %}
+            {% for p in etkinlikler.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == etkinlikler.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&tur={{ tur }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            {% if etkinlikler.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ etkinlikler.next_num }}&tur={{ tur }}">Sonraki</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

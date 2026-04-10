@@ -27,6 +27,37 @@ class User(UserMixin, db.Model):
     def tam_ad(self):
         return f"{self.ad} {self.soyad}"
 
+    @property
+    def is_admin(self):
+        return self.rol == 'admin'
+
+    @property
+    def is_ogretmen(self):
+        return self.rol == 'ogretmen'
+
+    @property
+    def is_veli(self):
+        return self.rol == 'veli'
+
+    @property
+    def is_ogrenci(self):
+        return self.rol == 'ogrenci'
+
+    @property
+    def is_muhasebeci(self):
+        return self.rol == 'muhasebeci'
+
+    @property
+    def rol_str(self):
+        rol_map = {
+            'admin': 'Yönetici',
+            'ogretmen': 'Öğretmen',
+            'veli': 'Veli',
+            'ogrenci': 'Öğrenci',
+            'muhasebeci': 'Muhasebeci',
+        }
+        return rol_map.get(self.rol, self.rol)
+
     def __repr__(self):
         return f'<User {self.username}>'
 

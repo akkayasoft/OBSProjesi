@@ -1,0 +1,164 @@
+{% extends "ortak_sinav/_layout.html" %}
+
+{% block title %}{{ sinav.ad }} - Detay{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ sinav.ad }}</li>
+{% endblock %}
+
+{% block ortak_sinav_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-journal-check me-2"></i>{{ sinav.ad }}</h4>
+    <div>
+        <a href="{{ url_for('ortak_sinav.sonuc.giris', sinav_id=sinav.id) }}" class="btn btn-success me-1">
+            <i class="bi bi-pencil-square me-1"></i>Sonuc Girisi
+        </a>
+        <a href="{{ url_for('ortak_sinav.sinav.duzenle', sinav_id=sinav.id) }}" class="btn btn-warning me-1">
+            <i class="bi bi-pencil me-1"></i>Duzenle
+        </a>
+        <a href="{{ url_for('ortak_sinav.rapor.genel') }}?sinav_id={{ sinav.id }}" class="btn btn-info">
+            <i class="bi bi-bar-chart me-1"></i>Rapor
+        </a>
+    </div>
+</div>
+
+<!-- Sinav Bilgileri -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Sinav Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <th class="text-muted" style="width:40%">Ders:</th>
+                                <td>{{ sinav.ders.kod }} - {{ sinav.ders.ad }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Seviye:</th>
+                                <td>{{ sinav.seviye_str }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Donem:</th>
+                                <td>{{ sinav.donem }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Tarih:</th>
+                                <td>{{ sinav.tarih.strftime('%d.%m.%Y') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <th class="text-muted" style="width:40%">Sure:</th>
+                                <td>{{ sinav.sure_dakika }} dakika</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Soru Sayisi:</th>
+                                <td>{{ sinav.soru_sayisi }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Toplam Puan:</th>
+                                <td>{{ sinav.toplam_puan }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Durum:</th>
+                                <td><span class="badge bg-{{ sinav.durum_badge }}">{{ sinav.durum_str }}</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                {% if sinav.aciklama %}
+                <hr>
+                <p class="mb-0 text-muted">{{ sinav.aciklama }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm bg-light">
+            <div class="card-body text-center">
+                <h2 class="mb-1">{{ sinav.sonuc_sayisi }}</h2>
+                <p class="text-muted mb-2">Toplam Sonuc</p>
+                <h3 class="mb-1 text-primary">{{ sinav.ortalama_puan }}</h3>
+                <p class="text-muted mb-3">Ortalama Puan</p>
+
+                <!-- Sube bazli toplu giris linkleri -->
+                <div class="d-grid gap-2">
+                    <p class="text-muted mb-1 fw-semibold small">Toplu Sonuc Girisi:</p>
+                    {% set subeler = [] %}
+                    {% for sube in sinav.ders.ortak_sinavlar.first().__class__.query.get(sinav.id).sonuclar.with_entities().all() %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sonuc Tablosu -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Sinav Sonuclari</h6>
+        <span class="badge bg-primary">{{ sonuclar|length }} ogrenci</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Ogrenci No</th>
+                    <th>Ogrenci Adi</th>
+                    <th>Sube</th>
+                    <th class="text-center">Puan</th>
+                    <th class="text-center">Dogru</th>
+                    <th class="text-center">Yanlis</th>
+                    <th class="text-center">Bos</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sonuclar %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ s.ogrenci.ogrenci_no }}</td>
+                    <td>{{ s.ogrenci.tam_ad }}</td>
+                    <td>{{ s.sube.tam_ad }}</td>
+                    <td class="text-center">
+                        <span class="fw-bold {% if s.puan >= sinav.toplam_puan * 0.5 %}text-success{% else %}text-danger{% endif %}">
+                            {{ s.puan }}
+                        </span>
+                    </td>
+                    <td class="text-center">{{ s.dogru_sayisi if s.dogru_sayisi is not none else '-' }}</td>
+                    <td class="text-center">{{ s.yanlis_sayisi if s.yanlis_sayisi is not none else '-' }}</td>
+                    <td class="text-center">{{ s.bos_sayisi if s.bos_sayisi is not none else '-' }}</td>
+                    <td class="text-end">
+                        <form method="POST" action="{{ url_for('ortak_sinav.sonuc.sil', sonuc_id=s.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu sonucu silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="bi bi-clipboard display-4 d-block mb-3"></i>
+                        Henuz sinav sonucu girilmemis.
+                        <br>
+                        <a href="{{ url_for('ortak_sinav.sonuc.giris', sinav_id=sinav.id) }}" class="btn btn-primary btn-sm mt-3">
+                            <i class="bi bi-pencil-square me-1"></i>Sonuc Girisi Yap
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

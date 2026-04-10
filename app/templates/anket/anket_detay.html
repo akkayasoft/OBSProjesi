@@ -1,0 +1,113 @@
+{% extends "anket/_layout.html" %}
+
+{% block title %}{{ anket.baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ anket.baslik }}</li>
+{% endblock %}
+
+{% block anket_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-clipboard2-data me-2"></i>{{ anket.baslik }}</h4>
+    <div>
+        <a href="{{ url_for('anket.sonuc.goruntule', anket_id=anket.id) }}" class="btn btn-outline-info me-2">
+            <i class="bi bi-bar-chart me-1"></i>Sonuclar
+        </a>
+        <a href="{{ url_for('anket.yonetim.duzenle', anket_id=anket.id) }}" class="btn btn-outline-warning me-2">
+            <i class="bi bi-pencil me-1"></i>Duzenle
+        </a>
+        <a href="{{ url_for('anket.soru.yeni', anket_id=anket.id) }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Soru Ekle
+        </a>
+    </div>
+</div>
+
+<!-- Anket Bilgileri -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                {% if anket.aciklama %}
+                <p class="text-muted">{{ anket.aciklama }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <ul class="list-unstyled">
+                    <li><strong>Durum:</strong> <span class="badge bg-{{ anket.durum_badge }}">{{ anket.durum_str }}</span></li>
+                    <li class="mt-1"><strong>Hedef Kitle:</strong> {{ anket.hedef_kitle_str }}</li>
+                    <li class="mt-1"><strong>Baslangic:</strong> {{ anket.baslangic_tarihi.strftime('%d.%m.%Y') }}</li>
+                    <li class="mt-1"><strong>Bitis:</strong> {{ anket.bitis_tarihi.strftime('%d.%m.%Y') }}</li>
+                    <li class="mt-1"><strong>Anonim:</strong> {{ 'Evet' if anket.anonim else 'Hayir' }}</li>
+                    <li class="mt-1"><strong>Katilimci:</strong> {{ anket.katilimci_sayisi }} kisi</li>
+                    <li class="mt-1"><strong>Soru Sayisi:</strong> {{ sorular|length }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sorular -->
+<h5 class="mb-3"><i class="bi bi-list-ol me-2"></i>Sorular</h5>
+
+{% for soru in sorular %}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <h6 class="mb-1">
+                    <span class="badge bg-primary me-2">{{ soru.sira }}</span>
+                    {{ soru.soru_metni }}
+                    {% if soru.zorunlu %}<span class="text-danger">*</span>{% endif %}
+                </h6>
+                <small class="text-muted">
+                    <span class="badge bg-light text-dark">{{ soru.soru_tipi_str }}</span>
+                </small>
+                {% if soru.soru_tipi == 'coktan_secmeli' and soru.secenekler_listesi %}
+                <div class="mt-2">
+                    {% for secenek in soru.secenekler_listesi %}
+                    <span class="badge bg-outline-secondary border me-1">{{ secenek }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="btn-group btn-group-sm ms-3">
+                <form method="POST" action="{{ url_for('anket.soru.yukari', soru_id=soru.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-secondary" title="Yukari Tasi">
+                        <i class="bi bi-arrow-up"></i>
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('anket.soru.asagi', soru_id=soru.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-secondary" title="Asagi Tasi">
+                        <i class="bi bi-arrow-down"></i>
+                    </button>
+                </form>
+                <a href="{{ url_for('anket.soru.duzenle', soru_id=soru.id) }}"
+                   class="btn btn-outline-warning" title="Duzenle">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="{{ url_for('anket.soru.sil', soru_id=soru.id) }}"
+                      class="d-inline" onsubmit="return confirm('Bu soruyu silmek istediginize emin misiniz?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-danger" title="Sil">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center text-muted py-4">
+        <i class="bi bi-list-ol display-4 d-block mb-3"></i>
+        Henuz soru eklenmemis.
+        <br>
+        <a href="{{ url_for('anket.soru.yeni', anket_id=anket.id) }}" class="btn btn-primary mt-3">
+            <i class="bi bi-plus-circle me-1"></i>Ilk Soruyu Ekle
+        </a>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

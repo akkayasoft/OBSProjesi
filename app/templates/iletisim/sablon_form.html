@@ -1,0 +1,50 @@
+{% extends "iletisim/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('iletisim.sablon.liste') }}">Şablonlar</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block iletisim_content %}
+<h4 class="mb-4"><i class="bi bi-file-text me-2"></i>{{ baslik }}</h4>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.baslik.label(class="form-label") }}
+                        {{ form.baslik(class="form-control") }}
+                        {% for error in form.baslik.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.kategori.label(class="form-label") }}
+                        {{ form.kategori(class="form-select") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.icerik.label(class="form-label") }}
+                        {{ form.icerik(class="form-control") }}
+                        {% for error in form.icerik.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('iletisim.sablon.liste') }}" class="btn btn-outline-secondary">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

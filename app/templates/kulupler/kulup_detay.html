@@ -1,0 +1,205 @@
+{% extends "kulupler/_layout.html" %}
+
+{% block title %}{{ kulup.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kulupler.kulup.liste') }}">Kulup Listesi</a></li>
+<li class="breadcrumb-item active">{{ kulup.ad }}</li>
+{% endblock %}
+
+{% block kulupler_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">
+        <i class="{{ kulup.kategori_icon }} me-2"></i>{{ kulup.ad }}
+        <span class="badge bg-{{ kulup.kategori_badge }} ms-2">{{ kulup.kategori_str }}</span>
+    </h4>
+    <div>
+        <a href="{{ url_for('kulupler.kulup.duzenle', kulup_id=kulup.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil me-1"></i>Duzenle
+        </a>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#bilgiler">
+            <i class="bi bi-info-circle me-1"></i>Bilgiler
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#uyeler">
+            <i class="bi bi-people me-1"></i>Uyeler ({{ uyeler|length }})
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#etkinlikler">
+            <i class="bi bi-calendar-event me-1"></i>Etkinlikler ({{ etkinlikler|length }})
+        </a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Bilgiler Tab -->
+    <div class="tab-pane fade show active" id="bilgiler">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th class="text-muted" style="width: 40%;">Kategori</th>
+                                <td><span class="badge bg-{{ kulup.kategori_badge }}">{{ kulup.kategori_str }}</span></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Danisman</th>
+                                <td>{{ kulup.danisman.tam_ad if kulup.danisman else '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Kontenjan</th>
+                                <td>{{ kulup.aktif_uye_sayisi }} / {{ kulup.kontenjan }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Donem</th>
+                                <td>{{ kulup.donem }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th class="text-muted" style="width: 40%;">Toplanti Gunu</th>
+                                <td>{{ kulup.toplanti_gunu or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Toplanti Saati</th>
+                                <td>{{ kulup.toplanti_saati or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Toplanti Yeri</th>
+                                <td>{{ kulup.toplanti_yeri or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Durum</th>
+                                <td>
+                                    {% if kulup.aktif %}
+                                    <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Pasif</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                {% if kulup.aciklama %}
+                <hr>
+                <h6>Aciklama</h6>
+                <p class="text-muted">{{ kulup.aciklama }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Uyeler Tab -->
+    <div class="tab-pane fade" id="uyeler">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Kulup Uyeleri</h6>
+                <a href="{{ url_for('kulupler.uyelik.ekle', kulup_id=kulup.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-person-plus me-1"></i>Uye Ekle
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ogrenci</th>
+                                <th>Sinif</th>
+                                <th>Gorev</th>
+                                <th>Katilim Tarihi</th>
+                                <th>Islemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in uyeler %}
+                            <tr>
+                                <td>{{ u.ogrenci.ad }} {{ u.ogrenci.soyad }}</td>
+                                <td>{{ u.ogrenci.sinif or '-' }}</td>
+                                <td><span class="badge bg-{{ u.gorev_badge }}">{{ u.gorev_str }}</span></td>
+                                <td>{{ u.katilim_tarihi.strftime('%d.%m.%Y') if u.katilim_tarihi else '-' }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('kulupler.uyelik.cikar', uyelik_id=u.id) }}"
+                                          class="d-inline" onsubmit="return confirm('Bu uyeyi cikarmak istediginize emin misiniz?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cikar">
+                                            <i class="bi bi-person-dash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Henuz uye bulunmuyor</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Etkinlikler Tab -->
+    <div class="tab-pane fade" id="etkinlikler">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Kulup Etkinlikleri</h6>
+                <a href="{{ url_for('kulupler.kulup.etkinlik_yeni', kulup_id=kulup.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Yeni Etkinlik
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Baslik</th>
+                                <th>Tarih</th>
+                                <th>Tur</th>
+                                <th>Durum</th>
+                                <th>Islemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in etkinlikler %}
+                            <tr>
+                                <td>{{ e.baslik }}</td>
+                                <td>{{ e.tarih.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td><span class="badge bg-{{ e.tur_badge }}">{{ e.tur_str }}</span></td>
+                                <td><span class="badge bg-{{ e.durum_badge }}">{{ e.durum_str }}</span></td>
+                                <td>
+                                    <a href="{{ url_for('kulupler.etkinlik.yoklama', etkinlik_id=e.id) }}"
+                                       class="btn btn-sm btn-outline-success" title="Yoklama">
+                                        <i class="bi bi-clipboard-check"></i>
+                                    </a>
+                                    <a href="{{ url_for('kulupler.etkinlik.duzenle', etkinlik_id=e.id) }}"
+                                       class="btn btn-sm btn-outline-warning" title="Duzenle">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Henuz etkinlik bulunmuyor</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

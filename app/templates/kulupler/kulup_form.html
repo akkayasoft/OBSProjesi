@@ -1,0 +1,93 @@
+{% extends "kulupler/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kulupler.kulup.liste') }}">Kulup Listesi</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block kulupler_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.kategori.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.kategori(class="form-select") }}
+                            {% for error in form.kategori.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control") }}
+                            {% for error in form.aciklama.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.danisman_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.danisman_id(class="form-select") }}
+                            {% for error in form.danisman_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.kontenjan.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.kontenjan(class="form-control") }}
+                            {% for error in form.kontenjan.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.donem.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.donem(class="form-control") }}
+                            {% for error in form.donem.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.toplanti_gunu.label.text }}</label>
+                            {{ form.toplanti_gunu(class="form-select") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.toplanti_saati.label.text }}</label>
+                            {{ form.toplanti_saati(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.toplanti_yeri.label.text }}</label>
+                            {{ form.toplanti_yeri(class="form-control") }}
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check">
+                                {{ form.aktif(class="form-check-input") }}
+                                <label class="form-check-label" for="aktif">Kulup aktif</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('kulupler.kulup.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends "etut/_layout.html" %}
+
+{% block title %}Etut Raporlari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Raporlar</li>
+{% endblock %}
+
+{% block etut_content %}
+<h4 class="mb-4"><i class="bi bi-bar-chart me-2"></i>Etut Raporlari</h4>
+
+<!-- Genel Istatistikler -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-primary border-4">
+            <div class="card-body text-center">
+                <h3 class="text-primary mb-1">{{ toplam_etut }}</h3>
+                <small class="text-muted">Aktif Etut</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-info border-4">
+            <div class="card-body text-center">
+                <h3 class="text-info mb-1">{{ toplam_katilim }}</h3>
+                <small class="text-muted">Toplam Yoklama Kaydi</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-success border-4">
+            <div class="card-body text-center">
+                <h3 class="text-success mb-1">{{ toplam_katilan }}</h3>
+                <small class="text-muted">Toplam Katilim</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-warning border-4">
+            <div class="card-body text-center">
+                <h3 class="text-warning mb-1">%{{ genel_oran }}</h3>
+                <small class="text-muted">Genel Katilim Orani</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<div class="row g-4">
+    <!-- Etut Bazli Rapor -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-book me-2"></i>Etut Bazli Rapor</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="mb-3">
+                    <input type="hidden" name="ogrenci_id" value="{{ secili_ogrenci_id }}">
+                    <div class="input-group">
+                        <select name="etut_id" class="form-select">
+                            <option value="">-- Etut Seciniz --</option>
+                            {% for e in etutler %}
+                            <option value="{{ e.id }}" {% if secili_etut_id == e.id %}selected{% endif %}>
+                                {{ e.ad }} ({{ e.gun }} {{ e.saat_araligi }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>Goster
+                        </button>
+                    </div>
+                </form>
+
+                {% if etut_rapor %}
+                <h6 class="mb-3">{{ etut_rapor.etut.ad }} - Ogrenci Katilim Durumu</h6>
+                {% if etut_rapor.ogrenci_stats %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ogrenci</th>
+                                <th class="text-center">Toplam</th>
+                                <th class="text-center">Katilim</th>
+                                <th class="text-center">Devamsizlik</th>
+                                <th>Oran</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in etut_rapor.ogrenci_stats %}
+                            <tr>
+                                <td>{{ s.ogrenci.tam_ad }}</td>
+                                <td class="text-center">{{ s.toplam_ders }}</td>
+                                <td class="text-center"><span class="badge bg-success">{{ s.katilim }}</span></td>
+                                <td class="text-center"><span class="badge bg-danger">{{ s.devamsizlik }}</span></td>
+                                <td>
+                                    <div class="progress" style="height: 18px; min-width: 80px;">
+                                        <div class="progress-bar {% if s.oran >= 80 %}bg-success{% elif s.oran >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                             style="width: {{ s.oran }}%">
+                                            {{ s.oran }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Katilim Grafigi -->
+                <div class="mt-3">
+                    <canvas id="etutChart" height="200"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Bu etut icin henuz katilim kaydi yok.</p>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Ogrenci Bazli Rapor -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Ogrenci Bazli Rapor</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="mb-3">
+                    <input type="hidden" name="etut_id" value="{{ secili_etut_id }}">
+                    <div class="input-group">
+                        <select name="ogrenci_id" class="form-select">
+                            <option value="">-- Ogrenci Seciniz --</option>
+                            {% for o in ogrenciler %}
+                            <option value="{{ o.id }}" {% if secili_ogrenci_id == o.id %}selected{% endif %}>
+                                {{ o.ogrenci_no }} - {{ o.tam_ad }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>Goster
+                        </button>
+                    </div>
+                </form>
+
+                {% if ogrenci_rapor %}
+                <h6 class="mb-3">{{ ogrenci_rapor.ogrenci.tam_ad }} - Etut Katilim Durumu</h6>
+                {% if ogrenci_rapor.etut_stats %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Etut</th>
+                                <th class="text-center">Toplam</th>
+                                <th class="text-center">Katilim</th>
+                                <th class="text-center">Devamsizlik</th>
+                                <th>Oran</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in ogrenci_rapor.etut_stats %}
+                            <tr>
+                                <td>{{ s.etut.ad }}</td>
+                                <td class="text-center">{{ s.toplam_ders }}</td>
+                                <td class="text-center"><span class="badge bg-success">{{ s.katilim }}</span></td>
+                                <td class="text-center"><span class="badge bg-danger">{{ s.devamsizlik }}</span></td>
+                                <td>
+                                    <div class="progress" style="height: 18px; min-width: 80px;">
+                                        <div class="progress-bar {% if s.oran >= 80 %}bg-success{% elif s.oran >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                             style="width: {{ s.oran }}%">
+                                            {{ s.oran }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Ogrenci Katilim Grafigi -->
+                <div class="mt-3">
+                    <canvas id="ogrenciChart" height="200"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Bu ogrenci icin henuz katilim kaydi yok.</p>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+{% if etut_rapor and etut_rapor.ogrenci_stats %}
+(function() {
+    var ctx = document.getElementById('etutChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [{% for s in etut_rapor.ogrenci_stats %}'{{ s.ogrenci.tam_ad }}'{% if not loop.last %},{% endif %}{% endfor %}],
+            datasets: [
+                {
+                    label: 'Katilim',
+                    data: [{% for s in etut_rapor.ogrenci_stats %}{{ s.katilim }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                },
+                {
+                    label: 'Devamsizlik',
+                    data: [{% for s in etut_rapor.ogrenci_stats %}{{ s.devamsizlik }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true }
+            }
+        }
+    });
+})();
+{% endif %}
+
+{% if ogrenci_rapor and ogrenci_rapor.etut_stats %}
+(function() {
+    var ctx = document.getElementById('ogrenciChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for s in ogrenci_rapor.etut_stats %}'{{ s.etut.ad }}'{% if not loop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for s in ogrenci_rapor.etut_stats %}{{ s.oran }}{% if not loop.last %},{% endif %}{% endfor %}],
+                backgroundColor: [
+                    'rgba(13, 110, 253, 0.7)',
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(220, 53, 69, 0.7)',
+                    'rgba(23, 162, 184, 0.7)',
+                    'rgba(111, 66, 193, 0.7)',
+                ],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': %' + context.parsed;
+                        }
+                    }
+                }
+            }
+        }
+    });
+})();
+{% endif %}
+</script>
+{% endblock %}

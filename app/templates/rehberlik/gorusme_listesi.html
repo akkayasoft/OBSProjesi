@@ -1,0 +1,150 @@
+{% extends "rehberlik/_layout.html" %}
+
+{% block title %}Gorusmeler{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Gorusmeler</li>
+{% endblock %}
+
+{% block rehberlik_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Gorusme Listesi</h4>
+    <a href="{{ url_for('rehberlik.gorusme.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Gorusme
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Tur</label>
+                <select name="tur" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="bireysel" {% if tur == 'bireysel' %}selected{% endif %}>Bireysel</option>
+                    <option value="grup" {% if tur == 'grup' %}selected{% endif %}>Grup</option>
+                    <option value="veli" {% if tur == 'veli' %}selected{% endif %}>Veli</option>
+                    <option value="kriz" {% if tur == 'kriz' %}selected{% endif %}>Kriz</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="planlandi" {% if durum == 'planlandi' %}selected{% endif %}>Planlandi</option>
+                    <option value="tamamlandi" {% if durum == 'tamamlandi' %}selected{% endif %}>Tamamlandi</option>
+                    <option value="iptal" {% if durum == 'iptal' %}selected{% endif %}>Iptal</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Arama</label>
+                <input type="text" name="arama" class="form-control" placeholder="Konu veya icerikte ara..."
+                       value="{{ arama }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if tur or durum or arama %}
+            <div class="col-md-2">
+                <a href="{{ url_for('rehberlik.gorusme.liste') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Gorusme Listesi -->
+<div class="row g-3">
+    {% for g in gorusmeler.items %}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                            <h5 class="mb-0">
+                                <a href="{{ url_for('rehberlik.gorusme.detay', gorusme_id=g.id) }}" class="text-decoration-none">
+                                    {{ g.konu }}
+                                </a>
+                            </h5>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-{{ g.gorusme_turu_badge }} me-1">{{ g.gorusme_turu_str }}</span>
+                            <span class="badge bg-{{ g.durum_badge }} me-1">{{ g.durum_str }}</span>
+                            {% if g.gizlilik_seviyesi != 'normal' %}
+                            <span class="badge bg-{{ g.gizlilik_badge }} me-1">{{ g.gizlilik_str }}</span>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-person me-1"></i>{{ g.ogrenci.tam_ad }}
+                            <span class="mx-2">|</span>
+                            <i class="bi bi-person-badge me-1"></i>{{ g.rehber.tam_ad }}
+                            <span class="mx-2">|</span>
+                            <i class="bi bi-calendar me-1"></i>{{ g.gorusme_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                        </small>
+                    </div>
+                    <div class="ms-3 text-nowrap">
+                        <a href="{{ url_for('rehberlik.gorusme.duzenle', gorusme_id=g.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('rehberlik.gorusme.sil', gorusme_id=g.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu gorusmeyi silmek istediginize emin misiniz?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-chat-dots display-4 d-block mb-3"></i>
+                Henuz gorusme bulunmuyor.
+                <div class="mt-3">
+                    <a href="{{ url_for('rehberlik.gorusme.yeni') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Ilk Gorusmeyi Olustur
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if gorusmeler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if gorusmeler.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ gorusmeler.prev_num }}&tur={{ tur }}&durum={{ durum }}&arama={{ arama }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in gorusmeler.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == gorusmeler.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&tur={{ tur }}&durum={{ durum }}&arama={{ arama }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if gorusmeler.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ gorusmeler.next_num }}&tur={{ tur }}&durum={{ durum }}&arama={{ arama }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -38,17 +38,6 @@ class KategoriForm(FlaskForm):
 
 # === Öğrenci Ödeme Formları ===
 
-class OgrenciForm(FlaskForm):
-    ogrenci_no = StringField('Öğrenci No', validators=[
-        DataRequired(), Length(min=1, max=20)
-    ])
-    ad = StringField('Ad', validators=[DataRequired(), Length(min=2, max=100)])
-    soyad = StringField('Soyad', validators=[DataRequired(), Length(min=2, max=100)])
-    sinif = StringField('Sınıf', validators=[Optional(), Length(max=20)])
-    veli_ad = StringField('Veli Adı', validators=[Optional(), Length(max=100)])
-    veli_telefon = StringField('Veli Telefon', validators=[Optional(), Length(max=20)])
-    submit = SubmitField('Kaydet')
-
 
 class OdemePlaniForm(FlaskForm):
     donem = StringField('Dönem', validators=[

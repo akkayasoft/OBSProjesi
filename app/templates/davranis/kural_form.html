@@ -1,0 +1,76 @@
+{% extends "davranis/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('davranis.kural.liste') }}">Kurallar</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block davranis_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.kategori.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.kategori(class="form-select") }}
+                            {% for error in form.kategori.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.tur.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.tur(class="form-select") }}
+                            {% for error in form.tur.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.varsayilan_puan.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.varsayilan_puan(class="form-control", min="-10", max="10") }}
+                            {% for error in form.varsayilan_puan.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                            <small class="form-text text-muted">-10 (en olumsuz) ile +10 (en olumlu) arasi</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Durum</label>
+                            <div class="form-check form-switch mt-2">
+                                {{ form.aktif(class="form-check-input") }}
+                                <label class="form-check-label" for="aktif">Aktif</label>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control") }}
+                            {% for error in form.aciklama.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('davranis.kural.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "ogrenci_portal/_layout.html" %}
+
+{% block title %}Sınavlar{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Sınavlar</li>
+{% endblock %}
+
+{% block portal_content %}
+<h4 class="mb-4"><i class="bi bi-pencil-square me-2"></i>Online Sınavlar</h4>
+
+{% if not ogrenci %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>Öğrenci kaydınız bulunamadı.
+</div>
+{% else %}
+
+<!-- Yaklaşan Sınavlar -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-clock me-2"></i>Yaklaşan Sınavlar</h6>
+    </div>
+    <div class="card-body p-0">
+        {% if yaklasan %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sınav Adı</th>
+                        <th>Ders</th>
+                        <th>Tür</th>
+                        <th>Başlangıç</th>
+                        <th>Bitiş</th>
+                        <th>Süre</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in yaklasan %}
+                    {% set s = item.sinav %}
+                    {% set k = item.katilim %}
+                    <tr>
+                        <td><strong>{{ s.baslik }}</strong></td>
+                        <td>{{ s.ders.ad }}</td>
+                        <td><span class="badge bg-secondary">{{ s.sinav_turu_str }}</span></td>
+                        <td>{{ s.baslangic_zamani.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td>{{ s.bitis_zamani.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td>{{ s.sure }} dk</td>
+                        <td>
+                            {% if k %}
+                            <span class="badge bg-{{ k.durum_badge }}">{{ k.durum_str }}</span>
+                            {% else %}
+                            <span class="badge bg-{{ s.durum_badge }}">{{ s.durum_str }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            Yaklaşan sınav bulunmuyor.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Geçmiş Sınavlar -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-check2-circle me-2"></i>Geçmiş Sınavlar</h6>
+    </div>
+    <div class="card-body p-0">
+        {% if gecmis %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sınav Adı</th>
+                        <th>Ders</th>
+                        <th>Tarih</th>
+                        <th class="text-center">Puan</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in gecmis %}
+                    {% set s = item.sinav %}
+                    {% set k = item.katilim %}
+                    <tr>
+                        <td><strong>{{ s.baslik }}</strong></td>
+                        <td>{{ s.ders.ad }}</td>
+                        <td>{{ s.baslangic_zamani.strftime('%d.%m.%Y') }}</td>
+                        <td class="text-center">
+                            {% if k and k.toplam_puan is not none %}
+                            <span class="fw-bold {% if k.gecti_mi %}text-success{% else %}text-danger{% endif %}">
+                                {{ k.toplam_puan }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if k %}
+                            <span class="badge bg-{{ k.durum_badge }}">{{ k.durum_str }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Katılmadı</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            Geçmiş sınav bulunmuyor.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

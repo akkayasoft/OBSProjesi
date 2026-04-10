@@ -1,0 +1,155 @@
+{% extends "ogretmen_portal/_layout.html" %}
+
+{% block title %}Ogretmen Portali{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakis</li>
+{% endblock %}
+
+{% block portal_content %}
+<h4 class="mb-4"><i class="bi bi-person-workspace me-2"></i>Ogretmen Portali</h4>
+
+{% if not personel %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>Personel kaydınız bulunamadı.
+</div>
+{% else %}
+
+<div class="alert alert-light border mb-4">
+    <h5 class="mb-1">Hosgeldiniz, {{ personel.tam_ad }}</h5>
+    <small class="text-muted">{{ personel.pozisyon or 'Ogretmen' }} - {{ personel.departman or '' }}</small>
+</div>
+
+<!-- Istatistik Kartlari -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Siniflarim</p>
+                        <h3 class="mb-0">{{ sinif_sayisi }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Derslerim</p>
+                        <h3 class="mb-0">{{ ders_sayisi }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-book"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Sinavlarim</p>
+                        <h3 class="mb-0">{{ sinav_sayisi }}</h3>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-journal-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Bugunun Dersleri</p>
+                        <h3 class="mb-0">{{ bugunun_dersleri|length }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-calendar-day"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Bugunun Ders Programi -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-calendar-week me-2"></i>Bugunun Ders Programi</h6>
+                <a href="{{ url_for('ogretmen_portal.ders_programi.index') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-list"></i> Tam Program
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for d in bugunun_dersleri %}
+                    <div class="list-group-item py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ d.ders_saati }}. Ders</strong> - {{ d.ders.ad }}
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-people me-1"></i>{{ d.sube.tam_ad }}
+                                    {% if d.derslik %}
+                                    <i class="bi bi-door-open ms-2 me-1"></i>{{ d.derslik }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Bugun ders bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Duyurular -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-megaphone me-2"></i>Son Duyurular</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for d in duyurular %}
+                    <div class="list-group-item py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ d.baslik }}</strong>
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-clock me-1"></i>{{ d.yayinlanma_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                                </small>
+                            </div>
+                            <span class="badge bg-{{ d.kategori_badge }}">{{ d.kategori_str }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Duyuru bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

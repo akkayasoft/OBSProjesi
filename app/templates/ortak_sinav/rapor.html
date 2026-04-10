@@ -1,0 +1,271 @@
+{% extends "ortak_sinav/_layout.html" %}
+
+{% block title %}Ortak Sinav Raporlari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Raporlar</li>
+{% endblock %}
+
+{% block ortak_sinav_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Ortak Sinav Raporlari</h4>
+    <a href="{{ url_for('ortak_sinav.sinav.liste') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Sinav Listesi
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Seviye</label>
+                <select name="seviye" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="9" {% if seviye == '9' %}selected{% endif %}>9. Sinif</option>
+                    <option value="10" {% if seviye == '10' %}selected{% endif %}>10. Sinif</option>
+                    <option value="11" {% if seviye == '11' %}selected{% endif %}>11. Sinif</option>
+                    <option value="12" {% if seviye == '12' %}selected{% endif %}>12. Sinif</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Ders</label>
+                <select name="ders_id" class="form-select">
+                    <option value="">Tumu</option>
+                    {% for d in dersler %}
+                    <option value="{{ d.id }}" {% if ders_id == d.id|string %}selected{% endif %}>{{ d.kod }} - {{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Donem</label>
+                <input type="text" name="donem" class="form-control" value="{{ donem }}" placeholder="2025-2026">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Sinav</label>
+                <select name="sinav_id" class="form-select">
+                    <option value="">-- Sinav Seciniz --</option>
+                    {% for s in sinavlar %}
+                    <option value="{{ s.id }}" {% if sinav_id == s.id|string %}selected{% endif %}>
+                        {{ s.ad }} ({{ s.tarih.strftime('%d.%m.%Y') }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search me-1"></i>Rapor Olustur
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if sinav and genel_istatistik %}
+<!-- Genel Istatistikler -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="mb-1 text-primary">{{ genel_istatistik.toplam_ogrenci }}</h3>
+                <small class="text-muted">Toplam Ogrenci</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="mb-1 text-info">{{ genel_istatistik.ortalama }}</h3>
+                <small class="text-muted">Ortalama Puan</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="mb-1 text-success">{{ genel_istatistik.en_yuksek }}</h3>
+                <small class="text-muted">En Yuksek</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="mb-1 text-danger">{{ genel_istatistik.en_dusuk }}</h3>
+                <small class="text-muted">En Dusuk</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="mb-1 text-success">{{ genel_istatistik.gecen_sayi }}</h3>
+                <small class="text-muted">Gecen Ogrenci</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="mb-1 {% if genel_istatistik.basari_orani >= 50 %}text-success{% else %}text-danger{% endif %}">
+                    %{{ genel_istatistik.basari_orani }}
+                </h3>
+                <small class="text-muted">Basari Orani</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Sube Karsilastirma Grafigi -->
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Sube Bazli Ortalama Karsilastirmasi</h6>
+            </div>
+            <div class="card-body">
+                {% if puan_dagilimi.sube_labels %}
+                <canvas id="subeChart" height="250"></canvas>
+                {% else %}
+                <p class="text-center text-muted py-4">Karsilastirma icin yeterli veri yok.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Puan Dagilimi -->
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Puan Dagilimi</h6>
+            </div>
+            <div class="card-body">
+                {% if puan_dagilimi.labels %}
+                <canvas id="dagilimChart" height="250"></canvas>
+                {% else %}
+                <p class="text-center text-muted py-4">Dagilim icin yeterli veri yok.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sube Bazli Detay Tablosu -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0">Sube Bazli Sonuclar</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Sube</th>
+                    <th class="text-center">Ogrenci Sayisi</th>
+                    <th class="text-center">Ortalama</th>
+                    <th class="text-center">En Yuksek</th>
+                    <th class="text-center">En Dusuk</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sube_karsilastirma %}
+                <tr>
+                    <td class="fw-semibold">{{ s.sube_ad }}</td>
+                    <td class="text-center">{{ s.ogrenci_sayisi }}</td>
+                    <td class="text-center">
+                        <span class="fw-bold {% if s.ortalama >= sinav.toplam_puan * 0.5 %}text-success{% else %}text-danger{% endif %}">
+                            {{ s.ortalama }}
+                        </span>
+                    </td>
+                    <td class="text-center text-success">{{ s.en_yuksek }}</td>
+                    <td class="text-center text-danger">{{ s.en_dusuk }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        Sube bazli sonuc bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif not sinav_id %}
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-bar-chart display-4 d-block mb-3 text-muted"></i>
+        <h5 class="text-muted">Rapor goruntlemek icin yukaridaki filtrelerden bir sinav seciniz.</h5>
+    </div>
+</div>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-circle display-4 d-block mb-3 text-warning"></i>
+        <h5 class="text-muted">Secilen sinav bulunamadi veya henuz sonuc girilmemis.</h5>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if sinav and puan_dagilimi %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+{% if puan_dagilimi.sube_labels %}
+// Sube karsilastirma grafigi
+new Chart(document.getElementById('subeChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: {{ puan_dagilimi.sube_labels | tojson }},
+        datasets: [{
+            label: 'Ortalama Puan',
+            data: {{ puan_dagilimi.sube_ortalamalar | tojson }},
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: {{ sinav.toplam_puan }}
+            }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+{% endif %}
+
+{% if puan_dagilimi.labels %}
+// Puan dagilimi grafigi
+new Chart(document.getElementById('dagilimChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ puan_dagilimi.labels | tojson }},
+        datasets: [{
+            data: {{ puan_dagilimi.values | tojson }},
+            backgroundColor: [
+                'rgba(220, 53, 69, 0.7)',
+                'rgba(255, 193, 7, 0.7)',
+                'rgba(13, 110, 253, 0.7)',
+                'rgba(25, 135, 84, 0.7)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endif %}
+{% endblock %}

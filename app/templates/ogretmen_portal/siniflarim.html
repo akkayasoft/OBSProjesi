@@ -1,0 +1,47 @@
+{% extends "ogretmen_portal/_layout.html" %}
+
+{% block title %}Siniflarim{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Siniflarim</li>
+{% endblock %}
+
+{% block portal_content %}
+<h4 class="mb-4"><i class="bi bi-people me-2"></i>Siniflarim</h4>
+
+{% if not personel %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>Personel kaydınız bulunamadı.
+</div>
+{% else %}
+
+<div class="row g-4">
+    {% for sube in siniflar %}
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-people-fill text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5>{{ sube.tam_ad }}</h5>
+                <p class="text-muted mb-2">
+                    <i class="bi bi-person me-1"></i>{{ sube.aktif_ogrenci_sayisi }} Ogrenci
+                </p>
+                <a href="{{ url_for('ogretmen_portal.siniflarim.sinif_detay', sube_id=sube.id) }}"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye me-1"></i>Ogrenci Listesi
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Henuz atanmis sinifiniz bulunmuyor.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}

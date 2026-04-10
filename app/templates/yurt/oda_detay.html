@@ -1,0 +1,33 @@
+{% extends "yurt/_layout.html" %}
+{% block title %}Oda {{ oda.oda_no }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Oda {{ oda.oda_no }}</li>{% endblock %}
+{% block yurt_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="bi bi-door-open me-2"></i>Oda {{ oda.oda_no }} <span class="badge bg-{{ oda.durum_badge }}">{{ oda.durum }}</span></h4>
+    <div><a href="{{ url_for('yurt.oda.duzenle', oda_id=oda.id) }}" class="btn btn-warning"><i class="bi bi-pencil me-1"></i>Duzenle</a>
+    <a href="{{ url_for('yurt.kayit.yeni') }}" class="btn btn-success"><i class="bi bi-person-plus me-1"></i>Ogrenci Yerlestir</a></div>
+</div>
+<div class="row mb-4">
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Kapasite</div><div class="fs-3 fw-bold">{{ oda.kapasite }}</div>
+    </div></div></div>
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Dolu</div><div class="fs-3 fw-bold text-primary">{{ oda.dolu_yatak }}</div>
+    </div></div></div>
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Bos</div><div class="fs-3 fw-bold text-success">{{ oda.bos_yatak }}</div>
+    </div></div></div>
+</div>
+<div class="card"><div class="card-header"><h6 class="mb-0">Kayitli Ogrenciler</h6></div>
+<div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0"><thead class="table-light">
+<tr><th>Ogrenci</th><th>Yatak No</th><th>Baslangic</th><th class="text-end">Islem</th></tr></thead><tbody>
+{% for k in kayitlar %}<tr>
+<td>{{ k.ogrenci.tam_ad }}</td><td>{{ k.yatak_no or '-' }}</td>
+<td>{{ k.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+<td class="text-end"><form method="POST" action="{{ url_for('yurt.kayit.cikar', kayit_id=k.id) }}" class="d-inline" onsubmit="return confirm('Ogrenciyi cikaracak misiniz?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle me-1"></i>Cikar</button></form></td>
+</tr>{% else %}<tr><td colspan="4" class="text-center text-muted py-4">Bu odada ogrenci yok.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required
+from app.utils import role_required
 from app.extensions import db
 from app.models.kayit import Sinif, Sube
 from app.kayit.forms import SinifForm, SubeForm
@@ -9,6 +10,7 @@ bp = Blueprint('sinif', __name__)
 
 @bp.route('/')
 @login_required
+@role_required('admin', 'muhasebeci')
 def liste():
     siniflar = Sinif.query.filter_by(aktif=True).order_by(Sinif.seviye).all()
     return render_template('kayit/sinif/liste.html', siniflar=siniflar)
@@ -16,6 +18,7 @@ def liste():
 
 @bp.route('/ekle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def sinif_ekle():
     form = SinifForm()
     if form.validate_on_submit():
@@ -29,8 +32,26 @@ def sinif_ekle():
                            form=form, baslik='Yeni Sınıf Ekle')
 
 
+@bp.route('/<int:sinif_id>/duzenle', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'muhasebeci')
+def sinif_duzenle(sinif_id):
+    sinif = Sinif.query.get_or_404(sinif_id)
+    form = SinifForm(obj=sinif)
+    if form.validate_on_submit():
+        sinif.ad = form.ad.data
+        sinif.seviye = form.seviye.data
+        db.session.commit()
+        flash(f'"{sinif.ad}" güncellendi.', 'success')
+        return redirect(url_for('kayit.sinif.liste'))
+
+    return render_template('kayit/sinif/sinif_form.html',
+                           form=form, baslik='Sınıf Düzenle')
+
+
 @bp.route('/<int:sinif_id>/sil', methods=['POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def sinif_sil(sinif_id):
     sinif = Sinif.query.get_or_404(sinif_id)
     if sinif.ogrenci_sayisi > 0:
@@ -44,6 +65,7 @@ def sinif_sil(sinif_id):
 
 @bp.route('/sube-ekle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def sube_ekle():
     form = SubeForm()
     siniflar = Sinif.query.filter_by(aktif=True).order_by(Sinif.seviye).all()
@@ -64,8 +86,30 @@ def sube_ekle():
                            form=form, baslik='Yeni Şube Ekle')
 
 
+@bp.route('/sube/<int:sube_id>/duzenle', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'muhasebeci')
+def sube_duzenle(sube_id):
+    sube = Sube.query.get_or_404(sube_id)
+    form = SubeForm(obj=sube)
+    siniflar = Sinif.query.filter_by(aktif=True).order_by(Sinif.seviye).all()
+    form.sinif_id.choices = [(s.id, s.ad) for s in siniflar]
+
+    if form.validate_on_submit():
+        sube.sinif_id = form.sinif_id.data
+        sube.ad = form.ad.data
+        sube.kontenjan = form.kontenjan.data
+        db.session.commit()
+        flash('Şube güncellendi.', 'success')
+        return redirect(url_for('kayit.sinif.liste'))
+
+    return render_template('kayit/sinif/sube_form.html',
+                           form=form, baslik='Şube Düzenle')
+
+
 @bp.route('/sube/<int:sube_id>/sil', methods=['POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def sube_sil(sube_id):
     sube = Sube.query.get_or_404(sube_id)
     if sube.aktif_ogrenci_sayisi > 0:

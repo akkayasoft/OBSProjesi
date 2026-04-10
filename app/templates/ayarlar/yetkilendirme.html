@@ -1,0 +1,105 @@
+{% extends "ayarlar/_layout.html" %}
+{% block title %}Yetkilendirme{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Rol Yetkilendirme</li>
+{% endblock %}
+
+{% block ayarlar_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-shield-lock"></i> Rol Yetkilendirme</h2>
+    <form method="post" action="{{ url_for('ayarlar.yetkilendirme.sifirla') }}"
+          onsubmit="return confirm('Tüm izinler varsayılana sıfırlanacak. Emin misiniz?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-warning">
+            <i class="bi bi-arrow-counterclockwise"></i> Varsayılana Sıfırla
+        </button>
+    </form>
+</div>
+
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    Her rolün hangi modülleri görebileceğini aşağıdaki tablodan ayarlayabilirsiniz.
+    Değişiklikleri yaptıktan sonra <strong>Kaydet</strong> butonuna basmayı unutmayın.
+</div>
+
+<form method="post" action="{{ url_for('ayarlar.yetkilendirme.kaydet') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover mb-0 align-middle">
+                    <thead class="table-dark sticky-top">
+                        <tr>
+                            <th style="min-width: 220px; position: sticky; left: 0; z-index: 3; background: #212529;">
+                                Modül
+                            </th>
+                            {% for rol_key, rol_label in roller.items() %}
+                            <th class="text-center" style="min-width: 120px;">
+                                <div>{{ rol_label }}</div>
+                                <small class="text-muted fw-normal">({{ rol_key }})</small>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for modul_key, modul_label in moduller.items() %}
+                        <tr>
+                            <td class="fw-semibold" style="position: sticky; left: 0; background: white; z-index: 1;">
+                                {{ modul_label }}
+                            </td>
+                            {% for rol_key in roller %}
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex justify-content-center">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="izin_{{ rol_key }}_{{ modul_key }}"
+                                           id="izin_{{ rol_key }}_{{ modul_key }}"
+                                           {% if izinler[rol_key][modul_key] %}checked{% endif %}>
+                                </div>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toplu işlem butonları -->
+    <div class="card mt-3">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <strong>Toplu İşlem:</strong>
+                    {% for rol_key, rol_label in roller.items() %}
+                    <button type="button" class="btn btn-sm btn-outline-primary ms-1"
+                            onclick="toggleAll('{{ rol_key }}', true)">
+                        {{ rol_label }} Hepsini Aç
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary ms-0"
+                            onclick="toggleAll('{{ rol_key }}', false)">
+                        Kapat
+                    </button>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6 text-end">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle"></i> Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleAll(rol, durum) {
+    document.querySelectorAll(`input[name^="izin_${rol}_"]`).forEach(cb => {
+        cb.checked = durum;
+    });
+}
+</script>
+{% endblock %}

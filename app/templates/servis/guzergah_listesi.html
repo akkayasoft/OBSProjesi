@@ -1,0 +1,37 @@
+{% extends "servis/_layout.html" %}
+{% block title %}Guzergahlar{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Guzergahlar</li>{% endblock %}
+{% block servis_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-signpost-2 me-2"></i>Guzergahlar</h4>
+    <a href="{{ url_for('servis.guzergah.yeni') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Yeni Guzergah</a>
+</div>
+<div class="row">
+{% for g in guzergahlar.items %}
+<div class="col-md-4 mb-3">
+    <div class="card h-100">
+        <div class="card-body">
+            <h6 class="card-title"><span class="badge bg-primary me-2">{{ g.kod }}</span>{{ g.ad }}</h6>
+            <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i>{{ g.baslangic_noktasi }} → {{ g.bitis_noktasi }}</p>
+            {% if g.mesafe_km %}<p class="text-muted small mb-1"><i class="bi bi-rulers me-1"></i>{{ g.mesafe_km }} km{% if g.tahmini_sure %} | {{ g.tahmini_sure }} dk{% endif %}</p>{% endif %}
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <div><span class="badge bg-info">{{ g.durak_sayisi }} durak</span> <span class="badge bg-success">{{ g.kayitli_ogrenci_sayisi }} ogrenci</span></div>
+                <a href="{{ url_for('servis.guzergah.detay', guzergah_id=g.id) }}" class="btn btn-sm btn-outline-primary">Detay</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="col-12"><div class="alert alert-info">Henuz guzergah eklenmemis.</div></div>
+{% endfor %}
+</div>
+{% if guzergahlar.pages > 1 %}
+<nav class="mt-3"><ul class="pagination justify-content-center">
+{% if guzergahlar.has_prev %}<li class="page-item"><a class="page-link" href="?page={{ guzergahlar.prev_num }}">Onceki</a></li>{% endif %}
+{% for p in guzergahlar.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+{% if p %}<li class="page-item {% if p == guzergahlar.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+{% else %}<li class="page-item disabled"><span class="page-link">...</span></li>{% endif %}
+{% endfor %}
+{% if guzergahlar.has_next %}<li class="page-item"><a class="page-link" href="?page={{ guzergahlar.next_num }}">Sonraki</a></li>{% endif %}
+</ul></nav>{% endif %}
+{% endblock %}

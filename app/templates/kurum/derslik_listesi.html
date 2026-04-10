@@ -1,0 +1,116 @@
+{% extends "kurum/_layout.html" %}
+
+{% block title %}Derslikler{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Derslikler</li>
+{% endblock %}
+
+{% block kurum_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-door-open me-2"></i>Derslikler</h4>
+    <a href="{{ url_for('kurum.derslik.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Derslik
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Tur</label>
+                <select name="tur" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="sinif" {% if tur_filtre == 'sinif' %}selected{% endif %}>Sinif</option>
+                    <option value="lab" {% if tur_filtre == 'lab' %}selected{% endif %}>Laboratuvar</option>
+                    <option value="spor_salonu" {% if tur_filtre == 'spor_salonu' %}selected{% endif %}>Spor Salonu</option>
+                    <option value="konferans" {% if tur_filtre == 'konferans' %}selected{% endif %}>Konferans Salonu</option>
+                    <option value="kutuphane" {% if tur_filtre == 'kutuphane' %}selected{% endif %}>Kutuphane</option>
+                    <option value="diger" {% if tur_filtre == 'diger' %}selected{% endif %}>Diger</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="aktif" {% if durum_filtre == 'aktif' %}selected{% endif %}>Aktif</option>
+                    <option value="pasif" {% if durum_filtre == 'pasif' %}selected{% endif %}>Pasif</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if tur_filtre or durum_filtre %}
+            <div class="col-md-2">
+                <a href="{{ url_for('kurum.derslik.liste') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+            <div class="col-md-2 text-end">
+                <span class="badge bg-info fs-6">Toplam Kapasite: {{ toplam_kapasite }}</span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Derslik Adi</th>
+                        <th>Kat</th>
+                        <th>Kapasite</th>
+                        <th>Tur</th>
+                        <th>Donanim</th>
+                        <th>Durum</th>
+                        <th class="text-end">Islemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in derslikler %}
+                    <tr>
+                        <td><strong>{{ d.ad }}</strong></td>
+                        <td>{{ d.kat if d.kat is not none else '-' }}</td>
+                        <td>{{ d.kapasite if d.kapasite else '-' }}</td>
+                        <td><span class="badge bg-{{ d.tur_badge }}">{{ d.tur_str }}</span></td>
+                        <td>{{ d.donanim[:50] if d.donanim else '-' }}{% if d.donanim and d.donanim|length > 50 %}...{% endif %}</td>
+                        <td>
+                            {% if d.aktif %}
+                            <span class="badge bg-success">Aktif</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Pasif</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('kurum.derslik.duzenle', id=d.id) }}"
+                               class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('kurum.derslik.sil', id=d.id) }}"
+                                  class="d-inline" onsubmit="return confirm('Bu dersligi silmek istediginize emin misiniz?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Henuz derslik bulunmuyor.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

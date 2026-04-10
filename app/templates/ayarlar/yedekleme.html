@@ -1,0 +1,85 @@
+{% extends "ayarlar/_layout.html" %}
+
+{% block title %}Yedekleme{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Yedekleme</li>
+{% endblock %}
+
+{% block ayarlar_content %}
+<h4 class="mb-4"><i class="bi bi-download me-2"></i>Veritabani Yedekleme</h4>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-database me-2"></i>Veritabani Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                {% if db_info %}
+                <table class="table table-borderless mb-4">
+                    <tbody>
+                        <tr>
+                            <th class="text-muted" style="width: 200px;">Dosya Adi</th>
+                            <td>{{ db_info.dosya_adi }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Boyut</th>
+                            <td>
+                                {% if db_info.boyut_mb >= 1 %}
+                                    {{ db_info.boyut_mb }} MB
+                                {% else %}
+                                    {{ db_info.boyut_kb }} KB
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Son Degisiklik</th>
+                            <td>{{ db_info.degistirilme }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Dosya Yolu</th>
+                            <td><code>{{ db_info.yol }}</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <form method="POST" action="{{ url_for('ayarlar.yedekleme.indir') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-download me-1"></i>Veritabanini Indir
+                    </button>
+                </form>
+                {% else %}
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Veritabani dosyasi bulunamadi veya SQLite kullanilmiyor.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Bilgi</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-2">
+                    Veritabanini indirerek yerel bir yedek alabilirsiniz. Bu dosya tum sistem verilerinizi icerir.
+                </p>
+                <p class="text-muted small mb-0">
+                    Yedekleme islemini duzenli olarak yapmaniz onerilir.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('ayarlar.dashboard.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Ayarlara Don
+    </a>
+</div>
+{% endblock %}

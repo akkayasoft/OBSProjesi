@@ -1,6 +1,7 @@
 from decimal import Decimal
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required
+from app.utils import role_required
 from app.extensions import db
 from app.models.muhasebe import BankaHesabi, BankaHareketi
 from app.muhasebe.forms import BankaHesapForm, TransferForm
@@ -11,6 +12,7 @@ bp = Blueprint('banka', __name__)
 
 @bp.route('/')
 @login_required
+@role_required('admin', 'muhasebeci')
 def liste():
     hesaplar = BankaHesabi.query.filter_by(aktif=True).all()
     toplam_bakiye = sum(float(h.bakiye) for h in hesaplar)
@@ -20,6 +22,7 @@ def liste():
 
 @bp.route('/ekle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def ekle():
     form = BankaHesapForm()
     if form.validate_on_submit():
@@ -41,6 +44,7 @@ def ekle():
 
 @bp.route('/<int:hesap_id>')
 @login_required
+@role_required('admin', 'muhasebeci')
 def detay(hesap_id):
     hesap = BankaHesabi.query.get_or_404(hesap_id)
     page = request.args.get('page', 1, type=int)
@@ -57,6 +61,7 @@ def detay(hesap_id):
 
 @bp.route('/transfer', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def transfer():
     form = TransferForm()
 

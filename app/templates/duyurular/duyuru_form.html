@@ -1,0 +1,84 @@
+{% extends "duyurular/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('duyurular.duyuru.liste') }}">Duyuru Listesi</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block duyurular_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-card-text me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.baslik.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.baslik(class="form-control") }}
+                            {% for error in form.baslik.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.icerik.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.icerik(class="form-control") }}
+                            {% for error in form.icerik.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.kategori.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.kategori(class="form-select") }}
+                            {% for error in form.kategori.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.oncelik.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.oncelik(class="form-select") }}
+                            {% for error in form.oncelik.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.hedef_kitle.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.hedef_kitle(class="form-select") }}
+                            {% for error in form.hedef_kitle.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.bitis_tarihi.label.text }}</label>
+                            {{ form.bitis_tarihi(class="form-control") }}
+                            <small class="text-muted">Boş bırakılırsa süresiz olarak yayınlanır.</small>
+                            {% for error in form.bitis_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check mb-3">
+                                {{ form.sabitlenmis(class="form-check-input") }}
+                                <label class="form-check-label" for="sabitlenmis">
+                                    <i class="bi bi-pin-angle me-1"></i>Duyuruyu sabitle (en üstte gösterilir)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('duyurular.duyuru.liste') }}" class="btn btn-secondary me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

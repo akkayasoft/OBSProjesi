@@ -1,8 +1,12 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import (StringField, SelectField, DateField, IntegerField,
                      TextAreaField, SubmitField, BooleanField)
 from wtforms.validators import DataRequired, Optional, Length, NumberRange
 from datetime import date
+
+ALLOWED_BELGE_EXT = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp']
+ALLOWED_KARTEKS_EXT = ['png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp']
 
 
 # === Öğrenci Formları ===
@@ -129,6 +133,7 @@ class DonemForm(FlaskForm):
 
 class BelgeForm(FlaskForm):
     belge_turu = SelectField('Belge Türü', choices=[
+        ('karteks', 'Kayıt Karteksi'),
         ('nufus_cuzdani', 'Nüfus Cüzdanı Fotokopisi'),
         ('ogrenim_belgesi', 'Öğrenim Belgesi'),
         ('fotograf', 'Vesikalık Fotoğraf'),
@@ -137,6 +142,22 @@ class BelgeForm(FlaskForm):
         ('nakil_belgesi', 'Nakil Belgesi'),
         ('diger', 'Diğer'),
     ], validators=[DataRequired()])
+    dosya = FileField('Belge Dosyası', validators=[
+        Optional(),
+        FileAllowed(ALLOWED_BELGE_EXT, 'PDF veya görsel dosyası yükleyiniz.')
+    ])
     teslim_edildi = BooleanField('Teslim Edildi')
     aciklama = TextAreaField('Açıklama', validators=[Optional(), Length(max=500)])
     submit = SubmitField('Kaydet')
+
+
+# === Karteks Yükleme Formu ===
+
+class KarteksYukleForm(FlaskForm):
+    """Karteks görselini OCR ile parse edip yeni öğrenci formunu doldurur."""
+    karteks = FileField('Karteks Görseli', validators=[
+        FileRequired('Karteks görseli yüklemelisiniz.'),
+        FileAllowed(ALLOWED_KARTEKS_EXT,
+                    'Sadece görsel dosyaları (PNG, JPG, JPEG, vb.) kabul edilir.')
+    ])
+    submit = SubmitField('Yükle ve Tara')

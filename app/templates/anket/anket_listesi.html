@@ -1,0 +1,153 @@
+{% extends "anket/_layout.html" %}
+
+{% block title %}Online Anketler{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Anket Listesi</li>
+{% endblock %}
+
+{% block anket_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-clipboard2-data me-2"></i>Online Anketler</h4>
+    <div>
+        <a href="{{ url_for('anket.katilim.aktif_anketler') }}" class="btn btn-outline-info me-2">
+            <i class="bi bi-pencil-square me-1"></i>Anket Doldur
+        </a>
+        <a href="{{ url_for('anket.yonetim.yeni') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Anket
+        </a>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Hedef Kitle</label>
+                <select name="hedef_kitle" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="tumu" {% if hedef_kitle == 'tumu' %}selected{% endif %}>Tum Kullanicilar</option>
+                    <option value="ogretmen" {% if hedef_kitle == 'ogretmen' %}selected{% endif %}>Ogretmen</option>
+                    <option value="ogrenci" {% if hedef_kitle == 'ogrenci' %}selected{% endif %}>Ogrenci</option>
+                    <option value="veli" {% if hedef_kitle == 'veli' %}selected{% endif %}>Veli</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tumu</option>
+                    <option value="aktif" {% if durum == 'aktif' %}selected{% endif %}>Aktif</option>
+                    <option value="pasif" {% if durum == 'pasif' %}selected{% endif %}>Pasif</option>
+                    <option value="sona_erdi" {% if durum == 'sona_erdi' %}selected{% endif %}>Sona Erdi</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+            {% if hedef_kitle or durum %}
+            <div class="col-md-3">
+                <a href="{{ url_for('anket.yonetim.liste') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle me-1"></i>Temizle
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Anket Listesi -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Baslik</th>
+                    <th>Hedef Kitle</th>
+                    <th>Baslangic</th>
+                    <th>Bitis</th>
+                    <th>Durum</th>
+                    <th>Anonim</th>
+                    <th>Katilim</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in anketler.items %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('anket.yonetim.detay', anket_id=a.id) }}" class="text-decoration-none fw-semibold">
+                            {{ a.baslik }}
+                        </a>
+                    </td>
+                    <td>{{ a.hedef_kitle_str }}</td>
+                    <td>{{ a.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td>{{ a.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td><span class="badge bg-{{ a.durum_badge }}">{{ a.durum_str }}</span></td>
+                    <td>
+                        {% if a.anonim %}
+                        <span class="badge bg-info">Anonim</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Acik</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ a.katilimci_sayisi }} kisi</td>
+                    <td class="text-end">
+                        <a href="{{ url_for('anket.sonuc.goruntule', anket_id=a.id) }}"
+                           class="btn btn-sm btn-outline-info" title="Sonuclar">
+                            <i class="bi bi-bar-chart"></i>
+                        </a>
+                        <a href="{{ url_for('anket.yonetim.duzenle', anket_id=a.id) }}"
+                           class="btn btn-sm btn-outline-warning" title="Duzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('anket.yonetim.sil', anket_id=a.id) }}"
+                              class="d-inline" onsubmit="return confirm('Bu anketi silmek istediginize emin misiniz? Tum sorular ve cevaplar da silinecektir.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        <i class="bi bi-clipboard2-data display-4 d-block mb-3"></i>
+                        Henuz anket bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if anketler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if anketler.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ anketler.prev_num }}&hedef_kitle={{ hedef_kitle }}&durum={{ durum }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in anketler.iter_pages() %}
+        {% if p %}
+        <li class="page-item {% if p == anketler.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&hedef_kitle={{ hedef_kitle }}&durum={{ durum }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if anketler.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ anketler.next_num }}&hedef_kitle={{ hedef_kitle }}&durum={{ durum }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

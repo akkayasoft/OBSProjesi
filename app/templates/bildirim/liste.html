@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Bildirimler{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-bell me-2"></i>Bildirimler</h2>
+    <form method="post" action="{{ url_for('bildirim.tumunu_oku') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-check-all me-1"></i>Tümünü Okundu İşaretle
+        </button>
+    </form>
+</div>
+
+<!-- Filtre Tabları -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if filtre == 'tumu' %}active{% endif %}"
+           href="{{ url_for('bildirim.liste', filtre='tumu') }}">
+            Tümü
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if filtre == 'okunmamis' %}active{% endif %}"
+           href="{{ url_for('bildirim.liste', filtre='okunmamis') }}">
+            Okunmamış
+            {% if okunmamis_bildirim > 0 %}
+            <span class="badge bg-danger ms-1">{{ okunmamis_bildirim }}</span>
+            {% endif %}
+        </a>
+    </li>
+</ul>
+
+{% if bildirimler.items %}
+<div class="list-group">
+    {% for bildirim in bildirimler.items %}
+    <div class="list-group-item {% if not bildirim.okundu %}list-group-item-light border-start border-4 border-primary{% endif %}">
+        <div class="d-flex w-100 justify-content-between align-items-start">
+            <div class="d-flex align-items-start">
+                <!-- Kategori İkonu -->
+                <div class="me-3 mt-1">
+                    {% if bildirim.tur == 'basari' %}
+                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                    {% elif bildirim.tur == 'uyari' %}
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
+                    {% elif bildirim.tur == 'hata' %}
+                        <i class="bi bi-x-circle-fill text-danger fs-4"></i>
+                    {% else %}
+                        <i class="bi bi-info-circle-fill text-info fs-4"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h6 class="mb-1 {% if not bildirim.okundu %}fw-bold{% endif %}">
+                        {{ bildirim.baslik }}
+                    </h6>
+                    <p class="mb-1 text-muted small">{{ bildirim.mesaj }}</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ bildirim.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </small>
+                        <span class="badge bg-secondary">{{ bildirim.kategori }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-1">
+                {% if bildirim.link %}
+                <a href="{{ bildirim.link }}" class="btn btn-outline-primary btn-sm" title="Detay">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+                {% endif %}
+                {% if not bildirim.okundu %}
+                <form method="post" action="{{ url_for('bildirim.oku', id=bildirim.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-success btn-sm" title="Okundu İşaretle">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                </form>
+                {% endif %}
+                <form method="post" action="{{ url_for('bildirim.sil', id=bildirim.id) }}" class="d-inline"
+                      onsubmit="return confirm('Bu bildirimi silmek istediğinize emin misiniz?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Sil">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Sayfalama -->
+{% if bildirimler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if bildirimler.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('bildirim.liste', page=bildirimler.prev_num, filtre=filtre) }}">Önceki</a>
+        </li>
+        {% endif %}
+        {% for p in bildirimler.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {% if p == bildirimler.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('bildirim.liste', page=p, filtre=filtre) }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if bildirimler.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('bildirim.liste', page=bildirimler.next_num, filtre=filtre) }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-bell-slash text-muted" style="font-size: 4rem;"></i>
+    <h5 class="mt-3 text-muted">
+        {% if filtre == 'okunmamis' %}
+            Okunmamış bildiriminiz bulunmuyor.
+        {% else %}
+            Henüz bildiriminiz bulunmuyor.
+        {% endif %}
+    </h5>
+</div>
+{% endif %}
+{% endblock %}

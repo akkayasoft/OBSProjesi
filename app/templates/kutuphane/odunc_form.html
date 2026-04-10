@@ -1,0 +1,26 @@
+{% extends "kutuphane/_layout.html" %}
+{% block title %}Odunc Ver{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Odunc Ver</li>{% endblock %}
+{% block kutuphane_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-arrow-right-circle me-2"></i>Kitap Odunc Ver</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-12 mb-3">{{ form.kitap_id.label(class="form-label") }}{{ form.kitap_id(class="form-select") }}</div>
+    <div class="col-md-4 mb-3">{{ form.kisi_turu.label(class="form-label") }}{{ form.kisi_turu(class="form-select", id="kisi_turu") }}</div>
+    <div class="col-md-4 mb-3" id="ogrenci_div">{{ form.ogrenci_id.label(class="form-label") }}{{ form.ogrenci_id(class="form-select") }}</div>
+    <div class="col-md-4 mb-3" id="personel_div" style="display:none">{{ form.personel_id.label(class="form-label") }}{{ form.personel_id(class="form-select") }}</div>
+    <div class="col-md-4 mb-3">{{ form.son_iade_tarihi.label(class="form-label") }}{{ form.son_iade_tarihi(class="form-control", type="date") }}</div>
+    <div class="col-12 mb-3">{{ form.aciklama.label(class="form-label") }}{{ form.aciklama(class="form-control") }}</div>
+</div>
+<button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i>Odunc Ver</button>
+<a href="{{ url_for('kutuphane.odunc.liste') }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('kisi_turu').addEventListener('change', function() {
+    document.getElementById('ogrenci_div').style.display = this.value === 'ogrenci' ? '' : 'none';
+    document.getElementById('personel_div').style.display = this.value === 'personel' ? '' : 'none';
+});
+</script>
+{% endblock %}

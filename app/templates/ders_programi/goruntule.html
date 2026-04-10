@@ -1,0 +1,87 @@
+{% extends "ders_programi/_layout.html" %}
+{% block title %}{{ sube.sinif.ad if sube.sinif else '' }}-{{ sube.ad }} Ders Programı{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ sube.sinif.ad if sube.sinif else '' }}-{{ sube.ad }}</li>
+{% endblock %}
+{% block ders_programi_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-week"></i> {{ sube.sinif.ad if sube.sinif else '' }}-{{ sube.ad }} Ders Programı</h2>
+    <div>
+        <a href="{{ url_for('ders_programi.program.yazdir', sube_id=sube.id, donem=donem) }}" class="btn btn-outline-secondary" target="_blank">
+            <i class="bi bi-printer"></i> Yazdır
+        </a>
+        <a href="{{ url_for('ders_programi.program.index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Geri
+        </a>
+    </div>
+</div>
+
+<!-- Filtre -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('ders_programi.program.goruntule') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Şube</label>
+                    <select name="sube_id" class="form-select">
+                        {% for s in subeler %}
+                        <option value="{{ s.id }}" {% if s.id == sube.id %}selected{% endif %}>
+                            {{ s.sinif.ad if s.sinif else '' }}-{{ s.ad }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Dönem</label>
+                    <input type="text" name="donem" class="form-control" value="{{ donem }}" placeholder="2025-2026">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Göster</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Program Tablosu -->
+<div class="card">
+    <div class="card-body table-responsive">
+        <table class="table table-bordered text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 120px;">Saat</th>
+                    {% for gun in gunler %}
+                    <th>{{ gun }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for saat in range(1, 9) %}
+                <tr>
+                    <td class="fw-bold">
+                        <small>{{ saat }}. Ders</small><br>
+                        <small class="text-muted">{{ saat_araliklari[saat] }}</small>
+                    </td>
+                    {% for gun in gunler %}
+                    <td>
+                        {% set p = tablo[gun][saat] %}
+                        {% if p %}
+                        <div class="p-1">
+                            <strong class="text-primary">{{ p.ders.ad }}</strong><br>
+                            <small class="text-muted">{{ p.ogretmen.ad }} {{ p.ogretmen.soyad }}</small>
+                            {% if p.derslik %}
+                            <br><small class="badge bg-light text-dark">{{ p.derslik }}</small>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

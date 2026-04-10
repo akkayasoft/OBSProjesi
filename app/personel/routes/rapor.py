@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import login_required
+from app.utils import role_required
 from app.extensions import db
 from app.models.muhasebe import Personel
 from app.models.personel import PersonelIzin
@@ -9,6 +10,7 @@ bp = Blueprint('rapor', __name__)
 
 @bp.route('/')
 @login_required
+@role_required('admin',)
 def index():
     # Genel istatistikler
     toplam_personel = Personel.query.count()

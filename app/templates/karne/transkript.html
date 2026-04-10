@@ -1,0 +1,95 @@
+{% extends "karne/_layout.html" %}
+
+{% block title %}Transkript - {{ ogrenci.tam_ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('karne.transkript.index') }}">Transkript</a></li>
+<li class="breadcrumb-item active">{{ ogrenci.tam_ad }}</li>
+{% endblock %}
+
+{% block karne_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-file-earmark-ruled me-2"></i>Transkript - {{ ogrenci.tam_ad }}</h4>
+    <button onclick="window.print()" class="btn btn-info"><i class="bi bi-printer me-1"></i>Yazdir</button>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-person me-2"></i>Ogrenci Bilgileri</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4"><strong>Ogrenci No:</strong> {{ ogrenci.ogrenci_no }}</div>
+            <div class="col-md-4"><strong>Ad Soyad:</strong> {{ ogrenci.tam_ad }}</div>
+            <div class="col-md-4"><strong>Kumulatif Ortalama:</strong>
+                {% if genel_kumulatif %}
+                <span class="badge bg-{% if genel_kumulatif >= 70 %}success{% elif genel_kumulatif >= 50 %}warning{% else %}danger{% endif %} fs-6">
+                    {{ "%.2f"|format(genel_kumulatif) }}
+                </span>
+                {% else %}
+                <span class="text-muted">-</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for veri in transkript_verileri %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-calendar me-2"></i>{{ veri.karne.ogretim_yili }} - {{ veri.karne.donem }}
+            <span class="badge bg-{{ veri.karne.durum_badge }} ms-2">{{ veri.karne.durum_str }}</span>
+        </h6>
+        <div>
+            <span class="text-muted me-3">Sinif: <strong>{{ veri.karne.sinif.ad }}</strong></span>
+            <span class="text-muted">Ortalama:
+                <strong class="{% if veri.karne.genel_ortalama and veri.karne.genel_ortalama >= 70 %}text-success{% elif veri.karne.genel_ortalama and veri.karne.genel_ortalama >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                    {{ "%.2f"|format(veri.karne.genel_ortalama) if veri.karne.genel_ortalama else '-' }}
+                </strong>
+            </span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ders</th>
+                        <th class="text-center">1. Sinav</th>
+                        <th class="text-center">2. Sinav</th>
+                        <th class="text-center">3. Sinav</th>
+                        <th class="text-center">Performans</th>
+                        <th class="text-center">Proje</th>
+                        <th class="text-center">Ortalama</th>
+                        <th class="text-center">Yilsonu</th>
+                        <th class="text-center">Harf</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dn in veri.ders_notlari %}
+                    <tr>
+                        <td>{{ dn.ders_adi }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.sinav1) if dn.sinav1 is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.sinav2) if dn.sinav2 is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.sinav3) if dn.sinav3 is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.performans) if dn.performans is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.0f"|format(dn.proje) if dn.proje is not none else '-' }}</td>
+                        <td class="text-center">{{ "%.2f"|format(dn.ortalama) if dn.ortalama is not none else '-' }}</td>
+                        <td class="text-center fw-bold">{{ "%.2f"|format(dn.yilsonu) if dn.yilsonu is not none else '-' }}</td>
+                        <td class="text-center"><span class="badge bg-secondary">{{ dn.harf_notu or '-' }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="9" class="text-center text-muted py-3">Ders notu bulunmuyor.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>Bu ogrenciye ait karne bulunmuyor.
+</div>
+{% endfor %}
+{% endblock %}

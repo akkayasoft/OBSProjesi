@@ -1,0 +1,60 @@
+{% extends "karne/_layout.html" %}
+
+{% block title %}Karne Olustur{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Karne Olustur</li>
+{% endblock %}
+
+{% block karne_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Toplu Karne Olustur</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Secilen siniftaki tum ogrenciler icin taslak karne olusturulacaktir.
+                    Daha once ayni donem ve ogretim yilinda karnesi olan ogrenciler atlanacaktir.
+                </p>
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.sinif_id.label(class="form-label") }}
+                        {{ form.sinif_id(class="form-select") }}
+                        {% for error in form.sinif_id.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.donem.label(class="form-label") }}
+                            {{ form.donem(class="form-select") }}
+                            {% for error in form.donem.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.ogretim_yili.label(class="form-label") }}
+                            {{ form.ogretim_yili(class="form-control") }}
+                            {% for error in form.ogretim_yili.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('karne.karne_routes.liste') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Geri Don
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

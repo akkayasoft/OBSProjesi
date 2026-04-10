@@ -1,0 +1,152 @@
+{% extends "online_sinav/_layout.html" %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sonuc.liste') }}">Sonuçlar</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sonuc.sinav_sonuclari', sinav_id=sinav.id) }}">{{ sinav.baslik }}</a></li>
+<li class="breadcrumb-item active">{{ ogrenci.ad }} {{ ogrenci.soyad }}</li>
+{% endblock %}
+
+{% block online_sinav_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person me-2"></i>{{ ogrenci.ad }} {{ ogrenci.soyad }} - Sınav Sonucu</h2>
+    <a href="{{ url_for('online_sinav.sonuc.sinav_sonuclari', sinav_id=sinav.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Geri
+    </a>
+</div>
+
+<!-- Özet Bilgi -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-{{ 'success' if katilim.gecti_mi else 'danger' }}">
+                    {{ katilim.toplam_puan|round(1) if katilim.toplam_puan is not none else '-' }}
+                </h3>
+                <small class="text-muted">Toplam Puan / {{ sinav.toplam_puan }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                {% if katilim.gecti_mi is not none %}
+                <h3 class="text-{{ 'success' if katilim.gecti_mi else 'danger' }}">
+                    {{ 'GEÇTİ' if katilim.gecti_mi else 'KALDI' }}
+                </h3>
+                {% else %}
+                <h3 class="text-muted">-</h3>
+                {% endif %}
+                <small class="text-muted">Sonuç (Geçme: {{ sinav.gecme_puani }})</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-info">
+                    <span class="badge bg-{{ katilim.durum_badge }}">{{ katilim.durum_str }}</span>
+                </h3>
+                <small class="text-muted">Durum</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <h3 class="text-primary">
+                    {% if katilim.baslama_zamani and katilim.bitirme_zamani %}
+                    {{ ((katilim.bitirme_zamani - katilim.baslama_zamani).total_seconds() / 60)|round(0)|int }} dk
+                    {% else %}-{% endif %}
+                </h3>
+                <small class="text-muted">Süre</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Soru Soru Değerlendirme -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Soru Bazlı Değerlendirme</h5>
+    </div>
+    <div class="card-body">
+        {% for soru in sorular %}
+        {% set cevap = cevaplar.get(soru.id) %}
+        <div class="card mb-3 border-{{ 'success' if cevap and cevap.dogru_mu else ('danger' if cevap and cevap.dogru_mu == false else 'secondary') }}">
+            <div class="card-header bg-{{ 'success' if cevap and cevap.dogru_mu else ('danger' if cevap and cevap.dogru_mu == false else 'secondary') }} bg-opacity-10">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>
+                        <strong>Soru {{ soru.sira }}.</strong>
+                        <span class="badge bg-{{ soru.soru_turu_badge }} ms-2">{{ soru.soru_turu_str }}</span>
+                    </span>
+                    <span>
+                        {% if cevap and cevap.puan is not none %}
+                        <span class="badge bg-{{ 'success' if cevap.dogru_mu else 'danger' }}">
+                            {{ cevap.puan|round(1) }} / {{ soru.puan }}
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">- / {{ soru.puan }}</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">{{ soru.soru_metni }}</p>
+
+                {% if soru.soru_turu == 'coktan_secmeli' %}
+                <div class="list-group">
+                    {% for secenek in soru.secenekler.all() %}
+                    <div class="list-group-item
+                        {{ 'list-group-item-success' if secenek.dogru_mu else '' }}
+                        {{ 'list-group-item-danger' if cevap and cevap.secilen_secenek_id == secenek.id and not secenek.dogru_mu else '' }}">
+                        {% if secenek.dogru_mu %}
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        {% elif cevap and cevap.secilen_secenek_id == secenek.id %}
+                        <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                        {% else %}
+                        <i class="bi bi-circle me-2"></i>
+                        {% endif %}
+                        {{ secenek.secenek_metni }}
+                        {% if cevap and cevap.secilen_secenek_id == secenek.id %}
+                        <span class="badge bg-info ms-2">Öğrenci cevabı</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% elif soru.soru_turu == 'dogru_yanlis' %}
+                <p>
+                    <strong>Öğrenci cevabı:</strong>
+                    {% if cevap and cevap.dogru_yanlis_cevap is not none %}
+                    <span class="badge bg-{{ 'success' if cevap.dogru_mu else 'danger' }}">
+                        {{ 'Doğru' if cevap.dogru_yanlis_cevap else 'Yanlış' }}
+                    </span>
+                    {% else %}
+                    <span class="text-muted">Cevaplanmadı</span>
+                    {% endif %}
+                </p>
+
+                {% elif soru.soru_turu == 'klasik' %}
+                <div class="bg-light p-3 rounded">
+                    <strong>Öğrenci cevabı:</strong><br>
+                    {{ cevap.cevap_metni if cevap and cevap.cevap_metni else 'Cevaplanmadı' }}
+                </div>
+
+                {% elif soru.soru_turu == 'bosluk_doldurma' %}
+                <p>
+                    <strong>Öğrenci cevabı:</strong>
+                    {{ cevap.cevap_metni if cevap and cevap.cevap_metni else 'Cevaplanmadı' }}
+                </p>
+                {% endif %}
+
+                {% if soru.aciklama %}
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="bi bi-info-circle me-2"></i><strong>Açıklama:</strong> {{ soru.aciklama }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

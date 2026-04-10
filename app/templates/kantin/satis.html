@@ -1,0 +1,24 @@
+{% extends "kantin/_layout.html" %}
+{% block title %}Satis{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Satis</li>{% endblock %}
+{% block kantin_content %}
+<div class="row">
+<div class="col-md-6">
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-cart me-2"></i>Satis Yap</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+    <div class="mb-3">{{ form.urun_id.label(class="form-label") }}{{ form.urun_id(class="form-select") }}</div>
+    <div class="mb-3">{{ form.ogrenci_id.label(class="form-label") }}{{ form.ogrenci_id(class="form-select") }}</div>
+    <div class="mb-3">{{ form.miktar.label(class="form-label") }}{{ form.miktar(class="form-control") }}</div>
+    <button type="submit" class="btn btn-success w-100"><i class="bi bi-bag-check me-1"></i>Satis Yap</button>
+</form></div></div>
+</div>
+<div class="col-md-6">
+<div class="card"><div class="card-header"><h6 class="mb-0">Hizli Erisim</h6></div>
+<div class="card-body">
+    <a href="{{ url_for('kantin.satis.liste') }}" class="btn btn-outline-primary w-100 mb-2"><i class="bi bi-list me-1"></i>Satis Gecmisi</a>
+    <a href="{{ url_for('kantin.urun.liste') }}" class="btn btn-outline-info w-100 mb-2"><i class="bi bi-basket me-1"></i>Urun Yonetimi</a>
+    <a href="{{ url_for('kantin.menu.haftalik') }}" class="btn btn-outline-success w-100"><i class="bi bi-calendar-week me-1"></i>Haftalik Menu</a>
+</div></div>
+</div>
+</div>
+{% endblock %}

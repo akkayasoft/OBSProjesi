@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from config import Config
 from app.extensions import db, login_manager, migrate, csrf
 
@@ -14,7 +14,7 @@ def create_app(config_class=Config):
     csrf.init_app(app)
 
     # Modelleri import et (migration için gerekli)
-    from app.models import user, muhasebe, kayit, devamsizlik, personel  # noqa: F401
+    from app.models import user, muhasebe, kayit, devamsizlik, personel, ders_dagitimi, not_defteri, duyurular, rehberlik, saglik, iletisim, online_sinav, kulupler, kurum, ayarlar, bildirim, denetim, belge  # noqa: F401
 
     # Blueprint'leri kaydet
     from app.auth import auth_bp
@@ -35,71 +35,326 @@ def create_app(config_class=Config):
     from app.personel import personel_bp
     app.register_blueprint(personel_bp, url_prefix='/personel')
 
+    from app.ders_dagitimi import ders_dagitimi_bp
+    app.register_blueprint(ders_dagitimi_bp, url_prefix='/ders-dagitimi')
+
+    from app.not_defteri import not_defteri_bp
+    app.register_blueprint(not_defteri_bp, url_prefix='/not-defteri')
+
+    from app.duyurular import duyurular_bp
+    app.register_blueprint(duyurular_bp, url_prefix='/duyurular')
+
+    from app.rehberlik import rehberlik_bp
+    app.register_blueprint(rehberlik_bp, url_prefix='/rehberlik')
+
+    from app.saglik import saglik_bp
+    app.register_blueprint(saglik_bp, url_prefix='/saglik')
+
+    from app.iletisim import iletisim_bp
+    app.register_blueprint(iletisim_bp, url_prefix='/iletisim')
+
+    from app.online_sinav import online_sinav_bp
+    app.register_blueprint(online_sinav_bp, url_prefix='/online-sinav')
+
+    from app.kulupler import kulupler_bp
+    app.register_blueprint(kulupler_bp, url_prefix='/kulupler')
+
+    from app.kullanici import kullanici_bp
+    app.register_blueprint(kullanici_bp, url_prefix='/kullanici')
+
+    from app.kurum import kurum_bp
+    app.register_blueprint(kurum_bp, url_prefix='/kurum')
+
+    from app.ayarlar import ayarlar_bp
+    app.register_blueprint(ayarlar_bp, url_prefix='/ayarlar')
+
+    from app.ogretmen_portal import ogretmen_portal_bp
+    app.register_blueprint(ogretmen_portal_bp, url_prefix='/ogretmen')
+
+    from app.ogrenci_portal import ogrenci_portal_bp
+    app.register_blueprint(ogrenci_portal_bp, url_prefix='/portal')
+
+    from app.bildirim import bildirim_bp
+    app.register_blueprint(bildirim_bp, url_prefix='/bildirim')
+
+    from app.odev_takip import odev_takip_bp
+    app.register_blueprint(odev_takip_bp, url_prefix='/odev')
+
+    from app.davranis import davranis_bp
+    app.register_blueprint(davranis_bp, url_prefix='/davranis')
+
+    from app.karne import karne_bp
+    app.register_blueprint(karne_bp, url_prefix='/karne')
+
+    from app.etut import etut_bp
+    app.register_blueprint(etut_bp, url_prefix='/etut')
+
+    from app.sinav_oturum import sinav_oturum_bp
+    app.register_blueprint(sinav_oturum_bp, url_prefix='/sinav-oturum')
+
+    from app.ortak_sinav import ortak_sinav_bp
+    app.register_blueprint(ortak_sinav_bp, url_prefix='/ortak-sinav')
+
+    from app.anket import anket_bp
+    app.register_blueprint(anket_bp, url_prefix='/anket')
+
+    from app.servis import servis_bp
+    app.register_blueprint(servis_bp, url_prefix='/servis')
+
+    from app.kantin import kantin_bp
+    app.register_blueprint(kantin_bp, url_prefix='/kantin')
+
+    from app.kutuphane import kutuphane_bp
+    app.register_blueprint(kutuphane_bp, url_prefix='/kutuphane')
+
+    from app.envanter import envanter_bp
+    app.register_blueprint(envanter_bp, url_prefix='/envanter')
+
+    from app.yurt import yurt_bp
+    app.register_blueprint(yurt_bp, url_prefix='/yurt')
+
+    from app.raporlama import raporlama_bp
+    app.register_blueprint(raporlama_bp, url_prefix='/raporlama')
+
+    from app.denetim import denetim_bp
+    app.register_blueprint(denetim_bp, url_prefix='/denetim')
+
+    from app.belge import belge_bp
+    app.register_blueprint(belge_bp, url_prefix='/belge')
+
+    from app.ders_programi import ders_programi_bp
+    app.register_blueprint(ders_programi_bp, url_prefix='/ders-programi')
+
+    # 403 hata sayfası
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template('errors/403.html'), 403
+
+    # Context processor - bildirim sayısı
+    @app.context_processor
+    def inject_bildirim_sayisi():
+        from flask_login import current_user
+        if current_user.is_authenticated:
+            from app.models.bildirim import Bildirim
+            return dict(okunmamis_bildirim=Bildirim.okunmamis_sayisi(current_user.id))
+        return dict(okunmamis_bildirim=0)
+
     # Context processor - sidebar menü
     @app.context_processor
     def inject_menu():
-        menu_items = [
-            {
-                'label': 'Ana Sayfa',
-                'icon': 'bi-house-door',
-                'url': '/',
-                'children': []
-            },
-            {
-                'label': 'Kayıt Yönetimi',
-                'icon': 'bi-journal-check',
-                'url': '/kayit/',
-                'children': [
-                    {'label': 'Öğrenci Listesi', 'icon': 'bi-people', 'url': '/kayit/ogrenci/'},
-                    {'label': 'Yeni Kayıt', 'icon': 'bi-person-plus', 'url': '/kayit/ogrenci/yeni'},
-                    {'label': 'Sınıf / Şube', 'icon': 'bi-building', 'url': '/kayit/sinif/'},
-                    {'label': 'Dönemler', 'icon': 'bi-calendar-range', 'url': '/kayit/donem/'},
-                ]
-            },
-            {
-                'label': 'Muhasebe',
-                'icon': 'bi-cash-stack',
-                'url': '/muhasebe/',
-                'children': [
-                    {'label': 'Gelir / Gider', 'icon': 'bi-arrow-left-right', 'url': '/muhasebe/gelir-gider/'},
-                    {'label': 'Öğrenci Ödemeleri', 'icon': 'bi-mortarboard', 'url': '/muhasebe/ogrenci-odeme/'},
-                    {'label': 'Personel Ödemeleri', 'icon': 'bi-people', 'url': '/muhasebe/personel-odeme/'},
-                    {'label': 'Banka Hesapları', 'icon': 'bi-bank', 'url': '/muhasebe/banka/'},
-                    {'label': 'Raporlar', 'icon': 'bi-bar-chart-line', 'url': '/muhasebe/raporlar/'},
-                ]
-            },
-            {
-                'label': 'Devamsızlık',
-                'icon': 'bi-check2-square',
-                'url': '/devamsizlik/',
-                'children': [
-                    {'label': 'Yoklama Al', 'icon': 'bi-clipboard-check', 'url': '/devamsizlik/yoklama/'},
-                    {'label': 'Devamsızlık Raporları', 'icon': 'bi-graph-up', 'url': '/devamsizlik/rapor/'},
-                ]
-            },
-            {
-                'label': 'Personel Yönetimi',
-                'icon': 'bi-person-badge',
-                'url': '/personel/',
-                'children': [
-                    {'label': 'Personel Listesi', 'icon': 'bi-people-fill', 'url': '/personel/personel/'},
-                    {'label': 'Yeni Personel', 'icon': 'bi-person-plus-fill', 'url': '/personel/personel/yeni'},
-                    {'label': 'İzin Yönetimi', 'icon': 'bi-calendar-check', 'url': '/personel/izin/'},
-                    {'label': 'Raporlar', 'icon': 'bi-bar-chart-line', 'url': '/personel/rapor/'},
-                ]
-            }
+        from flask_login import current_user
+        from app.models.ayarlar import RolModulIzin
+
+        all_menu_items = [
+            {'label': 'Ana Sayfa', 'icon': 'bi-house-door', 'url': '/', 'modul_key': None, 'children': []},
+            {'label': 'Öğretmen Portalı', 'icon': 'bi-person-workspace', 'url': '/ogretmen/', 'modul_key': 'ogretmen_portal', 'children': [
+                {'label': 'Ders Programım', 'icon': 'bi-calendar-week', 'url': '/ogretmen/program/'},
+                {'label': 'Sınıflarım', 'icon': 'bi-people', 'url': '/ogretmen/siniflarim/'},
+                {'label': 'Notlarım', 'icon': 'bi-journal-check', 'url': '/ogretmen/notlar/'},
+                {'label': 'Yoklama', 'icon': 'bi-clipboard-check', 'url': '/ogretmen/yoklama/'},
+                {'label': 'Mesajlarım', 'icon': 'bi-envelope', 'url': '/ogretmen/mesajlar/'},
+            ]},
+            {'label': 'Öğrenci Portalı', 'icon': 'bi-mortarboard', 'url': '/portal/', 'modul_key': 'ogrenci_portal', 'children': [
+                {'label': 'Notlarım', 'icon': 'bi-journal-check', 'url': '/portal/notlar/'},
+                {'label': 'Devamsızlık', 'icon': 'bi-calendar-x', 'url': '/portal/devamsizlik/'},
+                {'label': 'Ders Programı', 'icon': 'bi-calendar-week', 'url': '/portal/program/'},
+                {'label': 'Sınavlar', 'icon': 'bi-pencil-square', 'url': '/portal/sinavlar/'},
+                {'label': 'Duyurular', 'icon': 'bi-megaphone', 'url': '/portal/duyurular/'},
+            ]},
+            {'label': 'Kullanıcı Yönetimi', 'icon': 'bi-shield-lock', 'url': '/kullanici/', 'modul_key': 'kullanici', 'children': [
+                {'label': 'Kullanıcı Listesi', 'icon': 'bi-people', 'url': '/kullanici/liste'},
+                {'label': 'Yeni Kullanıcı', 'icon': 'bi-person-plus', 'url': '/kullanici/yeni'},
+            ]},
+            {'label': 'Kurum Yönetimi', 'icon': 'bi-building', 'url': '/kurum/', 'modul_key': 'kurum', 'children': [
+                {'label': 'Kurum Bilgileri', 'icon': 'bi-info-circle', 'url': '/kurum/bilgi'},
+                {'label': 'Öğretim Yılları', 'icon': 'bi-calendar-range', 'url': '/kurum/ogretim-yili/'},
+                {'label': 'Tatiller', 'icon': 'bi-calendar-x', 'url': '/kurum/tatil/'},
+                {'label': 'Derslikler', 'icon': 'bi-door-open', 'url': '/kurum/derslik/'},
+            ]},
+            {'label': 'Kayıt Yönetimi', 'icon': 'bi-journal-check', 'url': '/kayit/', 'modul_key': 'kayit', 'children': [
+                {'label': 'Öğrenci Listesi', 'icon': 'bi-people', 'url': '/kayit/ogrenci/'},
+                {'label': 'Yeni Kayıt', 'icon': 'bi-person-plus', 'url': '/kayit/ogrenci/yeni'},
+                {'label': 'Sınıf / Şube', 'icon': 'bi-building', 'url': '/kayit/sinif/'},
+                {'label': 'Dönemler', 'icon': 'bi-calendar-range', 'url': '/kayit/donem/'},
+            ]},
+            {'label': 'Muhasebe', 'icon': 'bi-cash-stack', 'url': '/muhasebe/', 'modul_key': 'muhasebe', 'children': [
+                {'label': 'Gelir / Gider', 'icon': 'bi-arrow-left-right', 'url': '/muhasebe/gelir-gider/'},
+                {'label': 'Öğrenci Ödemeleri', 'icon': 'bi-mortarboard', 'url': '/muhasebe/ogrenci-odeme/'},
+                {'label': 'Personel Ödemeleri', 'icon': 'bi-people', 'url': '/muhasebe/personel-odeme/'},
+                {'label': 'Banka Hesapları', 'icon': 'bi-bank', 'url': '/muhasebe/banka/'},
+                {'label': 'Raporlar', 'icon': 'bi-bar-chart-line', 'url': '/muhasebe/raporlar/'},
+            ]},
+            {'label': 'Devamsızlık', 'icon': 'bi-check2-square', 'url': '/devamsizlik/', 'modul_key': 'devamsizlik', 'children': [
+                {'label': 'Yoklama Al', 'icon': 'bi-clipboard-check', 'url': '/devamsizlik/yoklama/'},
+                {'label': 'Devamsızlık Raporları', 'icon': 'bi-graph-up', 'url': '/devamsizlik/rapor/'},
+            ]},
+            {'label': 'Personel Yönetimi', 'icon': 'bi-person-badge', 'url': '/personel/', 'modul_key': 'personel', 'children': [
+                {'label': 'Personel Listesi', 'icon': 'bi-people-fill', 'url': '/personel/personel/'},
+                {'label': 'Yeni Personel', 'icon': 'bi-person-plus-fill', 'url': '/personel/personel/yeni'},
+                {'label': 'İzin Yönetimi', 'icon': 'bi-calendar-check', 'url': '/personel/izin/'},
+                {'label': 'Raporlar', 'icon': 'bi-bar-chart-line', 'url': '/personel/rapor/'},
+            ]},
+            {'label': 'Ders Dağıtımı', 'icon': 'bi-book', 'url': '/ders-dagitimi/', 'modul_key': 'ders_dagitimi', 'children': [
+                {'label': 'Dersler', 'icon': 'bi-journal-text', 'url': '/ders-dagitimi/ders/'},
+                {'label': 'Ders Programı', 'icon': 'bi-calendar-week', 'url': '/ders-dagitimi/program/'},
+                {'label': 'Öğretmen Ataması', 'icon': 'bi-person-workspace', 'url': '/ders-dagitimi/atama/'},
+            ]},
+            {'label': 'Not Defteri', 'icon': 'bi-journal-bookmark', 'url': '/not-defteri/', 'modul_key': 'not_defteri', 'children': [
+                {'label': 'Sınavlar', 'icon': 'bi-pencil-square', 'url': '/not-defteri/sinav/'},
+                {'label': 'Not Girişi', 'icon': 'bi-input-cursor-text', 'url': '/not-defteri/sinav/'},
+                {'label': 'Raporlar', 'icon': 'bi-file-earmark-bar-graph', 'url': '/not-defteri/rapor/'},
+            ]},
+            {'label': 'Ödev Takip', 'icon': 'bi-clipboard-check', 'url': '/odev/', 'modul_key': 'odev_takip', 'children': [
+                {'label': 'Ödev Listesi', 'icon': 'bi-list-check', 'url': '/odev/liste'},
+                {'label': 'Yeni Ödev', 'icon': 'bi-plus-circle', 'url': '/odev/yeni'},
+                {'label': 'İstatistikler', 'icon': 'bi-bar-chart', 'url': '/odev/rapor/'},
+            ]},
+            {'label': 'Davranış Değerlendirme', 'icon': 'bi-emoji-smile', 'url': '/davranis/', 'modul_key': 'davranis', 'children': [
+                {'label': 'Davranış Kayıtları', 'icon': 'bi-list-check', 'url': '/davranis/kayit/'},
+                {'label': 'Yeni Kayıt', 'icon': 'bi-plus-circle', 'url': '/davranis/kayit/yeni'},
+                {'label': 'Davranış Kuralları', 'icon': 'bi-shield-check', 'url': '/davranis/kural/'},
+                {'label': 'Raporlar', 'icon': 'bi-bar-chart', 'url': '/davranis/rapor/'},
+            ]},
+            {'label': 'Karne / Transkript', 'icon': 'bi-file-earmark-text', 'url': '/karne/', 'modul_key': 'karne', 'children': [
+                {'label': 'Karne Listesi', 'icon': 'bi-list-ul', 'url': '/karne/'},
+                {'label': 'Karne Oluştur', 'icon': 'bi-plus-circle', 'url': '/karne/olustur'},
+                {'label': 'Transkript', 'icon': 'bi-file-earmark-ruled', 'url': '/karne/transkript/'},
+            ]},
+            {'label': 'Etüt Yönetimi', 'icon': 'bi-book-half', 'url': '/etut/', 'modul_key': 'etut', 'children': [
+                {'label': 'Etüt Listesi', 'icon': 'bi-list-ul', 'url': '/etut/'},
+                {'label': 'Yeni Etüt', 'icon': 'bi-plus-circle', 'url': '/etut/yeni'},
+                {'label': 'Raporlar', 'icon': 'bi-bar-chart', 'url': '/etut/rapor/'},
+            ]},
+            {'label': 'Sınav Oturum Yönetimi', 'icon': 'bi-calendar-check', 'url': '/sinav-oturum/oturum/', 'modul_key': 'sinav_oturum', 'children': [
+                {'label': 'Oturum Listesi', 'icon': 'bi-list-ul', 'url': '/sinav-oturum/oturum/'},
+                {'label': 'Yeni Oturum', 'icon': 'bi-plus-circle', 'url': '/sinav-oturum/oturum/yeni'},
+                {'label': 'Sınav Takvimi', 'icon': 'bi-calendar-event', 'url': '/sinav-oturum/takvim/'},
+            ]},
+            {'label': 'Duyurular', 'icon': 'bi-megaphone', 'url': '/duyurular/', 'modul_key': 'duyurular', 'children': [
+                {'label': 'Duyuru Listesi', 'icon': 'bi-card-text', 'url': '/duyurular/duyuru/'},
+                {'label': 'Yeni Duyuru', 'icon': 'bi-plus-circle', 'url': '/duyurular/duyuru/yeni'},
+                {'label': 'Etkinlik Takvimi', 'icon': 'bi-calendar-event', 'url': '/duyurular/etkinlik/'},
+                {'label': 'Hatırlatmalar', 'icon': 'bi-bell', 'url': '/duyurular/hatirlatma/'},
+            ]},
+            {'label': 'Rehberlik', 'icon': 'bi-heart-pulse', 'url': '/rehberlik/', 'modul_key': 'rehberlik', 'children': [
+                {'label': 'Görüşmeler', 'icon': 'bi-chat-dots', 'url': '/rehberlik/gorusme/'},
+                {'label': 'Öğrenci Profilleri', 'icon': 'bi-person-lines-fill', 'url': '/rehberlik/profil/'},
+                {'label': 'Davranış Kayıtları', 'icon': 'bi-emoji-smile', 'url': '/davranis/kayit/'},
+                {'label': 'Veli Görüşmeleri', 'icon': 'bi-people', 'url': '/rehberlik/veli/'},
+                {'label': 'Rehberlik Planları', 'icon': 'bi-map', 'url': '/rehberlik/plan/'},
+            ]},
+            {'label': 'Sağlık', 'icon': 'bi-heart-pulse-fill', 'url': '/saglik/', 'modul_key': 'saglik', 'children': [
+                {'label': 'Sağlık Kayıtları', 'icon': 'bi-file-medical', 'url': '/saglik/kayit/'},
+                {'label': 'Revir', 'icon': 'bi-hospital', 'url': '/saglik/revir/'},
+                {'label': 'Aşı Takip', 'icon': 'bi-shield-plus', 'url': '/saglik/asi/'},
+                {'label': 'Sağlık Taraması', 'icon': 'bi-search-heart', 'url': '/saglik/tarama/'},
+            ]},
+            {'label': 'İletişim', 'icon': 'bi-chat-left-text', 'url': '/iletisim/', 'modul_key': 'iletisim', 'children': [
+                {'label': 'Gelen Kutusu', 'icon': 'bi-inbox', 'url': '/iletisim/mesaj/'},
+                {'label': 'Mesaj Yaz', 'icon': 'bi-pencil-square', 'url': '/iletisim/mesaj/yeni'},
+                {'label': 'Toplu Mesaj', 'icon': 'bi-send', 'url': '/iletisim/toplu/'},
+                {'label': 'Şablonlar', 'icon': 'bi-file-text', 'url': '/iletisim/sablon/'},
+                {'label': 'Rehber', 'icon': 'bi-person-rolodex', 'url': '/iletisim/rehber/'},
+            ]},
+            {'label': 'Online Sınav', 'icon': 'bi-laptop', 'url': '/online-sinav/', 'modul_key': 'online_sinav', 'children': [
+                {'label': 'Sınav Listesi', 'icon': 'bi-list-check', 'url': '/online-sinav/sinav/'},
+                {'label': 'Yeni Sınav', 'icon': 'bi-plus-circle', 'url': '/online-sinav/sinav/yeni'},
+                {'label': 'Sonuçlar', 'icon': 'bi-bar-chart', 'url': '/online-sinav/sonuc/'},
+            ]},
+            {'label': 'Kulüpler', 'icon': 'bi-people-fill', 'url': '/kulupler/', 'modul_key': 'kulupler', 'children': [
+                {'label': 'Kulüp Listesi', 'icon': 'bi-list-ul', 'url': '/kulupler/kulup/'},
+                {'label': 'Yeni Kulüp', 'icon': 'bi-plus-circle', 'url': '/kulupler/kulup/yeni'},
+                {'label': 'Etkinlikler', 'icon': 'bi-calendar-event', 'url': '/kulupler/etkinlik/'},
+            ]},
+            {'label': 'Ortak Sınavlar', 'icon': 'bi-journal-text', 'url': '/ortak-sinav/sinav/', 'modul_key': 'ortak_sinav', 'children': [
+                {'label': 'Sınav Listesi', 'icon': 'bi-list-ul', 'url': '/ortak-sinav/sinav/'},
+                {'label': 'Yeni Sınav', 'icon': 'bi-plus-circle', 'url': '/ortak-sinav/sinav/yeni'},
+                {'label': 'Raporlar', 'icon': 'bi-bar-chart', 'url': '/ortak-sinav/rapor/'},
+            ]},
+            {'label': 'Online Anket', 'icon': 'bi-ui-checks-grid', 'url': '/anket/yonetim/', 'modul_key': 'anket', 'children': [
+                {'label': 'Anket Listesi', 'icon': 'bi-list-ul', 'url': '/anket/yonetim/'},
+                {'label': 'Yeni Anket', 'icon': 'bi-plus-circle', 'url': '/anket/yonetim/yeni'},
+                {'label': 'Aktif Anketler', 'icon': 'bi-check-circle', 'url': '/anket/katilim/'},
+            ]},
+            {'label': 'Öğrenci Servisi', 'icon': 'bi-bus-front', 'url': '/servis/', 'modul_key': 'servis', 'children': [
+                {'label': 'Güzergahlar', 'icon': 'bi-signpost-2', 'url': '/servis/guzergah/'},
+                {'label': 'Araçlar', 'icon': 'bi-bus-front', 'url': '/servis/arac/'},
+                {'label': 'Kayıtlar', 'icon': 'bi-people', 'url': '/servis/kayit/'},
+            ]},
+            {'label': 'Kantin / Yemekhane', 'icon': 'bi-cup-hot', 'url': '/kantin/', 'modul_key': 'kantin', 'children': [
+                {'label': 'Yemek Menüleri', 'icon': 'bi-calendar-week', 'url': '/kantin/menu/'},
+                {'label': 'Haftalık Menü', 'icon': 'bi-table', 'url': '/kantin/menu/haftalik'},
+                {'label': 'Ürünler', 'icon': 'bi-basket', 'url': '/kantin/urun/'},
+                {'label': 'Satış', 'icon': 'bi-cart', 'url': '/kantin/satis/yeni'},
+            ]},
+            {'label': 'Kütüphane', 'icon': 'bi-book', 'url': '/kutuphane/', 'modul_key': 'kutuphane', 'children': [
+                {'label': 'Kitaplar', 'icon': 'bi-book', 'url': '/kutuphane/kitap/'},
+                {'label': 'Yeni Kitap', 'icon': 'bi-plus-circle', 'url': '/kutuphane/kitap/yeni'},
+                {'label': 'Ödünç Kayıtları', 'icon': 'bi-arrow-left-right', 'url': '/kutuphane/odunc/'},
+            ]},
+            {'label': 'Envanter / Demirbaş', 'icon': 'bi-box-seam', 'url': '/envanter/', 'modul_key': 'envanter', 'children': [
+                {'label': 'Demirbaşlar', 'icon': 'bi-list-ul', 'url': '/envanter/demirbas/'},
+                {'label': 'Yeni Demirbaş', 'icon': 'bi-plus-circle', 'url': '/envanter/demirbas/yeni'},
+            ]},
+            {'label': 'Yurt / Pansiyon', 'icon': 'bi-house-door', 'url': '/yurt/', 'modul_key': 'yurt', 'children': [
+                {'label': 'Odalar', 'icon': 'bi-door-open', 'url': '/yurt/oda/'},
+                {'label': 'Yeni Oda', 'icon': 'bi-plus-circle', 'url': '/yurt/oda/yeni'},
+                {'label': 'Yoklama', 'icon': 'bi-clipboard-check', 'url': '/yurt/yoklama/'},
+            ]},
+            {'label': 'Ders Programı', 'icon': 'bi-calendar-week', 'url': '/ders-programi/', 'modul_key': 'ders_programi', 'children': [
+                {'label': 'Şube Programı', 'icon': 'bi-table', 'url': '/ders-programi/'},
+                {'label': 'Öğretmen Programı', 'icon': 'bi-person-workspace', 'url': '/ders-programi/ogretmen'},
+            ]},
+            {'label': 'Raporlama', 'icon': 'bi-graph-up-arrow', 'url': '/raporlama/', 'modul_key': 'raporlama', 'children': [
+                {'label': 'Dashboard', 'icon': 'bi-speedometer2', 'url': '/raporlama/'},
+                {'label': 'Öğrenci Rapor', 'icon': 'bi-people', 'url': '/raporlama/ogrenci/'},
+                {'label': 'Personel Rapor', 'icon': 'bi-person-badge', 'url': '/raporlama/personel/'},
+                {'label': 'Akademik Rapor', 'icon': 'bi-mortarboard', 'url': '/raporlama/akademik/'},
+            ]},
+            {'label': 'Denetim Kaydı', 'icon': 'bi-shield-check', 'url': '/denetim/', 'modul_key': 'denetim', 'children': [
+                {'label': 'Log Kayıtları', 'icon': 'bi-list-check', 'url': '/denetim/'},
+            ]},
+            {'label': 'Belge Yönetimi', 'icon': 'bi-file-earmark', 'url': '/belge/', 'modul_key': 'belge', 'children': [
+                {'label': 'Belgeler', 'icon': 'bi-files', 'url': '/belge/'},
+                {'label': 'Yeni Belge', 'icon': 'bi-plus-circle', 'url': '/belge/yeni'},
+            ]},
+            {'label': 'Sistem Ayarları', 'icon': 'bi-gear', 'url': '/ayarlar/', 'modul_key': 'ayarlar', 'children': [
+                {'label': 'Genel Ayarlar', 'icon': 'bi-sliders', 'url': '/ayarlar/genel'},
+                {'label': 'Akademik', 'icon': 'bi-mortarboard', 'url': '/ayarlar/akademik'},
+                {'label': 'Yedekleme', 'icon': 'bi-download', 'url': '/ayarlar/yedekleme'},
+                {'label': 'Rol Yetkilendirme', 'icon': 'bi-shield-lock', 'url': '/ayarlar/yetkilendirme/'},
+            ]},
         ]
+
+        # Dinamik izin kontrolü ile menü filtrele
+        if current_user.is_authenticated:
+            rol = current_user.rol
+            # Kullanıcının erişebildiği modülleri çek (tek sorgu)
+            izinli_moduller = RolModulIzin.rol_izinleri(rol)
+            # Eğer hiç izin kaydı yoksa (ilk kurulum), varsayılanları oluştur
+            if not izinli_moduller and RolModulIzin.query.count() == 0:
+                RolModulIzin.varsayilan_izinleri_olustur()
+                izinli_moduller = RolModulIzin.rol_izinleri(rol)
+
+            menu_items = []
+            for item in all_menu_items:
+                modul_key = item.get('modul_key')
+                if modul_key is None:
+                    # Ana Sayfa gibi modülsüz itemler her zaman görünür
+                    menu_items.append(item)
+                elif modul_key in izinli_moduller:
+                    menu_items.append(item)
+        else:
+            menu_items = []
+
         return dict(menu_items=menu_items)
 
     # Seed komutu
     @app.cli.command('seed')
     def seed_command():
-        """Veritabanına test verisi ekle."""
-        from datetime import date, timedelta
+        """Veritabanına başlangıç verisi ekle (sadece admin + sistem ayarları)."""
         from app.models.user import User
-        from app.models.muhasebe import (
-            GelirGiderKategorisi, BankaHesabi, Ogrenci, Personel
-        )
+        from app.models.muhasebe import GelirGiderKategorisi, BankaHesabi
 
         # Admin kullanıcı
         if not User.query.filter_by(username='admin').first():
@@ -112,18 +367,6 @@ def create_app(config_class=Config):
             )
             admin.set_password('admin123')
             db.session.add(admin)
-
-        # Muhasebeci
-        if not User.query.filter_by(username='muhasebe').first():
-            muhasebeci = User(
-                username='muhasebe',
-                email='muhasebe@obs.local',
-                ad='Ahmet',
-                soyad='Yılmaz',
-                rol='muhasebeci'
-            )
-            muhasebeci.set_password('muhasebe123')
-            db.session.add(muhasebeci)
 
         # Gelir kategorileri
         gelir_kategorileri = ['Öğrenci Aidatı', 'Kayıt Ücreti', 'Kurs Ücreti', 'Kantin Geliri', 'Diğer Gelir']
@@ -152,150 +395,51 @@ def create_app(config_class=Config):
                 bakiye=0
             ))
 
-        # Örnek öğrenciler
-        ornek_ogrenciler = [
-            ('1001', 'Ayşe', 'Demir', '9-A'),
-            ('1002', 'Mehmet', 'Kaya', '9-B'),
-            ('1003', 'Zeynep', 'Çelik', '10-A'),
-            ('1004', 'Ali', 'Yıldız', '10-B'),
-            ('1005', 'Fatma', 'Öztürk', '11-A'),
-        ]
-        for no, ad, soyad, sinif in ornek_ogrenciler:
-            if not Ogrenci.query.filter_by(ogrenci_no=no).first():
-                db.session.add(Ogrenci(ogrenci_no=no, ad=ad, soyad=soyad, sinif=sinif))
 
-        # Örnek personeller
-        ornek_personeller = [
-            ('P001', 'Hasan', 'Aksoy', 'Matematik Öğretmeni', 25000, 'Matematik', 'tam_zamanli', '05301112233'),
-            ('P002', 'Elif', 'Şahin', 'Türkçe Öğretmeni', 24000, 'Türkçe', 'tam_zamanli', '05302223344'),
-            ('P003', 'Murat', 'Koç', 'Müdür', 35000, 'İdari', 'tam_zamanli', '05303334455'),
-            ('P004', 'Ayşe', 'Yılmaz', 'Fen Bilgisi Öğretmeni', 24500, 'Fen Bilimleri', 'tam_zamanli', '05304445566'),
-            ('P005', 'Zehra', 'Kara', 'İngilizce Öğretmeni', 23000, 'Yabancı Dil', 'yari_zamanli', '05305556677'),
-        ]
-        for sicil, ad, soyad, pozisyon, maas, departman, calisma_turu, telefon in ornek_personeller:
-            mevcut = Personel.query.filter_by(sicil_no=sicil).first()
-            if not mevcut:
-                db.session.add(Personel(
-                    sicil_no=sicil, ad=ad, soyad=soyad,
-                    pozisyon=pozisyon, maas=maas,
-                    departman=departman, calisma_turu=calisma_turu,
-                    telefon=telefon,
-                    ise_baslama_tarihi=date(2023, 9, 1)
+        # === Sistem Ayarlari seed verisi ===
+        from app.models.ayarlar import SistemAyar
+
+        if SistemAyar.query.count() == 0:
+            varsayilan_ayarlar = [
+                # Genel
+                ('kurum_adi', 'OBS Egitim Kurumu', 'Kurum Adi', 'genel', 'text', 'OBS Egitim Kurumu'),
+                ('aktif_donem', '2025-2026', 'Aktif Donem', 'genel', 'text', '2025-2026'),
+                ('varsayilan_dil', 'tr', 'Varsayilan Dil', 'genel', 'text', 'tr'),
+                ('zaman_dilimi', 'Europe/Istanbul', 'Zaman Dilimi', 'genel', 'text', 'Europe/Istanbul'),
+                # Akademik
+                ('gecme_notu', '50', 'Gecme Notu', 'akademik', 'number', '50'),
+                ('not_sistemi', '100', 'Not Sistemi', 'akademik', 'number', '100'),
+                ('max_devamsizlik_gun', '20', 'Maks. Devamsizlik Gun', 'akademik', 'number', '20'),
+                ('sinav_agirlik_yazili', '60', 'Yazili Sinav Agirligi (%)', 'akademik', 'number', '60'),
+                ('sinav_agirlik_sozlu', '20', 'Sozlu Sinav Agirligi (%)', 'akademik', 'number', '20'),
+                ('sinav_agirlik_performans', '20', 'Performans Agirligi (%)', 'akademik', 'number', '20'),
+                # Muhasebe
+                ('para_birimi', 'TL', 'Para Birimi', 'muhasebe', 'text', 'TL'),
+                ('kdv_orani', '0', 'KDV Orani (%)', 'muhasebe', 'number', '0'),
+                ('gecikme_faizi', '0', 'Gecikme Faizi (%)', 'muhasebe', 'number', '0'),
+                ('odeme_hatirlatma_gun', '7', 'Odeme Hatirlatma (Gun)', 'muhasebe', 'number', '7'),
+                # Iletisim
+                ('sms_saglayici', 'yok', 'SMS Saglayici', 'iletisim', 'text', 'yok'),
+                ('bildirim_email', 'info@obs.local', 'Bildirim E-posta Adresi', 'iletisim', 'email', 'info@obs.local'),
+                ('otomatik_bildirim', 'true', 'Otomatik Bildirim', 'iletisim', 'boolean', 'true'),
+                # Guvenlik
+                ('oturum_suresi', '60', 'Oturum Suresi (dk)', 'guvenlik', 'number', '60'),
+                ('min_sifre_uzunlugu', '6', 'Min. Sifre Uzunlugu', 'guvenlik', 'number', '6'),
+                ('max_giris_denemesi', '5', 'Maks. Giris Denemesi', 'guvenlik', 'number', '5'),
+            ]
+            for anahtar, deger, aciklama, kategori, tur, varsayilan in varsayilan_ayarlar:
+                db.session.add(SistemAyar(
+                    anahtar=anahtar,
+                    deger=deger,
+                    aciklama=aciklama,
+                    kategori=kategori,
+                    tur=tur,
+                    varsayilan=varsayilan,
                 ))
-            else:
-                mevcut.departman = mevcut.departman or departman
-                mevcut.calisma_turu = mevcut.calisma_turu or calisma_turu
-                mevcut.telefon = mevcut.telefon or telefon
-                mevcut.ise_baslama_tarihi = mevcut.ise_baslama_tarihi or date(2023, 9, 1)
-
-        db.session.commit()
-
-        # === Kayıt Yönetimi seed verisi ===
-        from app.models.kayit import Sinif, Sube, KayitDonemi
-
-        # Sınıflar
-        sinif_verileri = [
-            ('9. Sınıf', 9), ('10. Sınıf', 10),
-            ('11. Sınıf', 11), ('12. Sınıf', 12)
-        ]
-        for ad, seviye in sinif_verileri:
-            if not Sinif.query.filter_by(ad=ad).first():
-                db.session.add(Sinif(ad=ad, seviye=seviye))
-        db.session.commit()
-
-        # Şubeler
-        for sinif in Sinif.query.all():
-            for sube_ad in ['A', 'B']:
-                mevcut = Sube.query.filter_by(sinif_id=sinif.id, ad=sube_ad).first()
-                if not mevcut:
-                    db.session.add(Sube(sinif_id=sinif.id, ad=sube_ad, kontenjan=30))
-        db.session.commit()
-
-        # Dönem
-        if not KayitDonemi.query.first():
-            db.session.add(KayitDonemi(
-                ad='2025-2026',
-                baslangic_tarihi=date(2025, 9, 1),
-                bitis_tarihi=date(2026, 6, 30),
-                aktif=True,
-                aciklama='2025-2026 Eğitim Öğretim Yılı'
-            ))
             db.session.commit()
 
-        # === Devamsızlık seed verisi ===
-        from app.models.devamsizlik import Devamsizlik
 
-        # Get admin user for olusturan
-        admin_user = User.query.filter_by(username='admin').first()
-        if admin_user and Devamsizlik.query.count() == 0:
-            # Get students and classes for seed data
-            ogrenciler = Ogrenci.query.all()
-            subeler = Sube.query.all()
-
-            if ogrenciler and subeler:
-                # Create attendance records for the past 10 days
-                today = date.today()
-                durumlar = ['devamsiz', 'gec', 'izinli', 'raporlu']
-
-                for i in range(1, 11):  # Last 10 days
-                    tarih = today - timedelta(days=i)
-
-                    # Assign students to classes and create records
-                    for idx, ogrenci in enumerate(ogrenciler):
-                        sube = subeler[idx % len(subeler)]
-
-                        # Create records for 4 lessons per day
-                        for ders_saati in range(1, 5):
-                            # Randomly assign status (70% present, 30% absent/late/etc)
-                            import random
-                            durum = durumlar[random.randint(0, 3)] if random.random() > 0.7 else 'hazir'
-
-                            # Check if record already exists
-                            mevcut = Devamsizlik.query.filter_by(
-                                ogrenci_id=ogrenci.id,
-                                sube_id=sube.id,
-                                tarih=tarih,
-                                ders_saati=ders_saati
-                            ).first()
-
-                            if not mevcut:
-                                db.session.add(Devamsizlik(
-                                    ogrenci_id=ogrenci.id,
-                                    sube_id=sube.id,
-                                    tarih=tarih,
-                                    ders_saati=ders_saati,
-                                    durum=durum,
-                                    olusturan_id=admin_user.id
-                                ))
-                db.session.commit()
-
-        # === Personel İzin seed verisi ===
-        from app.models.personel import PersonelIzin
-
-        if admin_user and PersonelIzin.query.count() == 0:
-            personel_listesi = Personel.query.all()
-            if personel_listesi:
-                izin_verileri = [
-                    (personel_listesi[0].id, 'yillik', date(2026, 1, 6), date(2026, 1, 10), 5, 'onaylandi', 'Yılbaşı tatili'),
-                    (personel_listesi[1].id, 'saglik', date(2026, 2, 15), date(2026, 2, 17), 3, 'onaylandi', 'Sağlık raporu'),
-                    (personel_listesi[0].id, 'mazeret', date(2026, 3, 20), date(2026, 3, 21), 2, 'beklemede', 'Aile ziyareti'),
-                    (personel_listesi[2].id, 'idari', date(2026, 3, 10), date(2026, 3, 10), 1, 'onaylandi', 'Toplantı'),
-                    (personel_listesi[3].id if len(personel_listesi) > 3 else personel_listesi[0].id, 'yillik', date(2026, 4, 1), date(2026, 4, 5), 5, 'beklemede', 'Bahar tatili'),
-                ]
-                for p_id, turu, bas, bit, gun, durum, aciklama in izin_verileri:
-                    db.session.add(PersonelIzin(
-                        personel_id=p_id,
-                        izin_turu=turu,
-                        baslangic_tarihi=bas,
-                        bitis_tarihi=bit,
-                        gun_sayisi=gun,
-                        durum=durum,
-                        aciklama=aciklama,
-                        olusturan_id=admin_user.id,
-                        onaylayan_id=admin_user.id if durum == 'onaylandi' else None,
-                    ))
-                db.session.commit()
-
-        print('Seed verisi başarıyla eklendi!')
+        db.session.commit()
+        print('Başlangıç verisi başarıyla eklendi!')
 
     return app

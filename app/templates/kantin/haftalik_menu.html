@@ -1,0 +1,29 @@
+{% extends "kantin/_layout.html" %}
+{% block title %}Haftalik Menu{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Haftalik Menu</li>{% endblock %}
+{% block kantin_content %}
+<h4 class="mb-4"><i class="bi bi-table me-2"></i>Haftalik Menu ({{ hafta_basi.strftime('%d.%m') }} - {{ hafta_sonu.strftime('%d.%m.%Y') }})</h4>
+<div class="row">
+{% set gunler = ['Pazartesi', 'Sali', 'Carsamba', 'Persembe', 'Cuma'] %}
+{% for gun in gunler %}
+{% set menu = menuler | selectattr('gun', 'equalto', gun) | first %}
+<div class="col-md-4 col-lg mb-3">
+    <div class="card h-100 {% if menu %}border-success{% else %}border-secondary{% endif %}">
+        <div class="card-header text-center {% if menu %}bg-success text-white{% else %}bg-light{% endif %}">
+            <strong>{{ gun }}</strong>
+        </div>
+        <div class="card-body">
+            {% if menu %}
+            {% if menu.kahvalti %}<p class="mb-1"><strong><i class="bi bi-sunrise me-1"></i>Kahvalti:</strong><br>{{ menu.kahvalti }}</p>{% endif %}
+            <p class="mb-1"><strong><i class="bi bi-sun me-1"></i>Ogle:</strong><br>{{ menu.ogle_yemegi }}</p>
+            {% if menu.ara_ogun %}<p class="mb-1"><strong><i class="bi bi-cup-hot me-1"></i>Ara Ogun:</strong><br>{{ menu.ara_ogun }}</p>{% endif %}
+            {% if menu.kalori %}<p class="mb-0 text-muted small"><i class="bi bi-fire me-1"></i>{{ menu.kalori }} kcal</p>{% endif %}
+            {% else %}
+            <p class="text-muted text-center mb-0">Menu henuz girilmemis</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

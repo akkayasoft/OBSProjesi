@@ -6,6 +6,8 @@ dist/
 build/
 .env
 instance/obs.db
+instance/obs.db.backup-*
+instance/uploads/
 venv/
 .venv/
 .claude/

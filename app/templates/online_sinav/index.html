@@ -1,0 +1,172 @@
+{% extends "online_sinav/_layout.html" %}
+
+{% block title %}Online Sinav{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakis</li>
+{% endblock %}
+
+{% block online_sinav_content %}
+<h4 class="mb-4"><i class="bi bi-laptop me-2"></i>Online Sinav</h4>
+
+<!-- Istatistik Kartlari -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Toplam Sinav</p>
+                        <h3 class="mb-0">{{ toplam_sinav }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Aktif Sinav</p>
+                        <h3 class="mb-0">{{ aktif_sinav }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-play-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Tamamlanan</p>
+                        <h3 class="mb-0">{{ tamamlanan }}</h3>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Ortalama Basari</p>
+                        <h3 class="mb-0">{{ ortalama_basari }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-bar-chart"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Yaklasan Sinavlar -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Yaklasan Sinavlar</h6>
+                <a href="{{ url_for('online_sinav.sinav.yeni') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Yeni Sinav
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sinav</th>
+                                <th>Ders</th>
+                                <th>Baslangic</th>
+                                <th>Sure</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in yaklasan_sinavlar %}
+                            <tr>
+                                <td>
+                                    <strong>{{ s.baslik }}</strong>
+                                    <br><small class="text-muted">{{ s.sinav_turu_str }} - {{ s.zorluk_str }}</small>
+                                </td>
+                                <td>{{ s.ders.ad }}</td>
+                                <td>{{ s.baslangic_zamani.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>{{ s.sure }} dk</td>
+                                <td>
+                                    <a href="{{ url_for('online_sinav.sinav.detay', sinav_id=s.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Yaklasan sinav bulunmuyor</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if yaklasan_sinavlar %}
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('online_sinav.sinav.liste') }}" class="text-decoration-none">
+                        Tum sinavlari goruntule <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Sonuclar -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Son Sonuclar</h6>
+                <a href="{{ url_for('online_sinav.sonuc.liste') }}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-list"></i> Tumu
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for k in son_katilimlar %}
+                    <div class="list-group-item py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ k.ogrenci.tam_ad }}</strong>
+                                <small class="text-muted d-block">{{ k.sinav.baslik }}</small>
+                            </div>
+                            <div class="text-end">
+                                {% if k.toplam_puan is not none %}
+                                <span class="badge bg-{{ 'success' if k.gecti_mi else 'danger' }} fs-6">
+                                    {{ k.toplam_puan|round(1) }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">Puanlanmadi</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Henuz sonuc bulunmuyor
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

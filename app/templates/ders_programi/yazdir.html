@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ sube.sinif.ad if sube.sinif else '' }}-{{ sube.ad }} Ders Programı</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { text-align: center; margin-bottom: 5px; }
+        .info { text-align: center; color: #666; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: center; vertical-align: middle; }
+        th { background: #343a40; color: white; }
+        .saat-col { width: 100px; font-weight: bold; }
+        .ders-adi { font-weight: bold; color: #0d6efd; }
+        .ogretmen { font-size: 0.85em; color: #666; }
+        .derslik { font-size: 0.8em; color: #999; }
+        @media print {
+            body { margin: 0; }
+            @page { size: landscape; margin: 1cm; }
+        }
+    </style>
+</head>
+<body>
+    <h2>{{ sube.sinif.ad if sube.sinif else '' }}-{{ sube.ad }} Haftalık Ders Programı</h2>
+    {% if donem %}<p class="info">Dönem: {{ donem }}</p>{% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th class="saat-col">Saat</th>
+                {% for gun in gunler %}
+                <th>{{ gun }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for saat in range(1, 9) %}
+            <tr>
+                <td class="saat-col">
+                    {{ saat }}. Ders<br>
+                    <small>{{ saat_araliklari[saat] }}</small>
+                </td>
+                {% for gun in gunler %}
+                <td>
+                    {% set p = tablo[gun][saat] %}
+                    {% if p %}
+                    <span class="ders-adi">{{ p.ders.ad }}</span><br>
+                    <span class="ogretmen">{{ p.ogretmen.ad }} {{ p.ogretmen.soyad }}</span>
+                    {% if p.derslik %}<br><span class="derslik">{{ p.derslik }}</span>{% endif %}
+                    {% else %}-{% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>window.onload = function() { window.print(); }</script>
+</body>
+</html>

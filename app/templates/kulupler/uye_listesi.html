@@ -1,0 +1,94 @@
+{% extends "kulupler/_layout.html" %}
+
+{% block title %}{{ kulup.ad }} - Uyeler{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kulupler.kulup.liste') }}">Kulup Listesi</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('kulupler.kulup.detay', kulup_id=kulup.id) }}">{{ kulup.ad }}</a></li>
+<li class="breadcrumb-item active">Uyeler</li>
+{% endblock %}
+
+{% block kulupler_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-people me-2"></i>{{ kulup.ad }} - Uyeler</h4>
+    <a href="{{ url_for('kulupler.uyelik.ekle', kulup_id=kulup.id) }}" class="btn btn-primary">
+        <i class="bi bi-person-plus me-1"></i>Uye Ekle
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Ogrenci No</th>
+                        <th>Ad Soyad</th>
+                        <th>Sinif</th>
+                        <th>Gorev</th>
+                        <th>Durum</th>
+                        <th>Katilim Tarihi</th>
+                        <th>Islemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in uyeler %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ u.ogrenci.ogrenci_no }}</td>
+                        <td>{{ u.ogrenci.ad }} {{ u.ogrenci.soyad }}</td>
+                        <td>{{ u.ogrenci.sinif or '-' }}</td>
+                        <td><span class="badge bg-{{ u.gorev_badge }}">{{ u.gorev_str }}</span></td>
+                        <td><span class="badge bg-{{ u.durum_badge }}">{{ u.durum_str }}</span></td>
+                        <td>{{ u.katilim_tarihi.strftime('%d.%m.%Y') if u.katilim_tarihi else '-' }}</td>
+                        <td>
+                            {% if u.durum == 'aktif' %}
+                            <!-- Gorev Degistir -->
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-gear"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    {% for gorev_val, gorev_label in [('uye', 'Uye'), ('baskan', 'Baskan'), ('baskan_yardimcisi', 'Baskan Yardimcisi'), ('sekreter', 'Sekreter')] %}
+                                    <li>
+                                        <form method="POST" action="{{ url_for('kulupler.uyelik.gorev_degistir', uyelik_id=u.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="gorev" value="{{ gorev_val }}">
+                                            <button type="submit" class="dropdown-item {% if u.gorev == gorev_val %}active{% endif %}">
+                                                {{ gorev_label }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <!-- Cikar -->
+                            <form method="POST" action="{{ url_for('kulupler.uyelik.cikar', uyelik_id=u.id) }}"
+                                  class="d-inline" onsubmit="return confirm('Bu uyeyi cikarmak istediginize emin misiniz?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Cikar">
+                                    <i class="bi bi-person-dash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            Henuz uye bulunmuyor.
+                            <div class="mt-2">
+                                <a href="{{ url_for('kulupler.uyelik.ekle', kulup_id=kulup.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-person-plus me-1"></i>Ilk Uyeyi Ekle
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

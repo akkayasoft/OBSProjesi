@@ -1,0 +1,102 @@
+{% extends "not_defteri/_layout.html" %}
+
+{% block title %}Sinif Raporu{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('not_defteri.rapor.index') }}">Raporlar</a></li>
+<li class="breadcrumb-item active">Sinif Raporu</li>
+{% endblock %}
+
+{% block not_defteri_content %}
+<h4 class="mb-4"><i class="bi bi-people me-2"></i>Sinif Raporu</h4>
+
+<!-- Sube Secimi -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Sinif / Sube</label>
+                <select name="sube_id" class="form-select">
+                    <option value="">Sube secin...</option>
+                    {% for s in subeler %}
+                    <option value="{{ s.id }}" {% if sube_id == s.id %}selected{% endif %}>{{ s.tam_ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search me-1"></i>Goruntule
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if secili_sube %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-bar-chart me-2"></i>{{ secili_sube.tam_ad }} - Ogrenci Ortalamalari
+        </h6>
+        <span class="badge bg-primary">{{ ogrenci_verileri|length }} ogrenci</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Sira</th>
+                        <th>Ogrenci No</th>
+                        <th>Ad Soyad</th>
+                        <th class="text-center">Sinav Sayisi</th>
+                        <th class="text-center">Ortalama</th>
+                        <th class="text-center">Durum</th>
+                        <th class="text-center">Islem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in ogrenci_verileri %}
+                    <tr>
+                        <td><strong>{{ loop.index }}</strong></td>
+                        <td>{{ v.ogrenci.ogrenci_no }}</td>
+                        <td>{{ v.ogrenci.tam_ad }}</td>
+                        <td class="text-center">{{ v.sinav_sayisi }}</td>
+                        <td class="text-center">
+                            {% if v.ortalama > 0 %}
+                            <span class="badge bg-{{ 'success' if v.ortalama >= 70 else ('warning' if v.ortalama >= 50 else 'danger') }} fs-6">
+                                {{ v.ortalama }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if v.ortalama >= 50 %}
+                            <span class="badge bg-success">Basarili</span>
+                            {% elif v.ortalama > 0 %}
+                            <span class="badge bg-danger">Basarisiz</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('not_defteri.rapor.ogrenci_karnesi', ogrenci_id=v.ogrenci.id) }}"
+                               class="btn btn-sm btn-outline-info" title="Karne">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Bu sinif/subede ogrenci bulunmuyor
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

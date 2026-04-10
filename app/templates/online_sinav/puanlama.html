@@ -1,0 +1,82 @@
+{% extends "online_sinav/_layout.html" %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sonuc.liste') }}">Sonuçlar</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('online_sinav.sonuc.sinav_sonuclari', sinav_id=sinav.id) }}">{{ sinav.baslik }}</a></li>
+<li class="breadcrumb-item active">Puanlama - {{ ogrenci.ad }} {{ ogrenci.soyad }}</li>
+{% endblock %}
+
+{% block online_sinav_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-pencil-square me-2"></i>Klasik Soru Puanlama</h2>
+    <a href="{{ url_for('online_sinav.sonuc.sinav_sonuclari', sinav_id=sinav.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Geri
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <strong>Öğrenci:</strong> {{ ogrenci.ad }} {{ ogrenci.soyad }} ({{ ogrenci.ogrenci_no }})
+            </div>
+            <div class="col-md-6">
+                <strong>Sınav:</strong> {{ sinav.baslik }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    {% for soru in klasik_sorular %}
+    {% set cevap = cevaplar.get(soru.id) %}
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-warning bg-opacity-10">
+            <div class="d-flex justify-content-between align-items-center">
+                <span><strong>Soru {{ soru.sira }}.</strong> <span class="badge bg-warning">Klasik</span></span>
+                <span class="text-muted">Maks. Puan: {{ soru.puan }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="mb-3">{{ soru.soru_metni }}</p>
+
+            <div class="bg-light p-3 rounded mb-3">
+                <strong>Öğrenci Cevabı:</strong><br>
+                {% if cevap and cevap.cevap_metni %}
+                {{ cevap.cevap_metni }}
+                {% else %}
+                <span class="text-muted fst-italic">Cevaplanmadı</span>
+                {% endif %}
+            </div>
+
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Puan:</label>
+                    <div class="input-group">
+                        <input type="number" name="puan_{{ soru.id }}" class="form-control"
+                               min="0" max="{{ soru.puan }}" step="0.5"
+                               value="{{ cevap.puan|round(1) if cevap and cevap.puan is not none else '' }}"
+                               placeholder="0 - {{ soru.puan }}">
+                        <span class="input-group-text">/ {{ soru.puan }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if klasik_sorular %}
+    <div class="d-flex justify-content-end mb-4">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-check-circle me-2"></i>Puanlamayı Kaydet
+        </button>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>Bu sınavda klasik soru bulunmuyor.
+    </div>
+    {% endif %}
+</form>
+{% endblock %}

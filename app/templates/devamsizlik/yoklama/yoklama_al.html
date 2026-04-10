@@ -30,6 +30,7 @@
 </div>
 
 <form method="POST" action="{{ url_for('devamsizlik.yoklama.yoklama_al') }}" class="mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="sube_id" value="{{ sube.id }}">
     <input type="hidden" name="tarih" value="{{ tarih.isoformat() }}">
     <input type="hidden" name="ders_saati" value="{{ ders_saati }}">

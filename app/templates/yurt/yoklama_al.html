@@ -1,0 +1,32 @@
+{% extends "yurt/_layout.html" %}
+{% block title %}Yoklama - Oda {{ oda.oda_no }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('yurt.yoklama.index') }}">Yoklama</a></li>
+<li class="breadcrumb-item active">Oda {{ oda.oda_no }}</li>
+{% endblock %}
+{% block yurt_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Oda {{ oda.oda_no }} Yoklama</h5></div>
+<div class="card-body"><form method="POST">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="mb-3">
+    <label class="form-label">Yoklama Turu</label>
+    <select name="yoklama_turu" class="form-select" style="max-width: 200px">
+        <option value="aksam">Aksam</option><option value="sabah">Sabah</option>
+    </select>
+</div>
+<div class="table-responsive">
+<table class="table table-hover"><thead class="table-light"><tr><th>Ogrenci</th><th>Yatak</th><th>Durum</th></tr></thead><tbody>
+{% for k in kayitlar %}<tr>
+<td>{{ k.ogrenci.tam_ad }}</td><td>{{ k.yatak_no or '-' }}</td>
+<td><div class="btn-group" role="group">
+    <input type="radio" class="btn-check" name="durum_{{ k.ogrenci_id }}" value="mevcut" id="m_{{ k.ogrenci_id }}" checked>
+    <label class="btn btn-outline-success btn-sm" for="m_{{ k.ogrenci_id }}">Mevcut</label>
+    <input type="radio" class="btn-check" name="durum_{{ k.ogrenci_id }}" value="izinli" id="i_{{ k.ogrenci_id }}">
+    <label class="btn btn-outline-info btn-sm" for="i_{{ k.ogrenci_id }}">Izinli</label>
+    <input type="radio" class="btn-check" name="durum_{{ k.ogrenci_id }}" value="yok" id="y_{{ k.ogrenci_id }}">
+    <label class="btn btn-outline-danger btn-sm" for="y_{{ k.ogrenci_id }}">Yok</label>
+</div></td></tr>{% endfor %}
+</tbody></table></div>
+<button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Yoklamayi Kaydet</button>
+</form></div></div>
+{% endblock %}

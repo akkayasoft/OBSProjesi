@@ -1,0 +1,21 @@
+{% extends "kantin/_layout.html" %}
+{% block title %}Yemek Menuleri{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Menuler</li>{% endblock %}
+{% block kantin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="bi bi-calendar-week me-2"></i>Yemek Menuleri</h4>
+    <div><a href="{{ url_for('kantin.menu.haftalik') }}" class="btn btn-info me-2"><i class="bi bi-table me-1"></i>Haftalik</a>
+    <a href="{{ url_for('kantin.menu.yeni') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Yeni Menu</a></div>
+</div>
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0"><thead class="table-light">
+<tr><th>Tarih</th><th>Gun</th><th>Ogle Yemegi</th><th>Kalori</th><th class="text-end">Islemler</th></tr></thead><tbody>
+{% for m in menuler.items %}<tr>
+<td>{{ m.tarih.strftime('%d.%m.%Y') }}</td><td>{{ m.gun }}</td><td>{{ m.ogle_yemegi[:60] }}{% if m.ogle_yemegi|length > 60 %}...{% endif %}</td>
+<td>{% if m.kalori %}{{ m.kalori }} kcal{% else %}-{% endif %}</td>
+<td class="text-end"><a href="{{ url_for('kantin.menu.duzenle', menu_id=m.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+<form method="POST" action="{{ url_for('kantin.menu.sil', menu_id=m.id) }}" class="d-inline" onsubmit="return confirm('Silmek istediginize emin misiniz?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+</tr>{% else %}<tr><td colspan="5" class="text-center text-muted py-4">Henuz menu eklenmemis.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}{{ sinav.baslik }} - Sinav{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sinav-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        position: sticky;
+        top: 56px;
+        z-index: 100;
+    }
+    .timer-display {
+        font-size: 1.5rem;
+        font-weight: bold;
+        font-family: monospace;
+        background: rgba(255,255,255,0.2);
+        padding: 5px 15px;
+        border-radius: 8px;
+    }
+    .timer-danger {
+        background: rgba(220,53,69,0.8) !important;
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    .soru-card {
+        border-left: 4px solid #667eea;
+        transition: all 0.3s;
+    }
+    .soru-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .soru-nav-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        cursor: pointer;
+        border: 2px solid #dee2e6;
+        background: white;
+        transition: all 0.2s;
+    }
+    .soru-nav-btn.answered {
+        background: #198754;
+        color: white;
+        border-color: #198754;
+    }
+    .soru-nav-btn.active {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.3);
+    }
+    .secenek-label {
+        display: block;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 8px;
+    }
+    .secenek-label:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+    }
+    .secenek-label input:checked + .secenek-text {
+        color: #667eea;
+        font-weight: 600;
+    }
+    .secenek-label:has(input:checked) {
+        border-color: #667eea;
+        background: #f0f2ff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Sinav Header -->
+<div class="sinav-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0">{{ sinav.baslik }}</h5>
+            <small>{{ sinav.ders.ad }} | {{ ogrenci.tam_ad }}</small>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="timer-display" id="timer">--:--</div>
+            <button type="button" class="btn btn-light btn-sm" onclick="document.getElementById('sinavForm').submit()" id="submitBtn">
+                <i class="bi bi-send me-1"></i>Sinavi Bitir
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Soru Navigasyonu -->
+        <div class="col-lg-2 mb-4">
+            <div class="card shadow-sm" style="position: sticky; top: 140px;">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-grid-3x3 me-1"></i>Sorular</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for soru in sorular %}
+                        <div class="soru-nav-btn {{ 'answered' if soru.id in mevcut_cevaplar }}"
+                             id="nav-{{ soru.id }}"
+                             onclick="soruGit('soru-{{ soru.id }}')">
+                            {{ loop.index }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    <div class="small">
+                        <div class="d-flex align-items-center mb-1">
+                            <div class="soru-nav-btn answered me-2" style="width:20px;height:20px;font-size:10px;"></div>
+                            <span>Cevaplanan</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="soru-nav-btn me-2" style="width:20px;height:20px;font-size:10px;"></div>
+                            <span>Cevaplanmayan</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <small class="text-muted">
+                        Cevaplanan: <strong id="answeredCount">{{ mevcut_cevaplar|length }}</strong> / {{ sorular|length }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Ogrenci Secimi (Simulasyon) -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-person me-1"></i>Ogrenci</h6>
+                </div>
+                <div class="card-body">
+                    <select class="form-select form-select-sm" onchange="window.location.href='{{ url_for('online_sinav.uygula.baslat', sinav_id=sinav.id) }}?ogrenci_id='+this.value">
+                        {% for o in ogrenciler %}
+                        <option value="{{ o.id }}" {{ 'selected' if o.id == ogrenci.id }}>{{ o.tam_ad }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sorular -->
+        <div class="col-lg-10">
+            <form method="POST" action="{{ url_for('online_sinav.uygula.cevapla', sinav_id=sinav.id) }}" id="sinavForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="ogrenci_id" value="{{ ogrenci.id }}">
+
+                {% for soru in sorular %}
+                <div class="card shadow-sm mb-3 soru-card" id="soru-{{ soru.id }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-dark me-1">Soru {{ loop.index }}</span>
+                                <span class="badge bg-{{ soru.soru_turu_badge }}">{{ soru.soru_turu_str }}</span>
+                            </div>
+                            <span class="badge bg-light text-dark border">{{ soru.puan }} puan</span>
+                        </div>
+
+                        <p class="fs-5 mb-3">{{ soru.soru_metni }}</p>
+
+                        {% if soru.soru_turu == 'coktan_secmeli' %}
+                            {% for sec in soru.secenekler.all() %}
+                            <label class="secenek-label">
+                                <input type="radio" name="soru_{{ soru.id }}" value="{{ sec.id }}" class="me-2 d-none soru-input" data-soru="{{ soru.id }}"
+                                    {% if mevcut_cevaplar.get(soru.id) and mevcut_cevaplar[soru.id].secilen_secenek_id == sec.id %}checked{% endif %}>
+                                <span class="secenek-text">
+                                    <strong>{{ ['A','B','C','D','E','F','G','H'][loop.index0] }})</strong> {{ sec.secenek_metni }}
+                                </span>
+                            </label>
+                            {% endfor %}
+
+                        {% elif soru.soru_turu == 'dogru_yanlis' %}
+                            <label class="secenek-label">
+                                <input type="radio" name="soru_{{ soru.id }}" value="true" class="me-2 d-none soru-input" data-soru="{{ soru.id }}"
+                                    {% if mevcut_cevaplar.get(soru.id) and mevcut_cevaplar[soru.id].dogru_yanlis_cevap == true %}checked{% endif %}>
+                                <span class="secenek-text"><i class="bi bi-check-circle me-1"></i>Dogru</span>
+                            </label>
+                            <label class="secenek-label">
+                                <input type="radio" name="soru_{{ soru.id }}" value="false" class="me-2 d-none soru-input" data-soru="{{ soru.id }}"
+                                    {% if mevcut_cevaplar.get(soru.id) and mevcut_cevaplar[soru.id].dogru_yanlis_cevap == false %}checked{% endif %}>
+                                <span class="secenek-text"><i class="bi bi-x-circle me-1"></i>Yanlis</span>
+                            </label>
+
+                        {% elif soru.soru_turu == 'klasik' %}
+                            <textarea name="soru_{{ soru.id }}" class="form-control soru-input" data-soru="{{ soru.id }}" rows="5"
+                                      placeholder="Cevavinizi buraya yaziniz...">{{ mevcut_cevaplar.get(soru.id, '')|attr('cevap_metni') if mevcut_cevaplar.get(soru.id) else '' }}</textarea>
+
+                        {% elif soru.soru_turu == 'bosluk_doldurma' %}
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-pencil"></i></span>
+                                <input type="text" name="soru_{{ soru.id }}" class="form-control soru-input" data-soru="{{ soru.id }}"
+                                       placeholder="Cevavinizi giriniz..."
+                                       value="{{ mevcut_cevaplar.get(soru.id, '')|attr('cevap_metni') if mevcut_cevaplar.get(soru.id) else '' }}">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="text-center py-4">
+                    <button type="submit" class="btn btn-lg btn-primary px-5" onclick="return confirm('Sinavi bitirmek istediginize emin misiniz?')">
+                        <i class="bi bi-send me-2"></i>Sinavi Bitir ve Gonder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Zamanlayici
+(function() {
+    var sureDakika = {{ sinav.sure }};
+    var baslama = new Date('{{ katilim.baslama_zamani.isoformat() }}Z');
+    var bitis = new Date(baslama.getTime() + sureDakika * 60000);
+    var timerEl = document.getElementById('timer');
+
+    function guncelle() {
+        var simdi = new Date();
+        var kalan = Math.max(0, Math.floor((bitis - simdi) / 1000));
+        var dk = Math.floor(kalan / 60);
+        var sn = kalan % 60;
+        timerEl.textContent = (dk < 10 ? '0' : '') + dk + ':' + (sn < 10 ? '0' : '') + sn;
+
+        if (kalan <= 60) {
+            timerEl.classList.add('timer-danger');
+        }
+        if (kalan <= 0) {
+            clearInterval(interval);
+            timerEl.textContent = '00:00';
+            alert('Sinav suresi doldu! Cevaplariniz gonderiliyor.');
+            document.getElementById('sinavForm').submit();
+        }
+    }
+
+    var interval = setInterval(guncelle, 1000);
+    guncelle();
+})();
+
+// Soru navigasyonu
+function soruGit(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Cevaplanan soru takibi
+document.querySelectorAll('.soru-input').forEach(function(input) {
+    function cevapKontrol() {
+        var soruId = input.dataset.soru;
+        var navBtn = document.getElementById('nav-' + soruId);
+        var answered = false;
+
+        if (input.type === 'radio') {
+            answered = document.querySelector('input[name="soru_' + soruId + '"]:checked') !== null;
+        } else if (input.tagName === 'TEXTAREA' || input.type === 'text') {
+            answered = input.value.trim() !== '';
+        }
+
+        if (answered) {
+            navBtn.classList.add('answered');
+        } else {
+            navBtn.classList.remove('answered');
+        }
+
+        // Cevaplanan sayisini guncelle
+        var total = document.querySelectorAll('.soru-nav-btn.answered').length;
+        document.getElementById('answeredCount').textContent = total;
+    }
+
+    input.addEventListener('change', cevapKontrol);
+    input.addEventListener('input', cevapKontrol);
+});
+</script>
+{% endblock %}

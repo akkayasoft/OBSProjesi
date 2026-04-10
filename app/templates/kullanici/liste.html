@@ -1,0 +1,140 @@
+{% extends "kullanici/_layout.html" %}
+
+{% block title %}Kullanici Listesi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Kullanici Listesi</li>
+{% endblock %}
+
+{% block kullanici_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-people me-2"></i>Kullanici Listesi</h4>
+    <a href="{{ url_for('kullanici.yonetim.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus me-1"></i>Yeni Kullanici
+    </a>
+</div>
+
+<!-- Filtre ve Arama -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('kullanici.yonetim.liste') }}">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="arama" class="form-control" placeholder="Ad, soyad, kullanici adi veya e-posta ara..." value="{{ arama }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="rol" class="form-select">
+                        <option value="">Tum Roller</option>
+                        <option value="admin" {{ 'selected' if rol_filtre == 'admin' }}>Yonetici</option>
+                        <option value="ogretmen" {{ 'selected' if rol_filtre == 'ogretmen' }}>Ogretmen</option>
+                        <option value="veli" {{ 'selected' if rol_filtre == 'veli' }}>Veli</option>
+                        <option value="ogrenci" {{ 'selected' if rol_filtre == 'ogrenci' }}>Ogrenci</option>
+                        <option value="muhasebeci" {{ 'selected' if rol_filtre == 'muhasebeci' }}>Muhasebeci</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="durum" class="form-select">
+                        <option value="">Tum Durumlar</option>
+                        <option value="aktif" {{ 'selected' if durum_filtre == 'aktif' }}>Aktif</option>
+                        <option value="pasif" {{ 'selected' if durum_filtre == 'pasif' }}>Pasif</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-search me-1"></i>Filtrele
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Kullanici Tablosu -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Kullanici Adi</th>
+                        <th>Ad Soyad</th>
+                        <th>E-posta</th>
+                        <th>Rol</th>
+                        <th>Durum</th>
+                        <th>Kayit Tarihi</th>
+                        <th class="text-end">Islemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in kullanicilar.items %}
+                    <tr>
+                        <td>{{ k.id }}</td>
+                        <td><strong>{{ k.username }}</strong></td>
+                        <td>{{ k.tam_ad }}</td>
+                        <td>{{ k.email }}</td>
+                        <td>
+                            {% set rol_badge = {'admin': 'danger', 'ogretmen': 'primary', 'veli': 'success', 'ogrenci': 'info', 'muhasebeci': 'warning'} %}
+                            <span class="badge bg-{{ rol_badge.get(k.rol, 'secondary') }}">{{ k.rol_str }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if k.aktif else 'secondary' }}">
+                                {{ 'Aktif' if k.aktif else 'Pasif' }}
+                            </span>
+                        </td>
+                        <td>{{ k.olusturma_tarihi.strftime('%d.%m.%Y') if k.olusturma_tarihi else '-' }}</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('kullanici.yonetim.detay', kullanici_id=k.id) }}" class="btn btn-outline-info" title="Detay">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('kullanici.yonetim.duzenle', kullanici_id=k.id) }}" class="btn btn-outline-primary" title="Duzenle">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('kullanici.yonetim.aktif_toggle', kullanici_id=k.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-{{ 'warning' if k.aktif else 'success' }}" title="{{ 'Deaktif Et' if k.aktif else 'Aktif Et' }}">
+                                        <i class="bi bi-{{ 'toggle-on' if k.aktif else 'toggle-off' }}"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">Kullanici bulunamadi.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Sayfalama -->
+{% if kullanicilar.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if kullanicilar.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('kullanici.yonetim.liste', page=kullanicilar.prev_num, rol=rol_filtre, durum=durum_filtre, arama=arama) }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in kullanicilar.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {{ 'active' if p == kullanicilar.page }}">
+                <a class="page-link" href="{{ url_for('kullanici.yonetim.liste', page=p, rol=rol_filtre, durum=durum_filtre, arama=arama) }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if kullanicilar.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('kullanici.yonetim.liste', page=kullanicilar.next_num, rol=rol_filtre, durum=durum_filtre, arama=arama) }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

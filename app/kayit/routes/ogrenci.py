@@ -1,20 +1,46 @@
+import os
+import uuid
 from datetime import date
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask import (Blueprint, render_template, redirect, url_for, flash,
+                   request, current_app, session, send_from_directory, abort)
+from flask_login import login_required
+from werkzeug.utils import secure_filename
+from app.utils import role_required, current_user
 from app.extensions import db
 from app.models.muhasebe import Ogrenci
 from app.models.kayit import (
     Sinif, Sube, KayitDonemi, OgrenciKayit, VeliBilgisi, OgrenciBelge
 )
 from app.kayit.forms import (
-    OgrenciKayitForm, OgrenciDuzenleForm, DurumDegistirForm, VeliForm
+    OgrenciKayitForm, OgrenciDuzenleForm, DurumDegistirForm, VeliForm,
+    KarteksYukleForm
 )
 
 bp = Blueprint('ogrenci', __name__)
 
 
+def _save_belge_dosyasi(file_storage, alt_klasor: str) -> tuple[str, str]:
+    """
+    Yüklenen dosyayı `instance/uploads/<alt_klasor>/` altına kaydeder.
+    Geri dönüş: (relative_path, original_filename).
+    """
+    klasor = os.path.join(current_app.config['UPLOAD_FOLDER'], alt_klasor)
+    os.makedirs(klasor, exist_ok=True)
+
+    orijinal = secure_filename(file_storage.filename or 'belge')
+    uzanti = os.path.splitext(orijinal)[1].lower() or '.bin'
+    yeni_ad = f"{uuid.uuid4().hex}{uzanti}"
+    tam_yol = os.path.join(klasor, yeni_ad)
+    file_storage.save(tam_yol)
+
+    # DB'ye `instance/uploads/` köküne göre relative path kaydedelim
+    rel = os.path.join(alt_klasor, yeni_ad)
+    return rel, orijinal
+
+
 @bp.route('/')
 @login_required
+@role_required('admin', 'muhasebeci')
 def liste():
     page = request.args.get('page', 1, type=int)
     arama = request.args.get('q', '')
@@ -22,6 +48,7 @@ def liste():
     durum_filtre = request.args.get('durum', '')
 
     query = Ogrenci.query.filter_by(aktif=True)
+    kayit_joined = False
 
     if arama:
         query = query.filter(
@@ -34,10 +61,22 @@ def liste():
         )
 
     if sinif_filtre:
-        query = query.join(OgrenciKayit).join(Sube).filter(
+        if not kayit_joined:
+            query = query.join(OgrenciKayit)
+            kayit_joined = True
+        query = query.join(Sube).filter(
             Sube.sinif_id == sinif_filtre,
             OgrenciKayit.durum == 'aktif'
         )
+
+    if durum_filtre:
+        if not kayit_joined:
+            query = query.join(OgrenciKayit)
+            kayit_joined = True
+        query = query.filter(OgrenciKayit.durum == durum_filtre)
+
+    if kayit_joined:
+        query = query.distinct()
 
     ogrenciler = query.order_by(Ogrenci.soyad, Ogrenci.ad).paginate(
         page=page, per_page=20, error_out=False
@@ -53,9 +92,59 @@ def liste():
                            durum_filtre=durum_filtre)
 
 
+@bp.route('/karteks-yukle', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'muhasebeci')
+def karteks_yukle():
+    """
+    Karteks görselini yükler, geçici olarak session'a koyar ve yeni kayıt
+    sayfasına yönlendirir. Yeni kayıt sayfası karteksi yan panelde gösterir,
+    kullanıcı bilgileri görüntüye bakarak elle doldurur. Form kaydedilince
+    karteks oluşturulan öğrenciye belge olarak bağlanır.
+    """
+    form = KarteksYukleForm()
+    if form.validate_on_submit():
+        try:
+            rel_path, orijinal = _save_belge_dosyasi(form.karteks.data, 'karteks')
+        except Exception as exc:
+            flash(f'Dosya kaydedilemedi: {exc}', 'danger')
+            return render_template('kayit/ogrenci/karteks_yukle.html', form=form)
+
+        session['karteks_dosya'] = {'rel': rel_path, 'orijinal': orijinal}
+        flash(
+            'Karteks yüklendi. Sağdaki forma karteks görüntüsüne bakarak '
+            'bilgileri doldurun.',
+            'success'
+        )
+        return redirect(url_for('kayit.ogrenci.yeni_kayit'))
+
+    return render_template('kayit/ogrenci/karteks_yukle.html', form=form)
+
+
+@bp.route('/karteks-onizleme')
+@login_required
+@role_required('admin', 'muhasebeci')
+def karteks_onizleme():
+    """Yeni kayıt akışında session'daki karteks görselini serve eder."""
+    karteks = session.get('karteks_dosya')
+    if not karteks:
+        abort(404)
+
+    klasor = current_app.config['UPLOAD_FOLDER']
+    full = os.path.join(klasor, karteks['rel'])
+    if not os.path.exists(full):
+        abort(404)
+
+    return send_from_directory(klasor, karteks['rel'], as_attachment=False)
+
+
 @bp.route('/yeni', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def yeni_kayit():
+    # Karteks varsa yan panelde göstereceğiz, kayıt sonunda öğrenciye bağlayacağız
+    karteks_dosya = session.get('karteks_dosya')
+
     form = OgrenciKayitForm()
 
     donemler = KayitDonemi.query.filter_by(aktif=True).all()
@@ -119,16 +208,53 @@ def yeni_kayit():
                 teslim_edildi=False
             ))
 
+        # Karteks ile gelmişse dosyayı belge olarak kaydet
+        if karteks_dosya:
+            db.session.add(OgrenciBelge(
+                ogrenci_id=ogrenci.id,
+                belge_turu='karteks',
+                teslim_edildi=True,
+                teslim_tarihi=date.today(),
+                dosya_yolu=karteks_dosya.get('rel'),
+                orijinal_ad=karteks_dosya.get('orijinal'),
+                aciklama='Kayıt sırasında karteks olarak yüklendi.'
+            ))
+
         db.session.commit()
+
+        # Karteks session'ını temizle
+        session.pop('karteks_dosya', None)
+
         flash(f'{ogrenci.tam_ad} başarıyla kaydedildi.', 'success')
         return redirect(url_for('kayit.ogrenci.detay', ogrenci_id=ogrenci.id))
 
     return render_template('kayit/ogrenci/kayit_form.html',
-                           form=form, baslik='Yeni Öğrenci Kaydı')
+                           form=form, baslik='Yeni Öğrenci Kaydı',
+                           karteks_aktif=bool(karteks_dosya),
+                           karteks_dosya=karteks_dosya)
+
+
+@bp.route('/karteks-iptal', methods=['POST'])
+@login_required
+@role_required('admin', 'muhasebeci')
+def karteks_iptal():
+    """Session'daki karteks görselini ve geçici dosyayı temizler."""
+    karteks_dosya = session.pop('karteks_dosya', None)
+    if karteks_dosya:
+        try:
+            full = os.path.join(current_app.config['UPLOAD_FOLDER'],
+                                karteks_dosya['rel'])
+            if os.path.exists(full):
+                os.remove(full)
+        except OSError:
+            pass
+    flash('Karteks kaldırıldı.', 'info')
+    return redirect(url_for('kayit.ogrenci.yeni_kayit'))
 
 
 @bp.route('/<int:ogrenci_id>')
 @login_required
+@role_required('admin', 'muhasebeci')
 def detay(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     kayitlar = OgrenciKayit.query.filter_by(
@@ -152,6 +278,7 @@ def detay(ogrenci_id):
 
 @bp.route('/<int:ogrenci_id>/duzenle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def duzenle(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     form = OgrenciDuzenleForm(obj=ogrenci)
@@ -179,6 +306,7 @@ def duzenle(ogrenci_id):
 
 @bp.route('/<int:ogrenci_id>/durum', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def durum_degistir(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     aktif_kayit = OgrenciKayit.query.filter_by(
@@ -210,6 +338,7 @@ def durum_degistir(ogrenci_id):
 
 @bp.route('/<int:ogrenci_id>/veli-ekle', methods=['GET', 'POST'])
 @login_required
+@role_required('admin', 'muhasebeci')
 def veli_ekle(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     form = VeliForm()

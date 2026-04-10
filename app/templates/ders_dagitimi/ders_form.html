@@ -1,0 +1,72 @@
+{% extends "ders_dagitimi/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('ders_dagitimi.ders.liste') }}">Dersler</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block ders_dagitimi_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-journal-plus me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.kod.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.kod(class="form-control") }}
+                            {% for error in form.kod.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.kategori.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.kategori(class="form-select") }}
+                            {% for error in form.kategori.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.sinif_seviyesi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sinif_seviyesi(class="form-select") }}
+                            {% for error in form.sinif_seviyesi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.haftalik_saat.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.haftalik_saat(class="form-control", min="1", max="20") }}
+                            {% for error in form.haftalik_saat.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control", rows="3") }}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('ders_dagitimi.ders.liste') }}" class="btn btn-secondary me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

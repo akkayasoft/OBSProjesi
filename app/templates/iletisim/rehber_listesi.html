@@ -1,0 +1,123 @@
+{% extends "iletisim/_layout.html" %}
+
+{% block title %}İletişim Rehberi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Rehber</li>
+{% endblock %}
+
+{% block iletisim_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-person-rolodex me-2"></i>İletişim Rehberi</h4>
+    <a href="{{ url_for('iletisim.rehber.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Kişi
+    </a>
+</div>
+
+<!-- Filtre -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="arama" class="form-control" placeholder="Ad, soyad, telefon..." value="{{ arama }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="kategori" class="form-select form-select-sm">
+                    <option value="">Tüm Kategoriler</option>
+                    <option value="veli" {% if kategori == 'veli' %}selected{% endif %}>Veli</option>
+                    <option value="kurum" {% if kategori == 'kurum' %}selected{% endif %}>Kurum</option>
+                    <option value="diger" {% if kategori == 'diger' %}selected{% endif %}>Diğer</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm btn-primary">Filtrele</button>
+                <a href="{{ url_for('iletisim.rehber.liste') }}" class="btn btn-sm btn-outline-secondary">Temizle</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ad Soyad</th>
+                        <th>Telefon</th>
+                        <th>E-Posta</th>
+                        <th>Kategori</th>
+                        <th>Kurum/Görev</th>
+                        <th>Öğrenci</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in kisiler.items %}
+                    <tr>
+                        <td>
+                            <strong>{{ k.tam_ad }}</strong>
+                            {% if k.yakinlik %}<br><small class="text-muted">{{ k.yakinlik_str }}</small>{% endif %}
+                        </td>
+                        <td>{{ k.telefon }}</td>
+                        <td>{{ k.email or '-' }}</td>
+                        <td><span class="badge bg-{{ k.kategori_badge }}">{{ k.kategori_str }}</span></td>
+                        <td>
+                            {% if k.kurum %}{{ k.kurum }}{% endif %}
+                            {% if k.gorev %}<br><small class="text-muted">{{ k.gorev }}</small>{% endif %}
+                            {% if not k.kurum and not k.gorev %}-{% endif %}
+                        </td>
+                        <td>
+                            {% if k.ogrenci %}
+                            {{ k.ogrenci.tam_ad }}<br><small class="text-muted">{{ k.ogrenci.sinif }}</small>
+                            {% else %}-{% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('iletisim.rehber.duzenle', kisi_id=k.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('iletisim.rehber.sil', kisi_id=k.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Bu kişiyi silmek istediğinize emin misiniz?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Kayıt bulunamadı</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if kisiler.pages > 1 %}
+<nav class="mt-3">
+    <ul class="pagination justify-content-center">
+        {% if kisiler.has_prev %}
+        <li class="page-item"><a class="page-link" href="?page={{ kisiler.prev_num }}&kategori={{ kategori }}&arama={{ arama }}">Önceki</a></li>
+        {% endif %}
+        {% for p in kisiler.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == kisiler.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&kategori={{ kategori }}&arama={{ arama }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if kisiler.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ kisiler.next_num }}&kategori={{ kategori }}&arama={{ arama }}">Sonraki</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

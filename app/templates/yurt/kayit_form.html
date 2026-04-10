@@ -1,0 +1,16 @@
+{% extends "yurt/_layout.html" %}
+{% block title %}Ogrenci Yerlestir{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Ogrenci Yerlestir</li>{% endblock %}
+{% block yurt_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Ogrenci Yerlestir</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-6 mb-3">{{ form.oda_id.label(class="form-label") }}{{ form.oda_id(class="form-select") }}</div>
+    <div class="col-md-6 mb-3">{{ form.ogrenci_id.label(class="form-label") }}{{ form.ogrenci_id(class="form-select") }}</div>
+    <div class="col-md-4 mb-3">{{ form.yatak_no.label(class="form-label") }}{{ form.yatak_no(class="form-control") }}</div>
+    <div class="col-md-4 mb-3">{{ form.baslangic_tarihi.label(class="form-label") }}{{ form.baslangic_tarihi(class="form-control", type="date") }}</div>
+</div>
+<button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i>Yerlestir</button>
+<a href="{{ url_for('yurt.oda.liste') }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}

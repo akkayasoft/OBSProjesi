@@ -1,0 +1,166 @@
+{% extends "not_defteri/_layout.html" %}
+
+{% block title %}Not Defteri{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakis</li>
+{% endblock %}
+
+{% block not_defteri_content %}
+<h4 class="mb-4"><i class="bi bi-journal-bookmark me-2"></i>Not Defteri</h4>
+
+<!-- Istatistik Kartlari -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Toplam Sinav</p>
+                        <h3 class="mb-0">{{ toplam_sinav }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Ortalama Puan</p>
+                        <h3 class="mb-0">{{ ortalama_puan }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Odev Sayisi</p>
+                        <h3 class="mb-0">{{ toplam_odev }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Teslim Orani</p>
+                        <h3 class="mb-0">%{{ teslim_orani }}</h3>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hizli Erisim ve Son Sinavlar -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Hizli Erisim</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('not_defteri.sinav.liste') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-pencil-square me-3 text-primary"></i>
+                        <div>
+                            <strong>Sinavlar</strong>
+                            <p class="mb-0 small text-muted">Sinav listesini goruntule ve yonet</p>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('not_defteri.sinav.yeni') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-plus-circle me-3 text-success"></i>
+                        <div>
+                            <strong>Yeni Sinav Olustur</strong>
+                            <p class="mb-0 small text-muted">Yeni bir sinav tanimla</p>
+                        </div>
+                    </a>
+                    <a href="/odev/liste" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-clipboard-check me-3 text-warning"></i>
+                        <div>
+                            <strong>Odev Takip</strong>
+                            <p class="mb-0 small text-muted">Odevleri goruntule ve teslim durumlarini yonet</p>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('not_defteri.rapor.index') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-file-earmark-bar-graph me-3 text-info"></i>
+                        <div>
+                            <strong>Raporlar</strong>
+                            <p class="mb-0 small text-muted">Ogrenci karneleri ve sinif raporlari</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Son Sinavlar</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Sinav</th>
+                                <th>Ders</th>
+                                <th>Tarih</th>
+                                <th>Ortalama</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in son_sinavlar %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('not_defteri.sinav.sonuclar', sinav_id=s.id) }}">
+                                        {{ s.ad }}
+                                    </a>
+                                </td>
+                                <td>{{ s.ders.ad }}</td>
+                                <td>{{ s.tarih.strftime('%d.%m.%Y') }}</td>
+                                <td>
+                                    {% if s.not_ortalamasi > 0 %}
+                                    <span class="badge bg-{{ 'success' if s.not_ortalamasi >= 70 else ('warning' if s.not_ortalamasi >= 50 else 'danger') }}">
+                                        {{ s.not_ortalamasi }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">Henuz sinav bulunmuyor</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "ortak_sinav/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block ortak_sinav_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-journal-check me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ders_id.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ders_id(class="form-select") }}
+                            {% for error in form.ders_id.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.seviye.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.seviye(class="form-select") }}
+                            {% for error in form.seviye.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.donem.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.donem(class="form-control") }}
+                            {% for error in form.donem.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.tarih.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.tarih(class="form-control") }}
+                            {% for error in form.tarih.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.sure_dakika.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sure_dakika(class="form-control", min="5", max="300") }}
+                            {% for error in form.sure_dakika.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.soru_sayisi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.soru_sayisi(class="form-control", min="1", max="200") }}
+                            {% for error in form.soru_sayisi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.toplam_puan.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.toplam_puan(class="form-control", min="1", max="1000") }}
+                            {% for error in form.toplam_puan.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.durum.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.durum(class="form-select") }}
+                            {% for error in form.durum.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control") }}
+                            {% for error in form.aciklama.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('ortak_sinav.sinav.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

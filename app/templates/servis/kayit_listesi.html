@@ -1,0 +1,30 @@
+{% extends "servis/_layout.html" %}
+{% block title %}Servis Kayitlari{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Kayitlar</li>{% endblock %}
+{% block servis_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-people me-2"></i>Servis Kayitlari</h4>
+    <a href="{{ url_for('servis.kayit.yeni') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Yeni Kayit</a>
+</div>
+<div class="card mb-3"><div class="card-body py-2">
+<form method="GET" class="row g-2 align-items-center">
+    <div class="col-auto"><select name="durum" class="form-select form-select-sm"><option value="">Tum Durumlar</option>
+    <option value="aktif" {% if durum=='aktif' %}selected{% endif %}>Aktif</option>
+    <option value="pasif" {% if durum=='pasif' %}selected{% endif %}>Pasif</option>
+    <option value="iptal" {% if durum=='iptal' %}selected{% endif %}>Iptal</option></select></div>
+    <div class="col-auto"><button class="btn btn-sm btn-primary">Filtrele</button></div>
+</form></div></div>
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0"><thead class="table-light">
+<tr><th>Ogrenci</th><th>Guzergah</th><th>Durak</th><th>Yon</th><th>Baslangic</th><th>Durum</th><th class="text-end">Islemler</th></tr></thead><tbody>
+{% for k in kayitlar.items %}<tr>
+<td>{{ k.ogrenci.tam_ad }}</td><td>{{ k.guzergah.kod }} - {{ k.guzergah.ad }}</td><td>{{ k.durak.ad if k.durak else '-' }}</td>
+<td><span class="badge bg-{{ k.binis_yonu_badge }}">{{ k.binis_yonu_str }}</span></td>
+<td>{{ k.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+<td><span class="badge bg-{{ k.durum_badge }}">{{ k.durum_str }}</span></td>
+<td class="text-end"><a href="{{ url_for('servis.kayit.duzenle', kayit_id=k.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+<form method="POST" action="{{ url_for('servis.kayit.sil', kayit_id=k.id) }}" class="d-inline" onsubmit="return confirm('Silmek istediginize emin misiniz?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+</tr>{% else %}<tr><td colspan="7" class="text-center text-muted py-4">Kayit bulunamadi.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

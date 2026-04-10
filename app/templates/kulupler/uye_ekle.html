@@ -1,0 +1,51 @@
+{% extends "kulupler/_layout.html" %}
+
+{% block title %}Uye Ekle - {{ kulup.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kulupler.kulup.liste') }}">Kulup Listesi</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('kulupler.kulup.detay', kulup_id=kulup.id) }}">{{ kulup.ad }}</a></li>
+<li class="breadcrumb-item active">Uye Ekle</li>
+{% endblock %}
+
+{% block kulupler_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>{{ kulup.ad }} - Uye Ekle</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Kontenjan: {{ kulup.aktif_uye_sayisi }} / {{ kulup.kontenjan }}
+                </div>
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.ogrenci_id.label.text }} <span class="text-danger">*</span></label>
+                        {{ form.ogrenci_id(class="form-select") }}
+                        {% for error in form.ogrenci_id.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.gorev.label.text }} <span class="text-danger">*</span></label>
+                        {{ form.gorev(class="form-select") }}
+                        {% for error in form.gorev.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('kulupler.uyelik.liste', kulup_id=kulup.id) }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

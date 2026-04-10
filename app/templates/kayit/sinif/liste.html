@@ -26,13 +26,18 @@
             <i class="bi bi-mortarboard me-2"></i>{{ sinif.ad }}
             <span class="badge bg-primary ms-2">{{ sinif.ogrenci_sayisi }} öğrenci</span>
         </h6>
-        <form method="POST" action="{{ url_for('kayit.sinif.sinif_sil', sinif_id=sinif.id) }}" class="d-inline">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm btn-outline-danger"
-                    data-confirm="Bu sınıfı silmek istediğinizden emin misiniz?">
-                <i class="bi bi-trash"></i>
-            </button>
-        </form>
+        <div>
+            <a href="{{ url_for('kayit.sinif.sinif_duzenle', sinif_id=sinif.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <form method="POST" action="{{ url_for('kayit.sinif.sinif_sil', sinif_id=sinif.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger"
+                        data-confirm="Bu sınıfı silmek istediğinizden emin misiniz?">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
     </div>
     <div class="card-body">
         <div class="row g-3">
@@ -62,13 +67,18 @@
                             <div class="progress-bar {% if doluluk >= 90 %}bg-danger{% elif doluluk >= 70 %}bg-warning{% else %}bg-success{% endif %}"
                                  style="width: {{ doluluk }}%"></div>
                         </div>
-                        <form method="POST" action="{{ url_for('kayit.sinif.sube_sil', sube_id=sube.id) }}" class="mt-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm btn-outline-danger"
-                                    data-confirm="Bu şubeyi silmek istediğinizden emin misiniz?">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
+                        <div class="mt-2">
+                            <a href="{{ url_for('kayit.sinif.sube_duzenle', sube_id=sube.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('kayit.sinif.sube_sil', sube_id=sube.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        data-confirm="Bu şubeyi silmek istediğinizden emin misiniz?">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

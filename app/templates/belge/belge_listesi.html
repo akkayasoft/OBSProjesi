@@ -1,0 +1,28 @@
+{% extends "belge/_layout.html" %}
+{% block title %}Belgeler{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Belgeler</li>{% endblock %}
+{% block belge_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="bi bi-file-earmark-text me-2"></i>Belge / Dokuman Yonetimi</h4>
+    <a href="{{ url_for('belge.belge_yonetim.yeni') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Yeni Belge</a>
+</div>
+<div class="card mb-3"><div class="card-body py-2"><form method="GET" class="row g-2 align-items-center">
+<div class="col-md-4"><input type="text" name="arama" class="form-control form-control-sm" placeholder="Belge ara..." value="{{ arama }}"></div>
+<div class="col-auto"><select name="kategori" class="form-select form-select-sm"><option value="">Tum Kategoriler</option>
+{% for k, v in [('resmi','Resmi Yazi'),('genelge','Genelge'),('yonerge','Yonerge'),('form','Form'),('rapor','Rapor'),('diger','Diger')] %}
+<option value="{{ k }}" {% if kategori==k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></div>
+<div class="col-auto"><button class="btn btn-sm btn-primary">Ara</button></div></form></div></div>
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover mb-0"><thead class="table-light">
+<tr><th>Baslik</th><th>Kategori</th><th>Erisim</th><th>Yukleyen</th><th>Tarih</th><th class="text-end">Islemler</th></tr></thead><tbody>
+{% for b in belgeler.items %}<tr>
+<td class="fw-semibold"><i class="bi bi-file-earmark me-1"></i>{{ b.baslik }}</td>
+<td><span class="badge bg-secondary">{{ b.kategori_str }}</span></td>
+<td>{{ b.erisim }}</td><td>{{ b.yukleyen.tam_ad }}</td>
+<td>{{ b.created_at.strftime('%d.%m.%Y') }}</td>
+<td class="text-end"><a href="{{ url_for('belge.belge_yonetim.duzenle', belge_id=b.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+<form method="POST" action="{{ url_for('belge.belge_yonetim.sil', belge_id=b.id) }}" class="d-inline" onsubmit="return confirm('Silmek istediginize emin misiniz?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+</tr>{% else %}<tr><td colspan="6" class="text-center text-muted py-4">Belge bulunamadi.</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

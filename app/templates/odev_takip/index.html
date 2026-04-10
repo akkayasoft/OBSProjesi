@@ -1,0 +1,220 @@
+{% extends "odev_takip/_layout.html" %}
+
+{% block title %}Odev Takip{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Genel Bakis</li>
+{% endblock %}
+
+{% block odev_takip_content %}
+<h4 class="mb-4"><i class="bi bi-journal-text me-2"></i>Odev Takip</h4>
+
+<!-- Istatistik Kartlari -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Toplam Odev</p>
+                        <h3 class="mb-0">{{ toplam_odev }}</h3>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Bekleyen Teslim</p>
+                        <h3 class="mb-0">{{ bekleyen_teslim }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-danger border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Suresi Gecen</p>
+                        <h3 class="mb-0">{{ geciken_odev }}</h3>
+                    </div>
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Tamamlanma Orani</p>
+                        <h3 class="mb-0">%{{ tamamlanma_orani }}</h3>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Hizli Erisim -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Hizli Erisim</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('odev_takip.odev.liste') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-list-task me-3 text-primary"></i>
+                        <div>
+                            <strong>Odev Listesi</strong>
+                            <p class="mb-0 small text-muted">Tum odevleri goruntule ve yonet</p>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('odev_takip.odev.yeni') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-plus-circle me-3 text-success"></i>
+                        <div>
+                            <strong>Yeni Odev Olustur</strong>
+                            <p class="mb-0 small text-muted">Yeni bir odev tanimla</p>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('odev_takip.rapor.index') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-graph-up me-3 text-info"></i>
+                        <div>
+                            <strong>Raporlar</strong>
+                            <p class="mb-0 small text-muted">Ogrenci, ders ve sinif bazli raporlar</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yaklasan Odevler -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Suresi Yaklasan Odevler</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Odev</th>
+                                <th>Ders</th>
+                                <th>Son Teslim</th>
+                                <th>Teslim Orani</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in yaklasan_odevler %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('odev_takip.odev.detay', odev_id=o.id) }}">
+                                        {{ o.baslik }}
+                                    </a>
+                                </td>
+                                <td>{{ o.ders.ad }}</td>
+                                <td>{{ o.son_teslim_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td>
+                                    <div class="progress" style="height: 18px; min-width: 60px;">
+                                        <div class="progress-bar bg-{{ 'success' if o.teslim_orani >= 80 else ('warning' if o.teslim_orani >= 50 else 'danger') }}"
+                                             style="width: {{ o.teslim_orani }}%">
+                                            %{{ o.teslim_orani }}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">Yaklasan odev bulunmuyor</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Son Eklenen Odevler -->
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Son Eklenen Odevler</h6>
+                <a href="{{ url_for('odev_takip.odev.liste') }}" class="btn btn-sm btn-outline-primary">Tumunu Gor</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Odev</th>
+                                <th>Ders</th>
+                                <th>Sinif/Sube</th>
+                                <th>Son Teslim</th>
+                                <th>Durum</th>
+                                <th>Teslim Orani</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in son_odevler %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('odev_takip.odev.detay', odev_id=o.id) }}">
+                                        <strong>{{ o.baslik }}</strong>
+                                    </a>
+                                </td>
+                                <td>{{ o.ders.ad }}</td>
+                                <td>{{ o.sube.tam_ad }}</td>
+                                <td>{{ o.son_teslim_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td>
+                                    {% if o.gecikti_mi %}
+                                    <span class="badge bg-danger">Suresi Gecti</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Aktif</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 18px; min-width: 60px;">
+                                        <div class="progress-bar bg-{{ 'success' if o.teslim_orani >= 80 else ('warning' if o.teslim_orani >= 50 else 'danger') }}"
+                                             style="width: {{ o.teslim_orani }}%">
+                                            %{{ o.teslim_orani }}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Henuz odev bulunmuyor</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

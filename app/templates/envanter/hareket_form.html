@@ -1,0 +1,20 @@
+{% extends "envanter/_layout.html" %}
+{% block title %}Hareket Ekle{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('envanter.demirbas.detay', demirbas_id=demirbas.id) }}">{{ demirbas.ad }}</a></li>
+<li class="breadcrumb-item active">Hareket Ekle</li>
+{% endblock %}
+{% block envanter_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Hareket Ekle - {{ demirbas.ad }}</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-4 mb-3">{{ form.hareket_tipi.label(class="form-label") }}{{ form.hareket_tipi(class="form-select") }}</div>
+    <div class="col-md-4 mb-3">{{ form.yeni_konum.label(class="form-label") }}{{ form.yeni_konum(class="form-control", placeholder=demirbas.konum) }}</div>
+    <div class="col-md-4 mb-3">{{ form.tarih.label(class="form-label") }}{{ form.tarih(class="form-control", type="date") }}</div>
+    <div class="col-md-6 mb-3">{{ form.yeni_sorumlu_id.label(class="form-label") }}{{ form.yeni_sorumlu_id(class="form-select") }}</div>
+    <div class="col-12 mb-3">{{ form.aciklama.label(class="form-label") }}{{ form.aciklama(class="form-control") }}</div>
+</div>
+<button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Kaydet</button>
+<a href="{{ url_for('envanter.demirbas.detay', demirbas_id=demirbas.id) }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}

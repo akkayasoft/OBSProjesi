@@ -1,0 +1,149 @@
+{% extends "etut/_layout.html" %}
+
+{% block title %}Etut Detay - {{ etut.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ etut.ad }}</li>
+{% endblock %}
+
+{% block etut_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-book me-2"></i>{{ etut.ad }}</h4>
+    <div>
+        <a href="{{ url_for('etut.katilim.yoklama', etut_id=etut.id) }}" class="btn btn-success me-1">
+            <i class="bi bi-check2-square me-1"></i>Yoklama Al
+        </a>
+        <a href="{{ url_for('etut.etut_yonetim.duzenle', etut_id=etut.id) }}" class="btn btn-warning me-1">
+            <i class="bi bi-pencil me-1"></i>Duzenle
+        </a>
+        <form method="POST" action="{{ url_for('etut.etut_yonetim.sil', etut_id=etut.id) }}"
+              class="d-inline" onsubmit="return confirm('Bu etudu silmek istediginize emin misiniz?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i>Sil
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Etut Bilgileri -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Etut Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <th class="text-muted" style="width: 40%">Etut Adi</th>
+                        <td>{{ etut.ad }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Ogretmen</th>
+                        <td>{{ etut.ogretmen.tam_ad }}</td>
+                    </tr>
+                    {% if etut.ders %}
+                    <tr>
+                        <th class="text-muted">Ders</th>
+                        <td>{{ etut.ders.kod }} - {{ etut.ders.ad }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if etut.sube %}
+                    <tr>
+                        <th class="text-muted">Sube</th>
+                        <td>{{ etut.sube.tam_ad }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th class="text-muted">Gun</th>
+                        <td><span class="badge bg-{{ etut.gun_badge }}">{{ etut.gun }}</span></td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Saat</th>
+                        <td><span class="badge bg-dark">{{ etut.saat_araligi }}</span></td>
+                    </tr>
+                    {% if etut.derslik %}
+                    <tr>
+                        <th class="text-muted">Derslik</th>
+                        <td>{{ etut.derslik }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th class="text-muted">Kontenjan</th>
+                        <td>{{ etut.kontenjan }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Donem</th>
+                        <td>{{ etut.donem }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Durum</th>
+                        <td>
+                            {% if etut.aktif %}
+                            <span class="badge bg-success">Aktif</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Pasif</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">Kayitli Ogrenci</th>
+                        <td>{{ ogrenci_sayisi }}</td>
+                    </tr>
+                    {% if etut.aciklama %}
+                    <tr>
+                        <th class="text-muted">Aciklama</th>
+                        <td>{{ etut.aciklama }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Katilim Kayitlari -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Son Katilim Kayitlari</h5>
+                <a href="{{ url_for('etut.katilim.gecmis', etut_id=etut.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-clock-history me-1"></i>Tum Gecmis
+                </a>
+            </div>
+            <div class="card-body">
+                {% if son_katilimlar %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Ogrenci</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for k in son_katilimlar %}
+                            <tr>
+                                <td>{{ k.tarih.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ k.ogrenci.tam_ad }}</td>
+                                <td>
+                                    {% if k.katildi %}
+                                    <span class="badge bg-success">Katildi</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Katilmadi</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">Henuz katilim kaydi bulunmuyor.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

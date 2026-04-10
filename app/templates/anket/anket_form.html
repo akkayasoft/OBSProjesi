@@ -1,0 +1,79 @@
+{% extends "anket/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block anket_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-clipboard2-data me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.baslik.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.baslik(class="form-control") }}
+                            {% for error in form.baslik.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control") }}
+                            {% for error in form.aciklama.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.hedef_kitle.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.hedef_kitle(class="form-select") }}
+                            {% for error in form.hedef_kitle.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mt-4 pt-2">
+                                <div class="form-check form-check-inline">
+                                    {{ form.anonim(class="form-check-input") }}
+                                    <label class="form-check-label" for="anonim">{{ form.anonim.label.text }}</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    {{ form.aktif(class="form-check-input") }}
+                                    <label class="form-check-label" for="aktif">{{ form.aktif.label.text }}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.baslangic_tarihi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.baslangic_tarihi(class="form-control") }}
+                            {% for error in form.baslangic_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.bitis_tarihi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.bitis_tarihi(class="form-control") }}
+                            {% for error in form.bitis_tarihi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('anket.yonetim.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

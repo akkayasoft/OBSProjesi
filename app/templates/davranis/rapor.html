@@ -1,0 +1,206 @@
+{% extends "davranis/_layout.html" %}
+
+{% block title %}Davranis Degerlendirme Raporlari{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Raporlar</li>
+{% endblock %}
+
+{% block davranis_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Davranis Degerlendirme Raporlari</h4>
+    <a href="{{ url_for('davranis.kayit.liste') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Kayitlara Don
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Sinif</label>
+                <select name="sinif_id" class="form-select">
+                    <option value="">Tum Siniflar</option>
+                    {% for s in siniflar %}
+                    <option value="{{ s.id }}" {% if sinif_id == s.id|string %}selected{% endif %}>{{ s.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Baslangic Tarihi</label>
+                <input type="date" name="baslangic" class="form-control" value="{{ baslangic }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Bitis Tarihi</label>
+                <input type="date" name="bitis" class="form-control" value="{{ bitis }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Genel Istatistikler -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ toplam }}</h3>
+                <small>Toplam Kayit</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ olumlu }}</h3>
+                <small>Olumlu</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ olumsuz }}</h3>
+                <small>Olumsuz</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card {% if toplam_puan >= 0 %}bg-info{% else %}bg-warning{% endif %} text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ '%+d'|format(toplam_puan) }}</h3>
+                <small>Toplam Puan</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafikler -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Kategoriye Gore Dagilim</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="kategoriChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Aylik Trend</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sinif Bazli Ozet -->
+{% if sinif_ozet %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0">Sinif Bazli Ozet</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Sinif</th>
+                    <th>Toplam Kayit</th>
+                    <th>Toplam Puan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sinif_ad, kayit_sayisi, puan in sinif_ozet %}
+                <tr>
+                    <td class="fw-semibold">{{ sinif_ad }}</td>
+                    <td>{{ kayit_sayisi }}</td>
+                    <td>
+                        <span class="fw-bold {% if puan > 0 %}text-success{% elif puan < 0 %}text-danger{% endif %}">
+                            {{ '%+d'|format(puan) }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Kategori Pasta Grafigi
+const kategoriCtx = document.getElementById('kategoriChart').getContext('2d');
+new Chart(kategoriCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ kategori_labels|tojson }},
+        datasets: [{
+            data: {{ kategori_values|tojson }},
+            backgroundColor: [
+                '#0d6efd', '#0dcaf0', '#dc3545', '#ffc107', '#6c757d'
+            ],
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Aylik Trend Grafigi
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+new Chart(trendCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ aylar|tojson }},
+        datasets: [
+            {
+                label: 'Olumlu',
+                data: {{ olumlu_trend|tojson }},
+                backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                borderColor: 'rgb(25, 135, 84)',
+                borderWidth: 1
+            },
+            {
+                label: 'Olumsuz',
+                data: {{ olumsuz_trend|tojson }},
+                backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                borderColor: 'rgb(220, 53, 69)',
+                borderWidth: 1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

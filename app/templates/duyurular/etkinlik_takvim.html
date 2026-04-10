@@ -1,0 +1,91 @@
+{% extends "duyurular/_layout.html" %}
+
+{% block title %}Etkinlik Takvimi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Etkinlik Takvimi</li>
+{% endblock %}
+
+{% block duyurular_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Etkinlik Takvimi</h4>
+    <div>
+        <a href="{{ url_for('duyurular.etkinlik.liste') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-list-ul me-1"></i>Liste Görünümü
+        </a>
+        <a href="{{ url_for('duyurular.etkinlik.yeni') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Etkinlik
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('duyurular.etkinlik.takvim', yil=onceki_yil, ay=onceki_ay) }}"
+               class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-chevron-left"></i> Önceki Ay
+            </a>
+            <h5 class="mb-0">{{ ay_adi }} {{ yil }}</h5>
+            <a href="{{ url_for('duyurular.etkinlik.takvim', yil=sonraki_yil, ay=sonraki_ay) }}"
+               class="btn btn-sm btn-outline-secondary">
+                Sonraki Ay <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0" style="table-layout: fixed;">
+                <thead>
+                    <tr class="bg-light text-center">
+                        <th class="py-2">Pzt</th>
+                        <th class="py-2">Sal</th>
+                        <th class="py-2">Çar</th>
+                        <th class="py-2">Per</th>
+                        <th class="py-2">Cum</th>
+                        <th class="py-2 text-danger">Cmt</th>
+                        <th class="py-2 text-danger">Paz</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hafta in ay_gunleri %}
+                    <tr>
+                        {% for gun in hafta %}
+                        <td class="p-1 align-top {% if gun == 0 %}bg-light{% endif %}"
+                            style="min-height: 80px; height: 100px; vertical-align: top;">
+                            {% if gun != 0 %}
+                            <div class="d-flex flex-column h-100">
+                                <div class="text-end mb-1">
+                                    <span class="{% if bugun.day == gun and bugun.month == ay and bugun.year == yil %}badge bg-primary rounded-pill{% else %}small text-muted{% endif %}">
+                                        {{ gun }}
+                                    </span>
+                                </div>
+                                {% if gun in etkinlik_gunleri %}
+                                <div class="flex-grow-1">
+                                    {% for e in etkinlik_gunleri[gun][:3] %}
+                                    <a href="{{ url_for('duyurular.etkinlik.duzenle', etkinlik_id=e.id) }}"
+                                       class="d-block text-decoration-none mb-1"
+                                       title="{{ e.baslik }} - {{ e.baslangic_tarihi.strftime('%H:%M') }}">
+                                        <span class="badge w-100 text-start text-truncate"
+                                              style="background-color: {{ e.renk }}; font-size: 0.7rem;">
+                                            {% if not e.tum_gun %}{{ e.baslangic_tarihi.strftime('%H:%M') }} {% endif %}{{ e.baslik }}
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                    {% if etkinlik_gunleri[gun]|length > 3 %}
+                                    <small class="text-muted">+{{ etkinlik_gunleri[gun]|length - 3 }} daha</small>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

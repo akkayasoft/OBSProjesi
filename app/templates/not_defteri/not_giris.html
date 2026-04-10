@@ -1,0 +1,146 @@
+{% extends "not_defteri/_layout.html" %}
+
+{% block title %}Not Giris - {{ sinav.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('not_defteri.sinav.liste') }}">Sinavlar</a></li>
+<li class="breadcrumb-item active">Not Giris</li>
+{% endblock %}
+
+{% block not_defteri_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-input-cursor-text me-2"></i>Not Girisi</h4>
+        <p class="text-muted mb-0">
+            <strong>{{ sinav.ad }}</strong> - {{ sinav.ders.ad }} | {{ sinav.sube.tam_ad }} | {{ sinav.tarih.strftime('%d.%m.%Y') }}
+        </p>
+    </div>
+    <a href="{{ url_for('not_defteri.sinav.sonuclar', sinav_id=sinav.id) }}" class="btn btn-outline-info">
+        <i class="bi bi-bar-chart me-1"></i>Sonuclari Gor
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-people me-2"></i>Ogrenci Listesi</h6>
+        <span class="badge bg-primary">{{ ogrenciler|length }} ogrenci</span>
+    </div>
+    <div class="card-body p-0">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 50px">#</th>
+                            <th style="width: 100px">Ogrenci No</th>
+                            <th>Ad Soyad</th>
+                            <th style="width: 120px" class="text-center">Puan (0-100)</th>
+                            <th style="width: 80px" class="text-center">Harf Notu</th>
+                            <th style="width: 200px">Aciklama</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ogr in ogrenciler %}
+                        {% set mevcut = mevcut_notlar.get(ogr.id) %}
+                        <tr>
+                            <td class="text-muted">{{ loop.index }}</td>
+                            <td><strong>{{ ogr.ogrenci_no }}</strong></td>
+                            <td>{{ ogr.tam_ad }}</td>
+                            <td>
+                                <input type="number"
+                                       name="puan_{{ ogr.id }}"
+                                       class="form-control form-control-sm text-center puan-input"
+                                       min="0" max="100" step="0.5"
+                                       value="{{ mevcut.puan if mevcut and mevcut.puan is not none else '' }}"
+                                       placeholder="-"
+                                       data-row="{{ loop.index0 }}">
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark harf-notu" id="harf_{{ ogr.id }}">
+                                    {{ mevcut.harf_notu if mevcut and mevcut.harf_notu else '-' }}
+                                </span>
+                            </td>
+                            <td>
+                                <input type="text"
+                                       name="aciklama_{{ ogr.id }}"
+                                       class="form-control form-control-sm"
+                                       value="{{ mevcut.aciklama if mevcut and mevcut.aciklama else '' }}"
+                                       placeholder="Not...">
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Bu sinif/subede kayitli ogrenci bulunmuyor
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if ogrenciler %}
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Puan girilmeyen ogrencilerin notu kaydedilmez. Tab tusu ile sonraki alana gecebilirsiniz.
+                </div>
+                <div>
+                    <a href="{{ url_for('not_defteri.sinav.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Puan girilince harf notu otomatik goster
+document.querySelectorAll('.puan-input').forEach(function(input) {
+    input.addEventListener('input', function() {
+        var ogrenciId = this.name.replace('puan_', '');
+        var harfSpan = document.getElementById('harf_' + ogrenciId);
+        var puan = parseFloat(this.value);
+
+        if (isNaN(puan) || this.value === '') {
+            harfSpan.textContent = '-';
+            harfSpan.className = 'badge bg-light text-dark harf-notu';
+            return;
+        }
+
+        var harf = '';
+        var renk = '';
+        if (puan >= 90) { harf = 'AA'; renk = 'success'; }
+        else if (puan >= 85) { harf = 'BA'; renk = 'success'; }
+        else if (puan >= 80) { harf = 'BB'; renk = 'success'; }
+        else if (puan >= 75) { harf = 'CB'; renk = 'primary'; }
+        else if (puan >= 70) { harf = 'CC'; renk = 'primary'; }
+        else if (puan >= 65) { harf = 'DC'; renk = 'warning'; }
+        else if (puan >= 60) { harf = 'DD'; renk = 'warning'; }
+        else if (puan >= 50) { harf = 'FD'; renk = 'danger'; }
+        else { harf = 'FF'; renk = 'danger'; }
+
+        harfSpan.textContent = harf;
+        harfSpan.className = 'badge bg-' + renk + ' harf-notu';
+    });
+});
+
+// Tab ile satirlar arasi gezinme (puan alanlarinda)
+document.querySelectorAll('.puan-input').forEach(function(input, index, inputs) {
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            var nextIndex = index + 1;
+            if (nextIndex < inputs.length) {
+                inputs[nextIndex].focus();
+                inputs[nextIndex].select();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

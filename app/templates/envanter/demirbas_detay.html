@@ -1,0 +1,28 @@
+{% extends "envanter/_layout.html" %}
+{% block title %}{{ demirbas.ad }}{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">{{ demirbas.ad }}</li>{% endblock %}
+{% block envanter_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="bi bi-box-seam me-2"></i>{{ demirbas.ad }}</h4>
+    <div><a href="{{ url_for('envanter.demirbas.duzenle', demirbas_id=demirbas.id) }}" class="btn btn-warning"><i class="bi bi-pencil me-1"></i>Duzenle</a>
+    <a href="{{ url_for('envanter.hareket.yeni', demirbas_id=demirbas.id) }}" class="btn btn-info"><i class="bi bi-arrow-left-right me-1"></i>Hareket Ekle</a></div>
+</div>
+<div class="row mb-4"><div class="col-md-6"><div class="card h-100"><div class="card-header"><h6 class="mb-0">Bilgiler</h6></div><div class="card-body">
+<table class="table table-borderless mb-0">
+{% if demirbas.barkod %}<tr><th style="width:35%">Barkod:</th><td><code>{{ demirbas.barkod }}</code></td></tr>{% endif %}
+<tr><th>Kategori:</th><td>{{ demirbas.kategori }}</td></tr>
+{% if demirbas.marka %}<tr><th>Marka/Model:</th><td>{{ demirbas.marka }} {{ demirbas.model_adi or '' }}</td></tr>{% endif %}
+{% if demirbas.seri_no %}<tr><th>Seri No:</th><td>{{ demirbas.seri_no }}</td></tr>{% endif %}
+<tr><th>Konum:</th><td>{{ demirbas.konum }}</td></tr>
+<tr><th>Durum:</th><td><span class="badge bg-{{ demirbas.durum_badge }}">{{ demirbas.durum_str }}</span></td></tr>
+{% if demirbas.sorumlu %}<tr><th>Sorumlu:</th><td>{{ demirbas.sorumlu.ad }} {{ demirbas.sorumlu.soyad }}</td></tr>{% endif %}
+{% if demirbas.edinme_fiyati %}<tr><th>Fiyat:</th><td>{{ "%.2f"|format(demirbas.edinme_fiyati) }} TL</td></tr>{% endif %}
+</table></div></div></div>
+<div class="col-md-6"><div class="card h-100"><div class="card-header"><h6 class="mb-0">Hareket Gecmisi</h6></div><div class="card-body p-0">
+<table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>Tarih</th><th>Tip</th><th>Konum</th><th>Aciklama</th></tr></thead><tbody>
+{% for h in hareketler %}<tr><td>{{ h.tarih.strftime('%d.%m.%Y') }}</td><td>{{ h.hareket_tipi_str }}</td>
+<td>{% if h.yeni_konum %}{{ h.eski_konum or '-' }} → {{ h.yeni_konum }}{% else %}-{% endif %}</td>
+<td>{{ h.aciklama or '-' }}</td></tr>
+{% else %}<tr><td colspan="4" class="text-center text-muted">Hareket yok.</td></tr>{% endfor %}
+</tbody></table></div></div></div></div>
+{% endblock %}

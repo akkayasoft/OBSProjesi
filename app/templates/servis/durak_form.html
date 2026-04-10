@@ -1,0 +1,19 @@
+{% extends "servis/_layout.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('servis.guzergah.detay', guzergah_id=guzergah.id) }}">{{ guzergah.ad }}</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+{% block servis_content %}
+<div class="card"><div class="card-header"><h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>{{ baslik }} - {{ guzergah.ad }}</h5></div>
+<div class="card-body"><form method="POST" novalidate>{{ form.hidden_tag() }}
+<div class="row">
+    <div class="col-md-6 mb-3">{{ form.ad.label(class="form-label") }}{{ form.ad(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.sira.label(class="form-label") }}{{ form.sira(class="form-control") }}</div>
+    <div class="col-md-3 mb-3">{{ form.tahmini_varis.label(class="form-label") }}{{ form.tahmini_varis(class="form-control") }}</div>
+    <div class="col-12 mb-3">{{ form.adres.label(class="form-label") }}{{ form.adres(class="form-control") }}</div>
+</div>
+<button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Kaydet</button>
+<a href="{{ url_for('servis.guzergah.detay', guzergah_id=guzergah.id) }}" class="btn btn-secondary">Iptal</a>
+</form></div></div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "not_defteri/_layout.html" %}
+
+{% block title %}Ogrenci Karnesi - {{ ogrenci.tam_ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('not_defteri.rapor.index') }}">Raporlar</a></li>
+<li class="breadcrumb-item active">Ogrenci Karnesi</li>
+{% endblock %}
+
+{% block not_defteri_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-file-earmark-text me-2"></i>Ogrenci Karnesi</h4>
+        <p class="text-muted mb-0">
+            <strong>{{ ogrenci.ogrenci_no }}</strong> - {{ ogrenci.tam_ad }}
+            {% if ogrenci.sinif %} | {{ ogrenci.sinif }}{% endif %}
+        </p>
+    </div>
+    <a href="{{ url_for('not_defteri.rapor.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Geri
+    </a>
+</div>
+
+<!-- Genel Ortalama -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-start border-primary border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Genel Ortalama</p>
+                <h2 class="mb-0 text-{{ 'success' if genel_ortalama >= 70 else ('warning' if genel_ortalama >= 50 else 'danger') }}">
+                    {{ genel_ortalama }}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-start border-info border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Ders Sayisi</p>
+                <h2 class="mb-0">{{ ders_notlari|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-start border-success border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Toplam Sinav</p>
+                <h2 class="mb-0">{{ ders_notlari.values()|sum(attribute='notlar'|length) if ders_notlari else 0 }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ders Bazinda Notlar -->
+{% for ders_id, veri in ders_notlari.items() %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-journal-text me-2"></i>{{ veri.ders.kod }} - {{ veri.ders.ad }}
+        </h6>
+        <span class="badge bg-{{ 'success' if veri.ortalama >= 70 else ('warning' if veri.ortalama >= 50 else 'danger') }} fs-6">
+            Ort: {{ veri.ortalama }}
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sinav</th>
+                        <th>Tur</th>
+                        <th>Tarih</th>
+                        <th class="text-center">Puan</th>
+                        <th class="text-center">Harf Notu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for n in veri.notlar %}
+                    <tr>
+                        <td>{{ n.sinav.ad }}</td>
+                        <td><span class="badge bg-secondary">{{ n.sinav.sinav_turu.ad }}</span></td>
+                        <td>{{ n.sinav.tarih.strftime('%d.%m.%Y') }}</td>
+                        <td class="text-center fw-bold">{{ n.puan }}</td>
+                        <td class="text-center">
+                            {% set renk = 'success' if n.puan >= 75 else ('primary' if n.puan >= 65 else ('warning' if n.puan >= 50 else 'danger')) %}
+                            <span class="badge bg-{{ renk }}">{{ n.harf_notu }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-inbox display-4 d-block mb-3"></i>
+        Bu ogrenciye ait not kaydi bulunmuyor.
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

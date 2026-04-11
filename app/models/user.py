@@ -17,6 +17,14 @@ class User(UserMixin, db.Model):
     aktif = db.Column(db.Boolean, default=True)
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Kullaniciya ozel modul izinleri (yonetici rolu icin kullanilir)
+    modul_izinleri = db.relationship(
+        'KullaniciModulIzin',
+        backref='kullanici',
+        lazy='dynamic',
+        cascade='all, delete-orphan',
+    )
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -30,6 +38,10 @@ class User(UserMixin, db.Model):
     @property
     def is_admin(self):
         return self.rol == 'admin'
+
+    @property
+    def is_yonetici(self):
+        return self.rol == 'yonetici'
 
     @property
     def is_ogretmen(self):
@@ -50,13 +62,52 @@ class User(UserMixin, db.Model):
     @property
     def rol_str(self):
         rol_map = {
-            'admin': 'Yönetici',
+            'admin': 'Sistem Yöneticisi',
+            'yonetici': 'Dershane Yöneticisi',
             'ogretmen': 'Öğretmen',
             'veli': 'Veli',
             'ogrenci': 'Öğrenci',
             'muhasebeci': 'Muhasebeci',
         }
         return rol_map.get(self.rol, self.rol)
+
+    def can_access(self, modul_key: str) -> bool:
+        """Bu kullanicinin belirtilen module erisim izni var mi?
+
+        Oncelik sirasi:
+          1. admin -> her zaman True (izin kaydi acikca False degilse)
+          2. yonetici -> kullanicinin kendi KullaniciModulIzin kaydi
+          3. diger roller -> RolModulIzin (rol bazli)
+        """
+        if not modul_key:
+            return True  # modul_key yoksa genel bir sayfa, herkes erisebilir
+
+        if self.rol == 'admin':
+            # Admin her seye erisir (opsiyonel olarak devre disi birakilmadikca)
+            from app.models.ayarlar import RolModulIzin
+            return RolModulIzin.izin_var_mi('admin', modul_key)
+
+        if self.rol == 'yonetici':
+            from app.models.ayarlar import KullaniciModulIzin
+            return KullaniciModulIzin.kullanici_izinli_mi(self.id, modul_key)
+
+        # Diger roller (ogretmen, veli, ogrenci, muhasebeci)
+        from app.models.ayarlar import RolModulIzin
+        return RolModulIzin.izin_var_mi(self.rol, modul_key)
+
+    def erisebildigi_moduller(self):
+        """Bu kullanicinin erisebildigi tum modul key'lerini set olarak dondur."""
+        if self.rol == 'admin':
+            from app.models.ayarlar import RolModulIzin
+            # Admin icin: devre disi birakilmamis olanlar
+            return RolModulIzin.rol_izinleri('admin') or set(RolModulIzin.MODULLER.keys())
+
+        if self.rol == 'yonetici':
+            from app.models.ayarlar import KullaniciModulIzin
+            return KullaniciModulIzin.kullanici_izinleri(self.id)
+
+        from app.models.ayarlar import RolModulIzin
+        return RolModulIzin.rol_izinleri(self.rol)
 
     def __repr__(self):
         return f'<User {self.username}>'

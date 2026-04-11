@@ -55,7 +55,8 @@ class RolModulIzin(db.Model):
     }
 
     ROLLER = {
-        'admin': 'Yönetici',
+        'admin': 'Sistem Yöneticisi',
+        'yonetici': 'Dershane Yöneticisi',
         'ogretmen': 'Öğretmen',
         'muhasebeci': 'Muhasebeci',
         'veli': 'Veli',
@@ -85,8 +86,15 @@ class RolModulIzin(db.Model):
     @classmethod
     def varsayilan_izinleri_olustur(cls):
         """Varsayılan izinleri oluştur (mevcut hardcoded yapıdan)"""
+        # yonetici rolunun rol-bazli varsayilanini 'standart' preset'ten aliyoruz.
+        # Bu sadece 'yeni yonetici kullanicisi olusturuldugunda ozel izin yoksa'
+        # fallback olarak kullanilabilir. Asil izin kaynagi KullaniciModulIzin.
+        from app.module_registry import preset_moduller
+        yonetici_varsayilan = preset_moduller('standart')
+
         varsayilan = {
             'admin': list(cls.MODULLER.keys()),
+            'yonetici': yonetici_varsayilan,
             'ogretmen': [
                 'ogretmen_portal', 'devamsizlik', 'ders_dagitimi', 'not_defteri',
                 'odev_takip', 'davranis', 'karne', 'etut', 'sinav_oturum',
@@ -168,3 +176,67 @@ class SistemAyar(db.Model):
 
     def __repr__(self):
         return f'<SistemAyar {self.anahtar}={self.deger}>'
+
+
+class KullaniciModulIzin(db.Model):
+    """Kullanici bazli modul erisim izinleri.
+
+    Oncelikli olarak 'yonetici' rolu icin kullanilir. Her yonetici icin
+    kendi modul setini tutar. Kayit yoksa yonetici o module erisemez.
+    Admin ve diger roller icin kullanilmaz (onlar RolModulIzin'e tabidir).
+    """
+    __tablename__ = 'kullanici_modul_izinleri'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    modul_key = db.Column(db.String(50), nullable=False)
+    aktif = db.Column(db.Boolean, default=True, nullable=False)
+    olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'modul_key', name='uq_kullanici_modul'),
+    )
+
+    @classmethod
+    def kullanici_izinli_mi(cls, user_id: int, modul_key: str) -> bool:
+        """Belirtilen kullanicinin belirtilen module izni var mi?"""
+        izin = cls.query.filter_by(user_id=user_id, modul_key=modul_key).first()
+        if izin is None:
+            return False
+        return izin.aktif
+
+    @classmethod
+    def kullanici_izinleri(cls, user_id: int) -> set:
+        """Bir kullanicinin izinli oldugu tum modul key'lerini set olarak dondur."""
+        kayitlar = cls.query.filter_by(user_id=user_id, aktif=True).all()
+        return {k.modul_key for k in kayitlar}
+
+    @classmethod
+    def kullanici_izinlerini_ayarla(cls, user_id: int, modul_keyler):
+        """Bir kullanicinin tum modul izinlerini verilen listeyle degistir.
+
+        - Listedeki modul'ler aktif=True olarak kaydedilir (yoksa eklenir).
+        - Listede olmayan eski izinler aktif=False'a alinir (soft disable).
+        Commit cagrani kullanici yapmali.
+        """
+        from app.models.ayarlar import RolModulIzin  # lazy import
+        gecerli_moduller = set(RolModulIzin.MODULLER.keys())
+        yeni_set = set(modul_keyler) & gecerli_moduller
+
+        mevcut = {k.modul_key: k for k in cls.query.filter_by(user_id=user_id).all()}
+
+        # Ekle veya aktif yap
+        for mk in yeni_set:
+            if mk in mevcut:
+                mevcut[mk].aktif = True
+            else:
+                db.session.add(cls(user_id=user_id, modul_key=mk, aktif=True))
+
+        # Listede olmayanlari pasifle
+        for mk, kayit in mevcut.items():
+            if mk not in yeni_set:
+                kayit.aktif = False
+
+    def __repr__(self):
+        return f'<KullaniciModulIzin user={self.user_id} modul={self.modul_key} aktif={self.aktif}>'

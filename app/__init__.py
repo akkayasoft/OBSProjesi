@@ -328,13 +328,13 @@ def create_app(config_class=Config):
 
         # Dinamik izin kontrolü ile menü filtrele
         if current_user.is_authenticated:
-            rol = current_user.rol
-            # Kullanıcının erişebildiği modülleri çek (tek sorgu)
-            izinli_moduller = RolModulIzin.rol_izinleri(rol)
-            # Eğer hiç izin kaydı yoksa (ilk kurulum), varsayılanları oluştur
-            if not izinli_moduller and RolModulIzin.query.count() == 0:
+            # Ilk kurulumda varsayilan izinleri olustur
+            if RolModulIzin.query.count() == 0:
                 RolModulIzin.varsayilan_izinleri_olustur()
-                izinli_moduller = RolModulIzin.rol_izinleri(rol)
+
+            # Kullanicinin erisebildigi modulleri (User.erisebildigi_moduller
+            # admin/yonetici/diger durumlari zaten birlesik dondurur)
+            izinli_moduller = current_user.erisebildigi_moduller()
 
             menu_items = []
             for item in all_menu_items:

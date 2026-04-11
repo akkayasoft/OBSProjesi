@@ -1,0 +1,204 @@
+{% extends "kullanici/_layout.html" %}
+
+{% block title %}{{ 'Yeni Yonetici' if mod == 'yeni' else yonetici.tam_ad + ' - Duzenle' }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kullanici.yonetici.liste') }}">Dershane Yoneticileri</a></li>
+<li class="breadcrumb-item active">{{ 'Yeni' if mod == 'yeni' else 'Duzenle' }}</li>
+{% endblock %}
+
+{% block kullanici_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">
+        <i class="bi bi-person-gear me-2"></i>
+        {{ 'Yeni Dershane Yoneticisi' if mod == 'yeni' else yonetici.tam_ad }}
+    </h4>
+    <a href="{{ url_for('kullanici.yonetici.liste') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Listeye Don
+    </a>
+</div>
+
+<form method="POST" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <!-- Sol: Kullanici bilgileri -->
+        <div class="col-md-5">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-light">
+                    <strong><i class="bi bi-person me-2"></i>Kullanici Bilgileri</strong>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.username.label(class='form-label') }}
+                        {{ form.username(class='form-control' + (' is-invalid' if form.username.errors else '')) }}
+                        {% for err in form.username.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.email.label(class='form-label') }}
+                        {{ form.email(class='form-control' + (' is-invalid' if form.email.errors else '')) }}
+                        {% for err in form.email.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            {{ form.ad.label(class='form-label') }}
+                            {{ form.ad(class='form-control' + (' is-invalid' if form.ad.errors else '')) }}
+                            {% for err in form.ad.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                        </div>
+                        <div class="col-6 mb-3">
+                            {{ form.soyad.label(class='form-label') }}
+                            {{ form.soyad(class='form-control' + (' is-invalid' if form.soyad.errors else '')) }}
+                            {% for err in form.soyad.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label(class='form-label') }}
+                        {{ form.password(class='form-control' + (' is-invalid' if form.password.errors else '')) }}
+                        {% for err in form.password.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password_confirm.label(class='form-label') }}
+                        {{ form.password_confirm(class='form-control' + (' is-invalid' if form.password_confirm.errors else '')) }}
+                        {% for err in form.password_confirm.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                    </div>
+                    <div class="form-check">
+                        {{ form.aktif(class='form-check-input') }}
+                        {{ form.aktif.label(class='form-check-label') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sag: Modul izinleri -->
+        <div class="col-md-7">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <strong><i class="bi bi-shield-check me-2"></i>Modul Izinleri</strong>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-hepsini-sec">
+                            Tumunu Sec
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-hepsini-temizle">
+                            Temizle
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if mod == 'yeni' %}
+                    <div class="mb-3">
+                        {{ form.preset.label(class='form-label') }}
+                        {{ form.preset(class='form-select', id='preset-secici') }}
+                        <small class="text-muted">Hazir paket sectiginizde asagidaki modul secimleri otomatik isaretlenir.</small>
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        <label class="form-label">Hizli Paket Uygula</label>
+                        <div class="btn-group w-100">
+                            {% for key, p in presetler.items() %}
+                            <button type="button" class="btn btn-outline-primary btn-sm preset-btn" data-preset="{{ key }}">
+                                {{ p.ad }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">Bir pakete tikladigin ekranda checkbox'lar guncellenir, kaydetmek icin forma Guncelle butonuna basin.</small>
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-3">
+
+                    <div class="row g-2" id="modul-listesi">
+                        {% for mk, label in moduller.items()|sort(attribute='1') %}
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input modul-checkbox"
+                                       type="checkbox"
+                                       name="moduller"
+                                       value="{{ mk }}"
+                                       id="modul-{{ mk }}"
+                                       {{ 'checked' if mk in mevcut_izinler else '' }}>
+                                <label class="form-check-label" for="modul-{{ mk }}">
+                                    {{ label }}
+                                    <small class="text-muted">({{ mk }})</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Not: <strong>Kullanici Yonetimi</strong>, <strong>Denetim</strong> ve <strong>Sistem Ayarlari</strong>
+                        modulleri admin-ozel isleri icerir; yoneticiye vermek onerilmez.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3">
+        <a href="{{ url_for('kullanici.yonetici.liste') }}" class="btn btn-outline-secondary me-2">Iptal</a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i>{{ 'Olustur' if mod == 'yeni' else 'Guncelle' }}
+        </button>
+    </div>
+</form>
+
+<!-- Preset verisi (JS icin) -->
+<script>
+    const PRESET_MODULLER = {
+        {% for key, p in presetler.items() %}
+        "{{ key }}": {{ p.moduller|tojson }},
+        {% endfor %}
+    };
+
+    function setModulSecim(moduller) {
+        document.querySelectorAll('.modul-checkbox').forEach(cb => {
+            cb.checked = moduller.includes(cb.value);
+        });
+    }
+
+    // Yeni modda: preset secili oldugunda checkbox'lari otomatik doldur
+    const presetSecici = document.getElementById('preset-secici');
+    if (presetSecici) {
+        // Ilk yuklemede de uygula
+        const ilk = presetSecici.value;
+        if (ilk && ilk !== 'ozel' && PRESET_MODULLER[ilk]) {
+            setModulSecim(PRESET_MODULLER[ilk]);
+        }
+        presetSecici.addEventListener('change', function() {
+            const key = this.value;
+            if (key === 'ozel') return;  // ozelde dokunma
+            if (PRESET_MODULLER[key]) {
+                setModulSecim(PRESET_MODULLER[key]);
+            }
+        });
+
+        // Kullanici manual degisiklik yaptiginda preset'i 'ozel'e dusur
+        document.querySelectorAll('.modul-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                presetSecici.value = 'ozel';
+            });
+        });
+    }
+
+    // Duzenle modunda: preset butonlari
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const key = this.dataset.preset;
+            if (PRESET_MODULLER[key]) {
+                setModulSecim(PRESET_MODULLER[key]);
+            }
+        });
+    });
+
+    // Tumunu sec / temizle
+    document.getElementById('btn-hepsini-sec').addEventListener('click', function() {
+        document.querySelectorAll('.modul-checkbox').forEach(cb => cb.checked = true);
+        if (presetSecici) presetSecici.value = 'ozel';
+    });
+    document.getElementById('btn-hepsini-temizle').addEventListener('click', function() {
+        document.querySelectorAll('.modul-checkbox').forEach(cb => cb.checked = false);
+        if (presetSecici) presetSecici.value = 'ozel';
+    });
+</script>
+{% endblock %}

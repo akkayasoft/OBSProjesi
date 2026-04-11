@@ -1,0 +1,147 @@
+{% extends "kullanici/_layout.html" %}
+
+{% block title %}Dershane Yoneticileri{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dershane Yoneticileri</li>
+{% endblock %}
+
+{% block kullanici_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-person-gear me-2"></i>Dershane Yoneticileri</h4>
+        <small class="text-muted">Her yonetici icin ayri modul seti tanimlayabilirsiniz.</small>
+    </div>
+    <a href="{{ url_for('kullanici.yonetici.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus me-1"></i>Yeni Yonetici
+    </a>
+</div>
+
+<!-- Arama -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('kullanici.yonetici.liste') }}">
+            <div class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="arama" class="form-control"
+                           placeholder="Ad, soyad, kullanici adi veya e-posta ara..."
+                           value="{{ arama }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-search me-1"></i>Ara
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Yonetici Tablosu -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Kullanici Adi</th>
+                        <th>Ad Soyad</th>
+                        <th>E-posta</th>
+                        <th>Erisimli Modul</th>
+                        <th>Durum</th>
+                        <th>Olusturma</th>
+                        <th class="text-end">Islemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for y in yoneticiler.items %}
+                    <tr>
+                        <td>{{ y.id }}</td>
+                        <td><strong>{{ y.username }}</strong></td>
+                        <td>{{ y.tam_ad }}</td>
+                        <td><small class="text-muted">{{ y.email }}</small></td>
+                        <td>
+                            {% set sayi = izin_sayilari.get(y.id, 0) %}
+                            {% if sayi == 0 %}
+                                <span class="badge bg-secondary">Izin yok</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ sayi }} / {{ toplam_modul }} modul</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if y.aktif else 'secondary' }}">
+                                {{ 'Aktif' if y.aktif else 'Pasif' }}
+                            </span>
+                        </td>
+                        <td><small>{{ y.olusturma_tarihi.strftime('%d.%m.%Y') if y.olusturma_tarihi else '-' }}</small></td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('kullanici.yonetici.duzenle', kullanici_id=y.id) }}"
+                                   class="btn btn-outline-primary" title="Duzenle / Izin Yonet">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('kullanici.yonetici.aktif_toggle', kullanici_id=y.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                            class="btn btn-outline-{{ 'warning' if y.aktif else 'success' }}"
+                                            title="{{ 'Deaktif Et' if y.aktif else 'Aktif Et' }}">
+                                        <i class="bi bi-{{ 'toggle-on' if y.aktif else 'toggle-off' }}"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('kullanici.yonetici.sil', kullanici_id=y.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('{{ y.tam_ad }} adli yonetici silinecek. Emin misiniz?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-danger" title="Sil">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                            Henuz dershane yoneticisi tanimlanmamis.
+                            <br>
+                            <a href="{{ url_for('kullanici.yonetici.yeni') }}" class="btn btn-sm btn-primary mt-2">
+                                <i class="bi bi-person-plus me-1"></i>Ilk Yoneticiyi Ekle
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Sayfalama -->
+{% if yoneticiler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if yoneticiler.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('kullanici.yonetici.liste', page=yoneticiler.prev_num, arama=arama) }}">Onceki</a>
+        </li>
+        {% endif %}
+        {% for p in yoneticiler.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {{ 'active' if p == yoneticiler.page }}">
+                <a class="page-link" href="{{ url_for('kullanici.yonetici.liste', page=p, arama=arama) }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if yoneticiler.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('kullanici.yonetici.liste', page=yoneticiler.next_num, arama=arama) }}">Sonraki</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -25,7 +25,8 @@
                 <div class="col-md-3">
                     <select name="rol" class="form-select">
                         <option value="">Tum Roller</option>
-                        <option value="admin" {{ 'selected' if rol_filtre == 'admin' }}>Yonetici</option>
+                        <option value="admin" {{ 'selected' if rol_filtre == 'admin' }}>Sistem Yoneticisi</option>
+                        <option value="yonetici" {{ 'selected' if rol_filtre == 'yonetici' }}>Dershane Yoneticisi</option>
                         <option value="ogretmen" {{ 'selected' if rol_filtre == 'ogretmen' }}>Ogretmen</option>
                         <option value="veli" {{ 'selected' if rol_filtre == 'veli' }}>Veli</option>
                         <option value="ogrenci" {{ 'selected' if rol_filtre == 'ogrenci' }}>Ogrenci</option>
@@ -74,7 +75,7 @@
                         <td>{{ k.tam_ad }}</td>
                         <td>{{ k.email }}</td>
                         <td>
-                            {% set rol_badge = {'admin': 'danger', 'ogretmen': 'primary', 'veli': 'success', 'ogrenci': 'info', 'muhasebeci': 'warning'} %}
+                            {% set rol_badge = {'admin': 'danger', 'yonetici': 'dark', 'ogretmen': 'primary', 'veli': 'success', 'ogrenci': 'info', 'muhasebeci': 'warning'} %}
                             <span class="badge bg-{{ rol_badge.get(k.rol, 'secondary') }}">{{ k.rol_str }}</span>
                         </td>
                         <td>

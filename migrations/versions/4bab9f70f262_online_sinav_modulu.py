@@ -57,7 +57,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['ogrenci_id'], ['ogrenciler.id'], ),
     sa.ForeignKeyConstraint(['sinav_id'], ['online_sinavlar.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('sinav_id', 'ogrenci_id', name='uq_sinav_ogrenci')
+    sa.UniqueConstraint('sinav_id', 'ogrenci_id', name='uq_online_sinav_katilim')
     )
     op.create_table('sinav_sorulari',
     sa.Column('id', sa.Integer(), nullable=False),

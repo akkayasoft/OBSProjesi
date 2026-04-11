@@ -202,7 +202,7 @@ class SinavKatilim(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __table_args__ = (
-        db.UniqueConstraint('sinav_id', 'ogrenci_id', name='uq_sinav_ogrenci'),
+        db.UniqueConstraint('sinav_id', 'ogrenci_id', name='uq_online_sinav_katilim'),
     )
 
     ogrenci = db.relationship('Ogrenci', backref=db.backref('sinav_katilimlari', lazy='dynamic'))

@@ -159,14 +159,18 @@ def yeni_kayit():
         if mevcut:
             flash('Bu öğrenci numarası zaten kayıtlı.', 'danger')
             return render_template('kayit/ogrenci/kayit_form.html',
-                                   form=form, baslik='Yeni Öğrenci Kaydı')
+                                   form=form, baslik='Yeni Öğrenci Kaydı',
+                                   karteks_aktif=bool(karteks_dosya),
+                                   karteks_dosya=karteks_dosya)
 
         # Kontenjan kontrolü
         sube = Sube.query.get(form.sube_id.data)
         if sube and sube.bos_kontenjan <= 0:
             flash(f'{sube.tam_ad} kontenjanı dolu.', 'danger')
             return render_template('kayit/ogrenci/kayit_form.html',
-                                   form=form, baslik='Yeni Öğrenci Kaydı')
+                                   form=form, baslik='Yeni Öğrenci Kaydı',
+                                   karteks_aktif=bool(karteks_dosya),
+                                   karteks_dosya=karteks_dosya)
 
         ogrenci = Ogrenci(
             ogrenci_no=form.ogrenci_no.data,

@@ -101,7 +101,7 @@ class RolModulIzin(db.Model):
                 'duyurular', 'rehberlik', 'online_sinav', 'kulupler',
                 'ortak_sinav', 'anket', 'iletisim', 'ders_programi', 'bildirim',
             ],
-            'muhasebeci': ['muhasebe', 'kayit', 'duyurular', 'iletisim', 'bildirim'],
+            'muhasebeci': ['muhasebe', 'kayit', 'personel', 'devamsizlik', 'duyurular', 'iletisim', 'bildirim'],
             'veli': ['ogrenci_portal', 'duyurular', 'anket', 'iletisim', 'bildirim'],
             'ogrenci': ['ogrenci_portal', 'duyurular', 'anket', 'iletisim', 'online_sinav', 'bildirim'],
         }

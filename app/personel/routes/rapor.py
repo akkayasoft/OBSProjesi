@@ -10,7 +10,7 @@ bp = Blueprint('rapor', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def index():
     # Genel istatistikler
     toplam_personel = Personel.query.count()

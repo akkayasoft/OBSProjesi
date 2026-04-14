@@ -43,6 +43,7 @@ class Ogrenci(db.Model):
     __tablename__ = 'ogrenciler'
 
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, unique=True)
     ogrenci_no = db.Column(db.String(20), unique=True, nullable=False)
     tc_kimlik = db.Column(db.String(11), nullable=True)
     ad = db.Column(db.String(100), nullable=False)
@@ -60,6 +61,7 @@ class Ogrenci(db.Model):
     aktif = db.Column(db.Boolean, default=True)
     kayit_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
 
+    user = db.relationship('User', backref=db.backref('ogrenci', uselist=False))
     odeme_planlari = db.relationship('OdemePlani', backref='ogrenci', lazy='dynamic')
 
     @property
@@ -167,6 +169,7 @@ class Personel(db.Model):
     __tablename__ = 'personeller'
 
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, unique=True)
     sicil_no = db.Column(db.String(20), unique=True, nullable=False)
     ad = db.Column(db.String(100), nullable=False)
     soyad = db.Column(db.String(100), nullable=False)
@@ -188,6 +191,7 @@ class Personel(db.Model):
     ise_bitis_tarihi = db.Column(db.Date, nullable=True)
     calisma_turu = db.Column(db.String(20), default='tam_zamanli')
 
+    user = db.relationship('User', backref=db.backref('personel', uselist=False))
     odeme_kayitlari = db.relationship('PersonelOdemeKaydi', backref='personel', lazy='dynamic')
     izinler = db.relationship('PersonelIzin', backref='personel', lazy='dynamic')
 

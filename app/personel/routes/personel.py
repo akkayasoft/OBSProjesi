@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required
 from app.utils import role_required, current_user
 from app.extensions import db
+from app.models.user import User
 from app.models.muhasebe import Personel
 from app.personel.forms import PersonelForm, PersonelDuzenleForm
 
@@ -10,7 +11,7 @@ bp = Blueprint('personel_crud', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     arama = request.args.get('arama', '')
     departman = request.args.get('departman', '')
@@ -47,7 +48,7 @@ def liste():
 
 @bp.route('/yeni', methods=['GET', 'POST'])
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def yeni():
     form = PersonelForm()
 
@@ -57,7 +58,23 @@ def yeni():
             flash('Bu sicil numarası zaten kayıtlı!', 'danger')
             return render_template('personel/personel/form.html', form=form, baslik='Yeni Personel')
 
+        # Otomatik kullanıcı hesabı oluştur (username = sicil no)
+        username = form.sicil_no.data
+        varsayilan_sifre = form.tc_kimlik.data if form.tc_kimlik.data else form.sicil_no.data
+        user = User(
+            username=username,
+            email=form.email.data or f"{username}@personel.obs",
+            ad=form.ad.data,
+            soyad=form.soyad.data,
+            rol='ogretmen',
+            aktif=True
+        )
+        user.set_password(varsayilan_sifre)
+        db.session.add(user)
+        db.session.flush()
+
         personel = Personel(
+            user_id=user.id,
             sicil_no=form.sicil_no.data,
             tc_kimlik=form.tc_kimlik.data or None,
             ad=form.ad.data,
@@ -75,7 +92,8 @@ def yeni():
         )
         db.session.add(personel)
         db.session.commit()
-        flash(f'{personel.tam_ad} başarıyla eklendi.', 'success')
+        flash(f'{personel.tam_ad} başarıyla eklendi. '
+              f'Giriş bilgileri — Kullanıcı adı: {username}, Şifre: {varsayilan_sifre}', 'success')
         return redirect(url_for('personel.personel_crud.detay', personel_id=personel.id))
 
     return render_template('personel/personel/form.html', form=form, baslik='Yeni Personel')
@@ -83,7 +101,7 @@ def yeni():
 
 @bp.route('/<int:personel_id>')
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def detay(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     izinler = personel.izinler.order_by(db.desc('baslangic_tarihi')).all()
@@ -96,7 +114,7 @@ def detay(personel_id):
 
 @bp.route('/<int:personel_id>/duzenle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def duzenle(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     form = PersonelDuzenleForm(obj=personel)
@@ -136,7 +154,7 @@ def duzenle(personel_id):
 
 @bp.route('/<int:personel_id>/durum', methods=['POST'])
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def durum_degistir(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     personel.aktif = not personel.aktif

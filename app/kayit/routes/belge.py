@@ -15,7 +15,7 @@ bp = Blueprint('belge', __name__)
 
 @bp.route('/<int:ogrenci_id>')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     belgeler = OgrenciBelge.query.filter_by(ogrenci_id=ogrenci_id).all()
@@ -25,7 +25,7 @@ def liste(ogrenci_id):
 
 @bp.route('/<int:ogrenci_id>/ekle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def ekle(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     form = BelgeForm()
@@ -60,7 +60,7 @@ def ekle(ogrenci_id):
 
 @bp.route('/teslim/<int:belge_id>', methods=['POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def teslim_toggle(belge_id):
     belge = OgrenciBelge.query.get_or_404(belge_id)
     belge.teslim_edildi = not belge.teslim_edildi
@@ -74,7 +74,7 @@ def teslim_toggle(belge_id):
 
 @bp.route('/dosya/<int:belge_id>')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def dosya_indir(belge_id):
     belge = OgrenciBelge.query.get_or_404(belge_id)
     if not belge.dosya_yolu:

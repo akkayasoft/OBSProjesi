@@ -11,7 +11,7 @@ bp = Blueprint('izin', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     personel_id = request.args.get('personel_id', 0, type=int)
     izin_turu = request.args.get('izin_turu', '')
@@ -42,7 +42,7 @@ def liste():
 
 @bp.route('/yeni', methods=['GET', 'POST'])
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def yeni():
     form = IzinForm()
     personeller = Personel.query.filter_by(aktif=True).order_by(Personel.ad).all()
@@ -82,7 +82,7 @@ def yeni():
 
 @bp.route('/<int:izin_id>/onayla', methods=['POST'])
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def onayla(izin_id):
     izin = PersonelIzin.query.get_or_404(izin_id)
     if izin.durum != 'beklemede':
@@ -98,7 +98,7 @@ def onayla(izin_id):
 
 @bp.route('/<int:izin_id>/reddet', methods=['POST'])
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def reddet(izin_id):
     izin = PersonelIzin.query.get_or_404(izin_id)
     if izin.durum != 'beklemede':
@@ -114,7 +114,7 @@ def reddet(izin_id):
 
 @bp.route('/<int:izin_id>/iptal', methods=['POST'])
 @login_required
-@role_required('admin',)
+@role_required('admin', 'muhasebeci', 'yonetici')
 def iptal(izin_id):
     izin = PersonelIzin.query.get_or_404(izin_id)
     db.session.delete(izin)

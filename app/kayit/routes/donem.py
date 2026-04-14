@@ -10,7 +10,7 @@ bp = Blueprint('donem', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     donemler = KayitDonemi.query.order_by(KayitDonemi.baslangic_tarihi.desc()).all()
     return render_template('kayit/donem/liste.html', donemler=donemler)
@@ -18,7 +18,7 @@ def liste():
 
 @bp.route('/ekle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def ekle():
     form = DonemForm()
     if form.validate_on_submit():
@@ -44,7 +44,7 @@ def ekle():
 
 @bp.route('/<int:donem_id>/duzenle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def duzenle(donem_id):
     donem = KayitDonemi.query.get_or_404(donem_id)
     form = DonemForm(obj=donem)
@@ -68,7 +68,7 @@ def duzenle(donem_id):
 
 @bp.route('/<int:donem_id>/durum', methods=['POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def durum_degistir(donem_id):
     donem = KayitDonemi.query.get_or_404(donem_id)
     donem.aktif = not donem.aktif

@@ -10,7 +10,7 @@ bp = Blueprint('sinif', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     siniflar = Sinif.query.filter_by(aktif=True).order_by(Sinif.seviye).all()
     return render_template('kayit/sinif/liste.html', siniflar=siniflar)
@@ -18,7 +18,7 @@ def liste():
 
 @bp.route('/ekle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def sinif_ekle():
     form = SinifForm()
     if form.validate_on_submit():
@@ -34,7 +34,7 @@ def sinif_ekle():
 
 @bp.route('/<int:sinif_id>/duzenle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def sinif_duzenle(sinif_id):
     sinif = Sinif.query.get_or_404(sinif_id)
     form = SinifForm(obj=sinif)
@@ -51,7 +51,7 @@ def sinif_duzenle(sinif_id):
 
 @bp.route('/<int:sinif_id>/sil', methods=['POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def sinif_sil(sinif_id):
     sinif = Sinif.query.get_or_404(sinif_id)
     if sinif.ogrenci_sayisi > 0:
@@ -65,7 +65,7 @@ def sinif_sil(sinif_id):
 
 @bp.route('/sube-ekle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def sube_ekle():
     form = SubeForm()
     siniflar = Sinif.query.filter_by(aktif=True).order_by(Sinif.seviye).all()
@@ -88,7 +88,7 @@ def sube_ekle():
 
 @bp.route('/sube/<int:sube_id>/duzenle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def sube_duzenle(sube_id):
     sube = Sube.query.get_or_404(sube_id)
     form = SubeForm(obj=sube)
@@ -109,7 +109,7 @@ def sube_duzenle(sube_id):
 
 @bp.route('/sube/<int:sube_id>/sil', methods=['POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def sube_sil(sube_id):
     sube = Sube.query.get_or_404(sube_id)
     if sube.aktif_ogrenci_sayisi > 0:

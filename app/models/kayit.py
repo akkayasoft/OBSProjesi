@@ -121,6 +121,7 @@ class VeliBilgisi(db.Model):
     __tablename__ = 'veli_bilgileri'
 
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, unique=True)
     ogrenci_id = db.Column(db.Integer, db.ForeignKey('ogrenciler.id'), nullable=False)
     yakinlik = db.Column(db.String(20), nullable=False)  # anne, baba, vasi
     tc_kimlik = db.Column(db.String(11), nullable=True)
@@ -131,6 +132,7 @@ class VeliBilgisi(db.Model):
     meslek = db.Column(db.String(100), nullable=True)
     adres = db.Column(db.Text, nullable=True)
 
+    user = db.relationship('User', backref=db.backref('veli_bilgisi', uselist=False))
     ogrenci = db.relationship('Ogrenci', backref=db.backref('veli_bilgileri', lazy='dynamic'))
 
     @property

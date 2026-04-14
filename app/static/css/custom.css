@@ -661,3 +661,102 @@ h4.mb-0 {
     background: rgba(79, 70, 229, 0.15);
     color: var(--text-primary);
 }
+
+/* ===================================================================
+   Modul Renk Kategorileri
+   - Sidebar aktif link accent rengi
+   - Sayfa baslik ikonu/border rengi
+   - Breadcrumb accent
+   =================================================================== */
+
+/* --- Kategori Renk Degiskenleri --- */
+:root {
+    --color-akademik: #3b82f6;
+    --color-kayit: #10b981;
+    --color-finans: #f59e0b;
+    --color-iletisim: #8b5cf6;
+    --color-yonetim: #64748b;
+    --color-sosyal: #06b6d4;
+    --color-lojistik: #f43f5e;
+}
+
+/* --- Sidebar Aktif Link Renkleri --- */
+.sidebar-link.active.modul-akademik {
+    border-left-color: var(--color-akademik);
+    background-color: rgba(59, 130, 246, 0.15);
+}
+.sidebar-link.active.modul-akademik i { color: var(--color-akademik); }
+
+.sidebar-link.active.modul-kayit {
+    border-left-color: var(--color-kayit);
+    background-color: rgba(16, 185, 129, 0.15);
+}
+.sidebar-link.active.modul-kayit i { color: var(--color-kayit); }
+
+.sidebar-link.active.modul-finans {
+    border-left-color: var(--color-finans);
+    background-color: rgba(245, 158, 11, 0.15);
+}
+.sidebar-link.active.modul-finans i { color: var(--color-finans); }
+
+.sidebar-link.active.modul-iletisim {
+    border-left-color: var(--color-iletisim);
+    background-color: rgba(139, 92, 246, 0.15);
+}
+.sidebar-link.active.modul-iletisim i { color: var(--color-iletisim); }
+
+.sidebar-link.active.modul-yonetim {
+    border-left-color: var(--color-yonetim);
+    background-color: rgba(100, 116, 139, 0.15);
+}
+.sidebar-link.active.modul-yonetim i { color: var(--color-yonetim); }
+
+.sidebar-link.active.modul-sosyal {
+    border-left-color: var(--color-sosyal);
+    background-color: rgba(6, 182, 212, 0.15);
+}
+.sidebar-link.active.modul-sosyal i { color: var(--color-sosyal); }
+
+.sidebar-link.active.modul-lojistik {
+    border-left-color: var(--color-lojistik);
+    background-color: rgba(244, 63, 94, 0.15);
+}
+.sidebar-link.active.modul-lojistik i { color: var(--color-lojistik); }
+
+/* --- Sidebar Hover Renkleri --- */
+.sidebar-link.modul-akademik:hover { border-left-color: rgba(59, 130, 246, 0.5); }
+.sidebar-link.modul-kayit:hover { border-left-color: rgba(16, 185, 129, 0.5); }
+.sidebar-link.modul-finans:hover { border-left-color: rgba(245, 158, 11, 0.5); }
+.sidebar-link.modul-iletisim:hover { border-left-color: rgba(139, 92, 246, 0.5); }
+.sidebar-link.modul-yonetim:hover { border-left-color: rgba(100, 116, 139, 0.5); }
+.sidebar-link.modul-sosyal:hover { border-left-color: rgba(6, 182, 212, 0.5); }
+.sidebar-link.modul-lojistik:hover { border-left-color: rgba(244, 63, 94, 0.5); }
+
+/* --- Sub-link renkleri (aktif oldugunda) --- */
+.sub-link.active.modul-akademik { color: var(--color-akademik); background-color: rgba(59, 130, 246, 0.1); }
+.sub-link.active.modul-kayit { color: var(--color-kayit); background-color: rgba(16, 185, 129, 0.1); }
+.sub-link.active.modul-finans { color: var(--color-finans); background-color: rgba(245, 158, 11, 0.1); }
+.sub-link.active.modul-iletisim { color: var(--color-iletisim); background-color: rgba(139, 92, 246, 0.1); }
+.sub-link.active.modul-yonetim { color: var(--color-yonetim); background-color: rgba(100, 116, 139, 0.1); }
+.sub-link.active.modul-sosyal { color: var(--color-sosyal); background-color: rgba(6, 182, 212, 0.1); }
+.sub-link.active.modul-lojistik { color: var(--color-lojistik); background-color: rgba(244, 63, 94, 0.1); }
+
+/* --- Sayfa Baslik Renk Cizgisi --- */
+.page-header-accent {
+    border-left: 4px solid var(--primary);
+    padding-left: 0.75rem;
+}
+.page-header-accent.accent-akademik { border-left-color: var(--color-akademik); }
+.page-header-accent.accent-kayit { border-left-color: var(--color-kayit); }
+.page-header-accent.accent-finans { border-left-color: var(--color-finans); }
+.page-header-accent.accent-iletisim { border-left-color: var(--color-iletisim); }
+.page-header-accent.accent-yonetim { border-left-color: var(--color-yonetim); }
+.page-header-accent.accent-sosyal { border-left-color: var(--color-sosyal); }
+.page-header-accent.accent-lojistik { border-left-color: var(--color-lojistik); }
+
+/* --- Sidebar Kategori Separator (ince cizgi) --- */
+.sidebar-separator {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 0.5rem 1rem;
+}

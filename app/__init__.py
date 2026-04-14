@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from config import Config
 from app.extensions import db, login_manager, migrate, csrf
 
@@ -328,26 +328,33 @@ def create_app(config_class=Config):
 
         # Dinamik izin kontrolü ile menü filtrele
         if current_user.is_authenticated:
+            from app.module_registry import modul_renk_kategorisi, url_to_modul_key
+
             # Ilk kurulumda varsayilan izinleri olustur
             if RolModulIzin.query.count() == 0:
                 RolModulIzin.varsayilan_izinleri_olustur()
 
-            # Kullanicinin erisebildigi modulleri (User.erisebildigi_moduller
-            # admin/yonetici/diger durumlari zaten birlesik dondurur)
+            # Kullanicinin erisebildigi modulleri
             izinli_moduller = current_user.erisebildigi_moduller()
 
             menu_items = []
             for item in all_menu_items:
                 modul_key = item.get('modul_key')
                 if modul_key is None:
-                    # Ana Sayfa gibi modülsüz itemler her zaman görünür
                     menu_items.append(item)
                 elif modul_key in izinli_moduller:
+                    # Renk kategorisi ekle
+                    item['renk_kat'] = modul_renk_kategorisi(modul_key)
                     menu_items.append(item)
+
+            # Aktif sayfanin modul rengini hesapla (sidebar + page header icin)
+            aktif_modul = url_to_modul_key(request.path)
+            aktif_renk = modul_renk_kategorisi(aktif_modul) if aktif_modul else ''
         else:
             menu_items = []
+            aktif_renk = ''
 
-        return dict(menu_items=menu_items)
+        return dict(menu_items=menu_items, aktif_renk=aktif_renk)
 
     # Seed komutu
     @app.cli.command('seed')

@@ -56,21 +56,30 @@
         <div class="sidebar bg-dark" id="sidebar">
             <div class="sidebar-content">
                 {% for item in menu_items %}
+                {% set renk = item.renk_kat|default('', true) %}
+                {# Kategori degistiginde ince ayirici cizgi #}
+                {% if not loop.first and renk %}
+                {% set prev_renk = menu_items[loop.index0 - 1].renk_kat|default('', true) %}
+                {% if renk != prev_renk %}
+                <div class="sidebar-separator"></div>
+                {% endif %}
+                {% endif %}
                 <div class="sidebar-section">
                     {% if item.children %}
-                    <a class="sidebar-link has-children" data-bs-toggle="collapse" href="#menu-{{ loop.index }}" role="button">
+                    <a class="sidebar-link has-children{% if renk %} modul-{{ renk }}{% endif %} {% if request.path.startswith(item.url) and item.url != '/' %}active{% endif %}" data-bs-toggle="collapse" href="#menu-{{ loop.index }}" role="button"
+                       {% if request.path.startswith(item.url) and item.url != '/' %}aria-expanded="true"{% endif %}>
                         <i class="{{ item.icon }} me-2"></i>{{ item.label }}
                         <i class="bi bi-chevron-down ms-auto"></i>
                     </a>
                     <div class="collapse {% if request.path.startswith(item.url) and item.url != '/' %}show{% endif %}" id="menu-{{ loop.index }}">
                         {% for child in item.children %}
-                        <a class="sidebar-link sub-link {% if request.path == child.url %}active{% endif %}" href="{{ child.url }}">
+                        <a class="sidebar-link sub-link{% if renk %} modul-{{ renk }}{% endif %} {% if request.path == child.url %}active{% endif %}" href="{{ child.url }}">
                             <i class="{{ child.icon }} me-2"></i>{{ child.label }}
                         </a>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <a class="sidebar-link {% if request.path == item.url %}active{% endif %}" href="{{ item.url }}">
+                    <a class="sidebar-link{% if renk %} modul-{{ renk }}{% endif %} {% if request.path == item.url %}active{% endif %}" href="{{ item.url }}">
                         <i class="{{ item.icon }} me-2"></i>{{ item.label }}
                     </a>
                     {% endif %}

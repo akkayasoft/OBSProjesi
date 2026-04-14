@@ -155,3 +155,80 @@ def preset_moduller(preset_key: str):
     """Verilen preset anahtarina ait modul listesini dondur. Yoksa []."""
     preset = PRESETLER.get(preset_key)
     return list(preset['moduller']) if preset else []
+
+
+# ---------------------------------------------------------------------------
+# Modul renk kategorileri
+# ---------------------------------------------------------------------------
+# Her kategori icin: css class suffix, hex renk (sidebar accent + sayfa baslik)
+
+MODUL_RENKLERI = {
+    # Akademik — Mavi
+    'not_defteri':    'akademik',
+    'karne':          'akademik',
+    'ders_dagitimi':  'akademik',
+    'ders_programi':  'akademik',
+    'etut':           'akademik',
+    'sinav_oturum':   'akademik',
+    'online_sinav':   'akademik',
+    'ortak_sinav':    'akademik',
+    'odev_takip':     'akademik',
+    'davranis':       'akademik',
+    'ogretmen_portal':'akademik',
+
+    # Kayit & Ogrenci — Yesil
+    'kayit':          'kayit',
+    'ogrenci_portal': 'kayit',
+    'devamsizlik':    'kayit',
+
+    # Finans — Turuncu
+    'muhasebe':       'finans',
+
+    # Personel & Iletisim — Mor
+    'personel':       'iletisim',
+    'iletisim':       'iletisim',
+    'duyurular':      'iletisim',
+    'bildirim':       'iletisim',
+
+    # Kurum & Yonetim — Slate
+    'kurum':          'yonetim',
+    'kullanici':      'yonetim',
+    'ayarlar':        'yonetim',
+    'denetim':        'yonetim',
+    'raporlama':      'yonetim',
+    'belge':          'yonetim',
+
+    # Sosyal & Destek — Cyan
+    'kulupler':       'sosyal',
+    'anket':          'sosyal',
+    'rehberlik':      'sosyal',
+    'saglik':         'sosyal',
+
+    # Lojistik — Rose
+    'servis':         'lojistik',
+    'kantin':         'lojistik',
+    'kutuphane':      'lojistik',
+    'envanter':       'lojistik',
+    'yurt':           'lojistik',
+}
+
+KATEGORI_RENKLERI = {
+    'akademik':  {'hex': '#3b82f6', 'label': 'Akademik'},
+    'kayit':     {'hex': '#10b981', 'label': 'Kayit & Ogrenci'},
+    'finans':    {'hex': '#f59e0b', 'label': 'Finans'},
+    'iletisim':  {'hex': '#8b5cf6', 'label': 'Personel & Iletisim'},
+    'yonetim':   {'hex': '#64748b', 'label': 'Kurum & Yonetim'},
+    'sosyal':    {'hex': '#06b6d4', 'label': 'Sosyal & Destek'},
+    'lojistik':  {'hex': '#f43f5e', 'label': 'Lojistik'},
+}
+
+
+def modul_renk_kategorisi(modul_key: str) -> str:
+    """Modul key'ine gore renk kategorisini dondur."""
+    return MODUL_RENKLERI.get(modul_key, 'yonetim')
+
+
+def modul_renk_hex(modul_key: str) -> str:
+    """Modul key'ine gore hex renk kodunu dondur."""
+    kat = modul_renk_kategorisi(modul_key)
+    return KATEGORI_RENKLERI.get(kat, {}).get('hex', '#64748b')

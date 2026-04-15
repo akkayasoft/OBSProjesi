@@ -607,20 +607,108 @@ h4.mb-0 {
     }
 }
 
+/* === Sidebar Overlay (mobil) === */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1025;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+.sidebar-overlay.show {
+    display: block;
+}
+
 /* === Responsive === */
-@media (max-width: 768px) {
+
+/* Tablet */
+@media (max-width: 991.98px) {
     .sidebar {
-        margin-left: calc(-1 * var(--sidebar-width));
+        transform: translateX(-100%);
+        margin-left: 0;
+        z-index: 1030;
     }
     .sidebar.show {
-        margin-left: 0;
+        transform: translateX(0);
+        box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
     }
     .page-content {
         margin-left: 0;
         width: 100%;
     }
+}
+
+/* Mobil */
+@media (max-width: 767.98px) {
+    :root {
+        --navbar-height: 54px;
+    }
+    .navbar {
+        padding: 0 0.5rem;
+    }
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    .navbar-brand i {
+        font-size: 1.15rem;
+    }
     .page-content .container-fluid {
+        padding: 0.75rem;
+    }
+    /* Tablo yatay scroll */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-container .table {
+        min-width: 600px;
+    }
+    /* Stat kartlari tek sutun */
+    .stat-card .card-body {
         padding: 1rem;
+    }
+    .stat-card h4 {
+        font-size: 1.1rem;
+    }
+    .stat-card .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    /* Form alanlarini biraz buyut */
+    .form-control, .form-select {
+        font-size: 1rem;
+        padding: 0.6rem 0.85rem;
+    }
+    /* Butonlar kolay tiklanir */
+    .btn {
+        padding: 0.5rem 0.85rem;
+    }
+    .btn-sm, .btn-group-sm > .btn {
+        padding: 0.4rem 0.6rem;
+    }
+    /* h4 baslik */
+    h4.mb-0 {
+        font-size: 1rem;
+    }
+}
+
+/* Kucuk mobil */
+@media (max-width: 575.98px) {
+    .page-content .container-fluid {
+        padding: 0.5rem;
+    }
+    /* Badge ve filtre satirlarini kaydirmali yap */
+    .d-flex.gap-2 {
+        flex-wrap: wrap;
+    }
+    /* Tablo font */
+    .table-container .table tbody td,
+    .table-container .table thead th {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.6rem;
     }
 }
 

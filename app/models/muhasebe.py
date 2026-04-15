@@ -74,7 +74,7 @@ class Ogrenci(db.Model):
         for plan in self.odeme_planlari:
             for taksit in plan.taksitler:
                 toplam += float(taksit.tutar) - float(taksit.odenen_tutar)
-        return toplam
+        return max(toplam, 0)
 
     def __repr__(self):
         return f'<Ogrenci {self.ogrenci_no} {self.ad} {self.soyad}>'
@@ -87,6 +87,8 @@ class OdemePlani(db.Model):
     ogrenci_id = db.Column(db.Integer, db.ForeignKey('ogrenciler.id'), nullable=False)
     donem = db.Column(db.String(20), nullable=False)
     toplam_tutar = db.Column(db.Numeric(12, 2), nullable=False)
+    indirim_tutar = db.Column(db.Numeric(12, 2), default=0)
+    indirim_aciklama = db.Column(db.String(200), nullable=True)
     taksit_sayisi = db.Column(db.Integer, nullable=False)
     aciklama = db.Column(db.Text, nullable=True)
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
@@ -95,12 +97,16 @@ class OdemePlani(db.Model):
                                 order_by='Taksit.taksit_no')
 
     @property
+    def net_tutar(self):
+        return float(self.toplam_tutar) - float(self.indirim_tutar or 0)
+
+    @property
     def odenen_toplam(self):
         return sum(float(t.odenen_tutar) for t in self.taksitler)
 
     @property
     def kalan_borc(self):
-        return float(self.toplam_tutar) - self.odenen_toplam
+        return self.net_tutar - self.odenen_toplam
 
     def __repr__(self):
         return f'<OdemePlani {self.donem} {self.toplam_tutar}>'

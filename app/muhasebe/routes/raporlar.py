@@ -18,6 +18,9 @@ bp = Blueprint('raporlar', __name__)
 @login_required
 @role_required('admin', 'muhasebeci')
 def genel():
+    from app.muhasebe.utils import geciken_taksitleri_guncelle
+    geciken_taksitleri_guncelle()
+
     bugun = date.today()
     yil = request.args.get('yil', bugun.year, type=int)
     ay = request.args.get('ay', bugun.month, type=int)
@@ -101,8 +104,54 @@ def genel():
     ay_isimleri = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
                    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
 
+    # Banka hesap bakiyeleri
+    banka_hesaplari = BankaHesabi.query.filter_by(aktif=True).all()
+    toplam_banka_bakiye = sum(float(h.bakiye) for h in banka_hesaplari)
+
+    # Yaklasan taksitler (onumuzdeki 15 gun)
+    yaklasan_tarih = bugun + timedelta(days=15)
+    yaklasan_taksitler = Taksit.query.filter(
+        Taksit.durum.in_(['beklemede', 'kismi_odendi']),
+        Taksit.vade_tarihi >= bugun,
+        Taksit.vade_tarihi <= yaklasan_tarih
+    ).join(OdemePlani).join(Ogrenci).order_by(
+        Taksit.vade_tarihi.asc()
+    ).limit(10).all()
+
+    # Geciken taksit ozeti
+    geciken_taksitler = Taksit.query.filter(
+        Taksit.durum.in_(['gecikti', 'kismi_odendi']),
+        Taksit.vade_tarihi < bugun
+    ).all()
+    geciken_sayi = len(geciken_taksitler)
+    geciken_toplam = sum(float(t.tutar) - float(t.odenen_tutar) for t in geciken_taksitler)
+
+    # Yillik toplam gelir ve gider
+    yillik_gelir = db.session.query(
+        func.coalesce(func.sum(GelirGiderKaydi.tutar), 0)
+    ).filter(
+        GelirGiderKaydi.tur == 'gelir',
+        extract('year', GelirGiderKaydi.tarih) == yil
+    ).scalar()
+
+    yillik_gider = db.session.query(
+        func.coalesce(func.sum(GelirGiderKaydi.tutar), 0)
+    ).filter(
+        GelirGiderKaydi.tur == 'gider',
+        extract('year', GelirGiderKaydi.tarih) == yil
+    ).scalar()
+
+    # Tahsilat orani
+    toplam_taksit_tutar = db.session.query(
+        func.coalesce(func.sum(Taksit.tutar), 0)
+    ).scalar()
+    toplam_odenen = db.session.query(
+        func.coalesce(func.sum(Taksit.odenen_tutar), 0)
+    ).scalar()
+    tahsilat_orani = (float(toplam_odenen) / float(toplam_taksit_tutar) * 100) if float(toplam_taksit_tutar) > 0 else 0
+
     return render_template('muhasebe/raporlar/genel.html',
-                           yil=yil, ay=ay,
+                           yil=yil, ay=ay, bugun=bugun,
                            ay_adi=ay_isimleri[ay],
                            aylik_gelir=float(aylik_gelir),
                            aylik_gider=float(aylik_gider),
@@ -113,7 +162,15 @@ def genel():
                            ogrenci_sayisi=ogrenci_sayisi,
                            borclu_ogrenci=borclu_ogrenci,
                            aylik_personel_maliyet=float(aylik_personel_maliyet),
-                           ay_isimleri=ay_isimleri)
+                           ay_isimleri=ay_isimleri,
+                           banka_hesaplari=banka_hesaplari,
+                           toplam_banka_bakiye=toplam_banka_bakiye,
+                           yaklasan_taksitler=yaklasan_taksitler,
+                           geciken_sayi=geciken_sayi,
+                           geciken_toplam=geciken_toplam,
+                           yillik_gelir=float(yillik_gelir),
+                           yillik_gider=float(yillik_gider),
+                           tahsilat_orani=tahsilat_orani)
 
 
 @bp.route('/export/<rapor_turu>')

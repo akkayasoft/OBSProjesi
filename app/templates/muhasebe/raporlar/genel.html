@@ -28,9 +28,9 @@
     </form>
 </div>
 
-<!-- Özet Kartları -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
+<!-- Özet Kartları - Aylık -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
         <div class="card stat-card">
             <div class="card-body text-center">
                 <p class="text-muted small mb-1">{{ ay_adi }} Gelir</p>
@@ -38,7 +38,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-lg-3">
         <div class="card stat-card">
             <div class="card-body text-center">
                 <p class="text-muted small mb-1">{{ ay_adi }} Gider</p>
@@ -46,21 +46,60 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-lg-3">
         <div class="card stat-card">
             <div class="card-body text-center">
-                <p class="text-muted small mb-1">Net Kar/Zarar</p>
+                <p class="text-muted small mb-1">{{ ay_adi }} Net Kâr/Zarar</p>
                 <h4 class="{% if aylik_gelir - aylik_gider >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
                     {{ "{:,.2f}".format(aylik_gelir - aylik_gider) }} ₺
                 </h4>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-lg-3">
         <div class="card stat-card">
             <div class="card-body text-center">
                 <p class="text-muted small mb-1">Personel Maliyet</p>
                 <h4 class="text-info mb-0">{{ "{:,.2f}".format(aylik_personel_maliyet) }} ₺</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Özet Kartları - Genel -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card border-start border-primary border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1"><i class="bi bi-bank me-1"></i>Banka Toplam</p>
+                <h4 class="text-primary mb-0">{{ "{:,.2f}".format(toplam_banka_bakiye) }} ₺</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card border-start border-warning border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Geciken Taksit</p>
+                <h4 class="text-warning mb-0">{{ geciken_sayi }} adet</h4>
+                <small class="text-danger">{{ "{:,.2f}".format(geciken_toplam) }} ₺</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card border-start border-success border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1"><i class="bi bi-graph-up-arrow me-1"></i>{{ yil }} Yılı Kâr</p>
+                <h4 class="{% if yillik_gelir - yillik_gider >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                    {{ "{:,.2f}".format(yillik_gelir - yillik_gider) }} ₺
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card border-start border-info border-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1"><i class="bi bi-percent me-1"></i>Tahsilat Oranı</p>
+                <h4 class="text-info mb-0">%{{ "{:.1f}".format(tahsilat_orani) }}</h4>
             </div>
         </div>
     </div>
@@ -156,6 +195,107 @@
                         <i class="bi bi-download me-2"></i>Personel Maliyet Raporu
                     </a>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Yaklaşan Taksitler + Banka Hesapları -->
+<div class="row g-4 mb-4">
+    <!-- Yaklaşan Taksitler -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Yaklaşan Taksitler (15 Gün)</h6>
+                <a href="{{ url_for('muhasebe.ogrenci_odeme.geciken') }}" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Geciken Taksitler
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if yaklasan_taksitler %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Öğrenci</th>
+                                <th>Dönem</th>
+                                <th>Taksit</th>
+                                <th>Vade</th>
+                                <th class="text-end">Kalan</th>
+                                <th class="text-center">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for taksit in yaklasan_taksitler %}
+                            {% set gun_kaldi = (taksit.vade_tarihi - bugun).days if bugun is defined else 0 %}
+                            <tr>
+                                <td><strong>{{ taksit.odeme_plani.ogrenci.tam_ad }}</strong></td>
+                                <td>{{ taksit.odeme_plani.donem }}</td>
+                                <td>{{ taksit.taksit_no }}. Taksit</td>
+                                <td>
+                                    {{ taksit.vade_tarihi.strftime('%d.%m.%Y') }}
+                                    {% set gun_fark = (taksit.vade_tarihi - bugun).days %}
+                                    {% if gun_fark <= 3 %}
+                                    <span class="badge bg-danger ms-1">{{ gun_fark }} gün</span>
+                                    {% elif gun_fark <= 7 %}
+                                    <span class="badge bg-warning ms-1">{{ gun_fark }} gün</span>
+                                    {% else %}
+                                    <span class="badge bg-info ms-1">{{ gun_fark }} gün</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-bold text-danger">{{ "{:,.2f}".format(taksit.kalan) }} ₺</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('muhasebe.ogrenci_odeme.odeme_yap', taksit_id=taksit.id) }}"
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-cash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Önümüzdeki 15 gün içinde vadesi gelen taksit yok.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Banka Hesapları -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-bank me-2"></i>Banka Hesapları</h6>
+            </div>
+            <div class="card-body">
+                {% if banka_hesaplari %}
+                {% for hesap in banka_hesaplari %}
+                <div class="d-flex justify-content-between align-items-center {% if not loop.last %}mb-3 pb-3 border-bottom{% endif %}">
+                    <div>
+                        <strong>{{ hesap.banka_adi }}</strong>
+                        <br><small class="text-muted">{{ hesap.hesap_adi }}</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="fw-bold {% if hesap.bakiye >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "{:,.2f}".format(hesap.bakiye) }} ₺
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong>Toplam</strong>
+                    <strong class="text-primary">{{ "{:,.2f}".format(toplam_banka_bakiye) }} ₺</strong>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <p class="mb-0">Henüz banka hesabı eklenmemiş.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

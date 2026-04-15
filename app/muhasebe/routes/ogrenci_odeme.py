@@ -17,6 +17,9 @@ bp = Blueprint('ogrenci_odeme', __name__)
 @login_required
 @role_required('admin', 'muhasebeci')
 def liste():
+    from app.muhasebe.utils import geciken_taksitleri_guncelle
+    geciken_taksitleri_guncelle()
+
     page = request.args.get('page', 1, type=int)
     arama = request.args.get('q', '')
 
@@ -43,6 +46,9 @@ def liste():
 @login_required
 @role_required('admin', 'muhasebeci')
 def detay(ogrenci_id):
+    from app.muhasebe.utils import geciken_taksitleri_guncelle
+    geciken_taksitleri_guncelle()
+
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     planlar = OdemePlani.query.filter_by(ogrenci_id=ogrenci_id).order_by(
         OdemePlani.olusturma_tarihi.desc()
@@ -60,19 +66,30 @@ def plan_olustur(ogrenci_id):
     form = OdemePlaniForm()
 
     if form.validate_on_submit():
+        indirim = Decimal(str(form.indirim_tutar.data or 0))
+        toplam = Decimal(str(form.toplam_tutar.data))
+
+        if indirim >= toplam:
+            flash('İndirim tutarı toplam tutardan büyük veya eşit olamaz.', 'danger')
+            return render_template('muhasebe/ogrenci_odeme/odeme_plani.html',
+                                   form=form, ogrenci=ogrenci)
+
         plan = OdemePlani(
             ogrenci_id=ogrenci_id,
             donem=form.donem.data,
             toplam_tutar=form.toplam_tutar.data,
+            indirim_tutar=indirim,
+            indirim_aciklama=form.indirim_aciklama.data,
             taksit_sayisi=form.taksit_sayisi.data,
             aciklama=form.aciklama.data
         )
         db.session.add(plan)
         db.session.flush()
 
-        # Taksitleri oluştur
-        taksit_tutari = Decimal(str(form.toplam_tutar.data)) / form.taksit_sayisi.data
-        kalan = Decimal(str(form.toplam_tutar.data)) - (taksit_tutari * form.taksit_sayisi.data)
+        # Taksitleri oluştur (indirim düşülmüş net tutar üzerinden)
+        net_tutar = toplam - indirim
+        taksit_tutari = net_tutar / form.taksit_sayisi.data
+        kalan = net_tutar - (taksit_tutari * form.taksit_sayisi.data)
 
         bugun = date.today()
         for i in range(form.taksit_sayisi.data):
@@ -92,7 +109,8 @@ def plan_olustur(ogrenci_id):
             db.session.add(taksit)
 
         db.session.commit()
-        flash(f'{form.taksit_sayisi.data} taksitli ödeme planı oluşturuldu.', 'success')
+        indirim_msg = f' (İndirim: {indirim:,.2f} ₺)' if indirim > 0 else ''
+        flash(f'{form.taksit_sayisi.data} taksitli ödeme planı oluşturuldu.{indirim_msg}', 'success')
         return redirect(url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=ogrenci_id))
 
     return render_template('muhasebe/ogrenci_odeme/odeme_plani.html',
@@ -165,6 +183,9 @@ def makbuz(odeme_id):
 @login_required
 @role_required('admin', 'muhasebeci')
 def geciken():
+    from app.muhasebe.utils import geciken_taksitleri_guncelle
+    geciken_taksitleri_guncelle()
+
     bugun = date.today()
     geciken_taksitler = Taksit.query.filter(
         Taksit.durum.in_(['beklemede', 'kismi_odendi', 'gecikti']),

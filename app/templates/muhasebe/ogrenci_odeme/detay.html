@@ -53,7 +53,13 @@
             <span class="text-muted small ms-2">({{ plan.taksit_sayisi }} Taksit)</span>
         </h6>
         <div>
-            <span class="badge bg-primary">Toplam: {{ "{:,.2f}".format(plan.toplam_tutar) }} ₺</span>
+            <span class="badge bg-secondary">Brüt: {{ "{:,.2f}".format(plan.toplam_tutar) }} ₺</span>
+            {% if plan.indirim_tutar and plan.indirim_tutar > 0 %}
+            <span class="badge bg-info" title="{{ plan.indirim_aciklama or 'İndirim' }}">
+                <i class="bi bi-gift me-1"></i>-{{ "{:,.2f}".format(plan.indirim_tutar) }} ₺
+            </span>
+            <span class="badge bg-primary">Net: {{ "{:,.2f}".format(plan.net_tutar) }} ₺</span>
+            {% endif %}
             <span class="badge bg-success">Ödenen: {{ "{:,.2f}".format(plan.odenen_toplam) }} ₺</span>
             <span class="badge bg-danger">Kalan: {{ "{:,.2f}".format(plan.kalan_borc) }} ₺</span>
         </div>

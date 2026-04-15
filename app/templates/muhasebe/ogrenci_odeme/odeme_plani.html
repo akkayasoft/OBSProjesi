@@ -31,7 +31,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">{{ form.toplam_tutar.label.text }}</label>
-                            {{ form.toplam_tutar(class="form-control", step="0.01") }}
+                            {{ form.toplam_tutar(class="form-control", step="0.01", id="toplam_tutar") }}
                             {% for error in form.toplam_tutar.errors %}
                             <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
@@ -42,6 +42,29 @@
                             {% for error in form.taksit_sayisi.errors %}
                             <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- İndirim / Burs -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body py-2">
+                            <p class="mb-2 fw-bold"><i class="bi bi-gift me-1"></i>İndirim / Burs</p>
+                            <div class="row">
+                                <div class="col-md-5 mb-2">
+                                    <label class="form-label small">{{ form.indirim_tutar.label.text }}</label>
+                                    {{ form.indirim_tutar(class="form-control form-control-sm", step="0.01", id="indirim_tutar") }}
+                                    {% for error in form.indirim_tutar.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-7 mb-2">
+                                    <label class="form-label small">{{ form.indirim_aciklama.label.text }}</label>
+                                    {{ form.indirim_aciklama(class="form-control form-control-sm", placeholder="Ör: %10 kardeş indirimi, burs vb.") }}
+                                </div>
+                            </div>
+                            <div id="netTutarInfo" class="small text-primary fw-bold" style="display:none;">
+                                Taksitlenecek net tutar: <span id="netTutar">0,00</span> ₺
+                            </div>
                         </div>
                     </div>
 
@@ -62,4 +85,31 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        var toplam = document.getElementById('toplam_tutar');
+        var indirim = document.getElementById('indirim_tutar');
+        var info = document.getElementById('netTutarInfo');
+        var netSpan = document.getElementById('netTutar');
+
+        function guncelle() {
+            var t = parseFloat(toplam.value) || 0;
+            var i = parseFloat(indirim.value) || 0;
+            if (i > 0 && t > 0) {
+                var net = Math.max(t - i, 0);
+                netSpan.textContent = net.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                info.style.display = 'block';
+            } else {
+                info.style.display = 'none';
+            }
+        }
+
+        toplam.addEventListener('input', guncelle);
+        indirim.addEventListener('input', guncelle);
+        guncelle();
+    })();
+</script>
 {% endblock %}

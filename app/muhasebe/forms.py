@@ -46,6 +46,12 @@ class OdemePlaniForm(FlaskForm):
     toplam_tutar = DecimalField('Toplam Tutar (₺)', places=2, validators=[
         DataRequired(), NumberRange(min=0.01)
     ])
+    indirim_tutar = DecimalField('İndirim / Burs (₺)', places=2, default=0, validators=[
+        Optional(), NumberRange(min=0)
+    ])
+    indirim_aciklama = StringField('İndirim Açıklaması', validators=[
+        Optional(), Length(max=200)
+    ])
     taksit_sayisi = IntegerField('Taksit Sayısı', validators=[
         DataRequired(), NumberRange(min=1, max=12)
     ])

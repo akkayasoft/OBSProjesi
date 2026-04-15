@@ -46,23 +46,46 @@
 
 <!-- Ödeme Planları -->
 {% for plan in planlar %}
-<div class="card mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">
-            <i class="bi bi-calendar3 me-2"></i>{{ plan.donem }} Dönemi
-            <span class="text-muted small ms-2">({{ plan.taksit_sayisi }} Taksit)</span>
-        </h6>
-        <div>
-            <span class="badge bg-secondary">Brüt: {{ "{:,.2f}".format(plan.toplam_tutar) }} ₺</span>
-            {% if plan.indirim_tutar and plan.indirim_tutar > 0 %}
-            <span class="badge bg-info" title="{{ plan.indirim_aciklama or 'İndirim' }}">
-                <i class="bi bi-gift me-1"></i>-{{ "{:,.2f}".format(plan.indirim_tutar) }} ₺
-            </span>
-            <span class="badge bg-primary">Net: {{ "{:,.2f}".format(plan.net_tutar) }} ₺</span>
-            {% endif %}
-            <span class="badge bg-success">Ödenen: {{ "{:,.2f}".format(plan.odenen_toplam) }} ₺</span>
-            <span class="badge bg-danger">Kalan: {{ "{:,.2f}".format(plan.kalan_borc) }} ₺</span>
+<div class="card mb-4 {% if plan.durum == 'kapali' %}border-secondary{% elif plan.durum == 'iptal' %}border-danger{% endif %}">
+    <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h6 class="mb-0">
+                <i class="bi bi-calendar3 me-2"></i>{{ plan.donem }} Dönemi
+                <span class="text-muted small ms-2">({{ plan.taksit_sayisi }} Taksit)</span>
+                {% if plan.durum == 'kapali' %}
+                <span class="badge bg-secondary ms-2"><i class="bi bi-lock me-1"></i>Kapalı</span>
+                {% elif plan.durum == 'iptal' %}
+                <span class="badge bg-danger ms-2">İptal</span>
+                {% endif %}
+                {% if plan.onceki_plan_id %}
+                <span class="badge bg-info ms-1" title="Bu plan yeniden yapılandırma sonucu oluşturuldu">
+                    <i class="bi bi-arrow-repeat me-1"></i>Yeniden Yapılandırılmış
+                </span>
+                {% endif %}
+            </h6>
+            <div>
+                <span class="badge bg-secondary">Brüt: {{ "{:,.2f}".format(plan.toplam_tutar) }} ₺</span>
+                {% if plan.indirim_tutar and plan.indirim_tutar > 0 %}
+                <span class="badge bg-info" title="{{ plan.indirim_aciklama or 'İndirim' }}">
+                    <i class="bi bi-gift me-1"></i>-{{ "{:,.2f}".format(plan.indirim_tutar) }} ₺
+                </span>
+                <span class="badge bg-primary">Net: {{ "{:,.2f}".format(plan.net_tutar) }} ₺</span>
+                {% endif %}
+                <span class="badge bg-success">Ödenen: {{ "{:,.2f}".format(plan.odenen_toplam) }} ₺</span>
+                <span class="badge bg-danger">Kalan: {{ "{:,.2f}".format(plan.kalan_borc) }} ₺</span>
+                {% if plan.durum == 'aktif' and plan.kalan_borc > 0 %}
+                <a href="{{ url_for('muhasebe.tahsilat.plan_yeniden_yapilandir', plan_id=plan.id) }}"
+                   class="btn btn-sm btn-outline-info ms-1" title="Yeniden Yapılandır">
+                    <i class="bi bi-arrow-repeat"></i>
+                </a>
+                {% endif %}
+            </div>
         </div>
+        {% if plan.kapanma_nedeni %}
+        <div class="small text-muted mt-1">
+            <i class="bi bi-info-circle me-1"></i>{{ plan.kapanma_nedeni }}
+        </div>
+        {% endif %}
     </div>
     <div class="table-responsive">
         <table class="table table-hover mb-0">
@@ -81,13 +104,22 @@
                 {% for taksit in plan.taksitler %}
                 <tr>
                     <td><strong>{{ taksit.taksit_no }}. Taksit</strong></td>
-                    <td>{{ taksit.vade_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        {{ taksit.vade_tarihi.strftime('%d.%m.%Y') }}
+                        {% if taksit.orjinal_vade_tarihi %}
+                        <br><small class="text-muted" title="Erteleme: {{ taksit.erteleme_notu or '' }}">
+                            <i class="bi bi-arrow-right me-1"></i>{{ taksit.orjinal_vade_tarihi.strftime('%d.%m.%Y') }}
+                        </small>
+                        {% endif %}
+                    </td>
                     <td class="text-end">{{ "{:,.2f}".format(taksit.tutar) }} ₺</td>
                     <td class="text-end text-success">{{ "{:,.2f}".format(taksit.odenen_tutar) }} ₺</td>
                     <td class="text-end fw-bold">{{ "{:,.2f}".format(taksit.kalan) }} ₺</td>
                     <td class="text-center">
                         {% if taksit.durum == 'odendi' %}
                         <span class="badge badge-odendi">Ödendi</span>
+                        {% elif taksit.durum == 'iptal' %}
+                        <span class="badge bg-secondary">İptal</span>
                         {% elif taksit.durum == 'gecikti' or taksit.gecikti_mi %}
                         <span class="badge badge-gecikti">Gecikti</span>
                         {% elif taksit.durum == 'kismi_odendi' %}
@@ -95,13 +127,24 @@
                         {% else %}
                         <span class="badge badge-beklemede">Beklemede</span>
                         {% endif %}
+                        {% if taksit.orjinal_vade_tarihi %}
+                        <span class="badge bg-warning ms-1" title="{{ taksit.erteleme_notu or 'Ertelendi' }}">
+                            <i class="bi bi-calendar-plus"></i>
+                        </span>
+                        {% endif %}
                     </td>
                     <td class="text-center">
-                        {% if taksit.durum != 'odendi' %}
-                        <a href="{{ url_for('muhasebe.ogrenci_odeme.odeme_yap', taksit_id=taksit.id) }}"
-                           class="btn btn-sm btn-success" title="Ödeme Yap">
-                            <i class="bi bi-cash"></i> Ödeme Yap
-                        </a>
+                        {% if taksit.durum not in ['odendi', 'iptal'] and plan.durum == 'aktif' %}
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('muhasebe.ogrenci_odeme.odeme_yap', taksit_id=taksit.id) }}"
+                               class="btn btn-success" title="Ödeme Yap">
+                                <i class="bi bi-cash"></i>
+                            </a>
+                            <a href="{{ url_for('muhasebe.tahsilat.taksit_ertele', taksit_id=taksit.id) }}"
+                               class="btn btn-outline-warning" title="Ertele">
+                                <i class="bi bi-calendar-plus"></i>
+                            </a>
+                        </div>
                         {% endif %}
                     </td>
                 </tr>

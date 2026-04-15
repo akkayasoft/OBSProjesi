@@ -180,6 +180,7 @@ def create_app(config_class=Config):
             {'label': 'Muhasebe', 'icon': 'bi-cash-stack', 'url': '/muhasebe/', 'modul_key': 'muhasebe', 'children': [
                 {'label': 'Gelir / Gider', 'icon': 'bi-arrow-left-right', 'url': '/muhasebe/gelir-gider/'},
                 {'label': 'Öğrenci Ödemeleri', 'icon': 'bi-mortarboard', 'url': '/muhasebe/ogrenci-odeme/'},
+                {'label': 'Tahsilat Hareketliliği', 'icon': 'bi-receipt', 'url': '/muhasebe/tahsilat/'},
                 {'label': 'Personel Ödemeleri', 'icon': 'bi-people', 'url': '/muhasebe/personel-odeme/'},
                 {'label': 'Banka Hesapları', 'icon': 'bi-bank', 'url': '/muhasebe/banka/'},
                 {'label': 'Raporlar', 'icon': 'bi-bar-chart-line', 'url': '/muhasebe/raporlar/'},

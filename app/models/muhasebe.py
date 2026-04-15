@@ -72,7 +72,12 @@ class Ogrenci(db.Model):
     def toplam_borc(self):
         toplam = 0
         for plan in self.odeme_planlari:
+            # Kapatilmis/iptal edilmis planlar borca dahil edilmez
+            if plan.durum in ('kapali', 'iptal'):
+                continue
             for taksit in plan.taksitler:
+                if taksit.durum == 'iptal':
+                    continue
                 toplam += float(taksit.tutar) - float(taksit.odenen_tutar)
         return max(toplam, 0)
 
@@ -92,6 +97,12 @@ class OdemePlani(db.Model):
     taksit_sayisi = db.Column(db.Integer, nullable=False)
     aciklama = db.Column(db.Text, nullable=True)
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
+    durum = db.Column(db.String(20), default='aktif')  # aktif, kapali, iptal
+    kapanma_tarihi = db.Column(db.DateTime, nullable=True)
+    kapanma_nedeni = db.Column(db.String(200), nullable=True)
+    onceki_plan_id = db.Column(db.Integer, db.ForeignKey('odeme_planlari.id'), nullable=True)
+
+    onceki_plan = db.relationship('OdemePlani', remote_side=[id], backref='yeni_plan')
 
     taksitler = db.relationship('Taksit', backref='odeme_plani', lazy='dynamic',
                                 order_by='Taksit.taksit_no')
@@ -120,10 +131,12 @@ class Taksit(db.Model):
     taksit_no = db.Column(db.Integer, nullable=False)
     tutar = db.Column(db.Numeric(12, 2), nullable=False)
     vade_tarihi = db.Column(db.Date, nullable=False)
+    orjinal_vade_tarihi = db.Column(db.Date, nullable=True)
     odenen_tutar = db.Column(db.Numeric(12, 2), default=0)
     odeme_tarihi = db.Column(db.Date, nullable=True)
     durum = db.Column(db.String(20), default='beklemede')
-    # beklemede, odendi, gecikti, kismi_odendi
+    # beklemede, odendi, gecikti, kismi_odendi, ertelendi
+    erteleme_notu = db.Column(db.String(200), nullable=True)
 
     odemeler = db.relationship('Odeme', backref='taksit', lazy='dynamic')
 
@@ -138,6 +151,12 @@ class Taksit(db.Model):
         return date.today() > self.vade_tarihi
 
     def durum_guncelle(self):
+        if self.durum == 'iptal':
+            return
+        if float(self.tutar) == 0:
+            # Tum tutar odendi veya iptal; koruma
+            self.durum = 'odendi' if float(self.odenen_tutar) > 0 else 'iptal'
+            return
         if float(self.odenen_tutar) >= float(self.tutar):
             self.durum = 'odendi'
         elif float(self.odenen_tutar) > 0:
@@ -164,7 +183,14 @@ class Odeme(db.Model):
     tarih = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     olusturan_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-    olusturan = db.relationship('User', backref='odemeler')
+    # Iptal / iade bilgileri
+    iptal_edildi = db.Column(db.Boolean, default=False)
+    iptal_tarihi = db.Column(db.DateTime, nullable=True)
+    iptal_nedeni = db.Column(db.String(200), nullable=True)
+    iptal_eden_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
+    olusturan = db.relationship('User', foreign_keys=[olusturan_id], backref='odemeler')
+    iptal_eden = db.relationship('User', foreign_keys=[iptal_eden_id])
     banka_hesap = db.relationship('BankaHesabi', backref='odemeler')
 
     def __repr__(self):

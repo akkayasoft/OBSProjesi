@@ -1,0 +1,87 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Ödeme Planı Yeniden Yapılandırma{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=ogrenci.id) }}">{{ ogrenci.tam_ad }}</a></li>
+<li class="breadcrumb-item active">Yeniden Yapılandırma</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Ödeme Planı Yeniden Yapılandırma</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Bilgi:</strong> Bu işlem mevcut <strong>{{ plan.donem }}</strong> planını kapatacak ve kalan borcu
+                    yeni bir plan olarak oluşturacak. Ödenmiş taksitler korunur, ödenmemiş taksitler iptal edilir.
+                </div>
+
+                <!-- Mevcut Plan Özeti -->
+                <div class="card bg-light mb-3">
+                    <div class="card-body py-2">
+                        <p class="mb-1 fw-bold"><i class="bi bi-info-square me-1"></i>Mevcut Plan Özeti</p>
+                        <div class="row small">
+                            <div class="col-md-4">Dönem: <strong>{{ plan.donem }}</strong></div>
+                            <div class="col-md-4">Toplam: <strong>{{ "{:,.2f}".format(plan.toplam_tutar) }} ₺</strong></div>
+                            <div class="col-md-4">Taksit: <strong>{{ plan.taksit_sayisi }}</strong></div>
+                            <div class="col-md-4">Ödenen: <strong class="text-success">{{ "{:,.2f}".format(plan.odenen_toplam) }} ₺</strong></div>
+                            <div class="col-md-4">Net: <strong>{{ "{:,.2f}".format(plan.net_tutar) }} ₺</strong></div>
+                            <div class="col-md-4">Kalan: <strong class="text-danger">{{ "{:,.2f}".format(kalan_borc) }} ₺</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Yeni Dönem</label>
+                            <input type="text" name="donem" class="form-control" required
+                                   value="{{ plan.donem }}-YY">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Yeni Toplam Tutar (₺) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0.01" name="yeni_toplam" class="form-control" required
+                                   value="{{ "%.2f"|format(kalan_borc) }}">
+                            <small class="text-muted">Varsayılan: mevcut kalan borç. Değiştirebilirsiniz (gecikme faizi vb).</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Yeni Taksit Sayısı <span class="text-danger">*</span></label>
+                            <input type="number" min="1" max="24" name="taksit_sayisi" class="form-control" required value="3">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">İlk Taksit Vade Tarihi</label>
+                            <input type="date" name="ilk_vade" class="form-control">
+                            <small class="text-muted">Boş bırakılırsa 30 gün sonrasıdır.</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Yeniden Yapılandırma Nedeni</label>
+                        <textarea name="neden" class="form-control" rows="2"
+                                  placeholder="Ör: Veli talebi üzerine vade uzatımı, gecikme faizi dahil..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=ogrenci.id) }}"
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Vazgeç
+                        </a>
+                        <button type="submit" class="btn btn-info"
+                                onclick="return confirm('Mevcut plan kapatılıp yeni plan oluşturulacak. Onaylıyor musunuz?')">
+                            <i class="bi bi-arrow-repeat me-1"></i>Yeniden Yapılandır
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

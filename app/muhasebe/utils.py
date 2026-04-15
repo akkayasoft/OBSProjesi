@@ -47,11 +47,12 @@ def banka_hareketi_olustur(hesap_id, tur, tutar, aciklama='', karsi_hesap_id=Non
 
 def geciken_taksitleri_guncelle():
     """Vadesi geçmiş taksitlerin durumunu günceller."""
-    from app.models.muhasebe import Taksit
+    from app.models.muhasebe import Taksit, OdemePlani
 
-    geciken = Taksit.query.filter(
+    geciken = Taksit.query.join(OdemePlani).filter(
         Taksit.durum.in_(['beklemede', 'kismi_odendi']),
-        Taksit.vade_tarihi < date.today()
+        Taksit.vade_tarihi < date.today(),
+        OdemePlani.durum == 'aktif'
     ).all()
 
     for taksit in geciken:

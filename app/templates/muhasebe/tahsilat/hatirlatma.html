@@ -1,0 +1,123 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Toplu Ödeme Hatırlatma{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.tahsilat.liste') }}">Tahsilat</a></li>
+<li class="breadcrumb-item active">Toplu Hatırlatma</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bell me-2"></i>Toplu Ödeme Hatırlatma</h4>
+    <div class="btn-group">
+        <a href="?secim=geciken" class="btn btn-outline-danger {% if secim == 'geciken' %}active{% endif %}">
+            <i class="bi bi-exclamation-triangle me-1"></i>Geciken
+        </a>
+        <a href="?secim=yaklasan" class="btn btn-outline-warning {% if secim == 'yaklasan' %}active{% endif %}">
+            <i class="bi bi-clock me-1"></i>Yaklaşan (7 gün)
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Hedef Öğrenci Listesi -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-people me-2"></i>Hedef Öğrenciler
+                    <span class="badge bg-secondary ms-2">{{ taksitler|length }}</span>
+                </h6>
+            </div>
+            <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                {% if taksitler %}
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="sticky-top bg-light">
+                        <tr>
+                            <th>Öğrenci</th>
+                            <th>Taksit</th>
+                            <th>Vade</th>
+                            <th class="text-end">Kalan</th>
+                            <th>Hesap</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tks in taksitler %}
+                        {% set ogr = tks.odeme_plani.ogrenci %}
+                        <tr>
+                            <td>
+                                {{ ogr.tam_ad }}
+                                <br><small class="text-muted">{{ ogr.ogrenci_no }}</small>
+                            </td>
+                            <td><small>{{ tks.taksit_no }}. Taksit</small></td>
+                            <td>
+                                <small>{{ tks.vade_tarihi.strftime('%d.%m.%Y') }}</small>
+                                {% set fark = (tks.vade_tarihi - bugun).days %}
+                                {% if fark < 0 %}
+                                <span class="badge bg-danger">{{ -fark }} gün geç</span>
+                                {% else %}
+                                <span class="badge bg-warning">{{ fark }} gün</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end fw-bold text-danger">{{ "{:,.2f}".format(tks.kalan) }} ₺</td>
+                            <td class="text-center">
+                                {% if ogr.user_id %}
+                                <i class="bi bi-check-circle text-success" title="Hesabı var"></i>
+                                {% else %}
+                                <i class="bi bi-x-circle text-muted" title="Hesabı yok"></i>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-check-circle" style="font-size: 3rem;"></i>
+                    <p class="mt-2">Hatırlatma gönderilecek öğrenci yok.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Mesaj Formu -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-envelope me-2"></i>Bildirim Mesajı</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Mesaj İçeriği</label>
+                        <textarea name="mesaj" class="form-control" rows="6" required
+                                  placeholder="Sayın {ad}, {vade} tarihli {tutar} tutarındaki taksit ödemeniz bulunmaktadır...">Sayın {ad}, {vade} tarihli {tutar} tutarındaki taksit ödemeniz bulunmaktadır. En kısa sürede ödeme yapmanızı rica ederiz.</textarea>
+                        <div class="small text-muted mt-2">
+                            <strong>Kullanılabilir değişkenler:</strong>
+                            <ul class="mb-0">
+                                <li><code>{ad}</code> → Öğrenci adı</li>
+                                <li><code>{tutar}</code> → Kalan tutar</li>
+                                <li><code>{vade}</code> → Vade tarihi</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Bildirim yalnızca sistem hesabı olan öğrencilere gönderilir.
+                        Hesabı olmayanlara gönderim yapılmaz.
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100"
+                            {% if not taksitler %}disabled{% endif %}
+                            onclick="return confirm('{{ taksitler|length }} öğrenciye hatırlatma gönderilecek. Onaylıyor musunuz?')">
+                        <i class="bi bi-send me-1"></i>Bildirimleri Gönder
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

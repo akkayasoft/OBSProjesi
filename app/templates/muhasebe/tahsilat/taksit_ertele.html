@@ -1,0 +1,90 @@
+{% extends "muhasebe/_layout.html" %}
+
+{% block title %}Taksit Erteleme{% endblock %}
+
+{% block breadcrumb %}
+{% set ogr = taksit.odeme_plani.ogrenci %}
+<li class="breadcrumb-item"><a href="{{ url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=ogr.id) }}">{{ ogr.tam_ad }}</a></li>
+<li class="breadcrumb-item active">Taksit Erteleme</li>
+{% endblock %}
+
+{% block muhasebe_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-calendar-plus me-2"></i>Taksit Vade Erteleme</h5>
+            </div>
+            <div class="card-body">
+                <!-- Taksit Bilgileri -->
+                <table class="table table-sm">
+                    <tr>
+                        <th>Öğrenci</th>
+                        <td>{{ taksit.odeme_plani.ogrenci.tam_ad }}</td>
+                    </tr>
+                    <tr>
+                        <th>Dönem</th>
+                        <td>{{ taksit.odeme_plani.donem }}</td>
+                    </tr>
+                    <tr>
+                        <th>Taksit No</th>
+                        <td>{{ taksit.taksit_no }}. Taksit</td>
+                    </tr>
+                    <tr>
+                        <th>Tutar</th>
+                        <td><strong>{{ "{:,.2f}".format(taksit.tutar) }} ₺</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Ödenen</th>
+                        <td class="text-success">{{ "{:,.2f}".format(taksit.odenen_tutar) }} ₺</td>
+                    </tr>
+                    <tr>
+                        <th>Kalan</th>
+                        <td class="text-danger fw-bold">{{ "{:,.2f}".format(taksit.kalan) }} ₺</td>
+                    </tr>
+                    <tr>
+                        <th>Mevcut Vade</th>
+                        <td>
+                            <strong>{{ taksit.vade_tarihi.strftime('%d.%m.%Y') }}</strong>
+                            {% if taksit.orjinal_vade_tarihi %}
+                            <br><small class="text-muted">Orjinal: {{ taksit.orjinal_vade_tarihi.strftime('%d.%m.%Y') }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if taksit.erteleme_notu %}
+                    <tr>
+                        <th>Önceki Not</th>
+                        <td><small class="text-muted">{{ taksit.erteleme_notu }}</small></td>
+                    </tr>
+                    {% endif %}
+                </table>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Yeni Vade Tarihi <span class="text-danger">*</span></label>
+                        <input type="date" name="yeni_vade" class="form-control" required
+                               min="{{ taksit.vade_tarihi.strftime('%Y-%m-%d') }}">
+                        <small class="text-muted">Yeni tarih mevcut vadeden sonra olmalıdır.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Erteleme Notu</label>
+                        <textarea name="not_metni" class="form-control" rows="2"
+                                  placeholder="Ör: Veli talebi, mali güçlük vb."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=taksit.odeme_plani.ogrenci_id) }}"
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Vazgeç
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-calendar-plus me-1"></i>Taksiti Ertele
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -607,6 +607,18 @@ h4.mb-0 {
     }
 }
 
+/* === Sidebar Toggle Butonu === */
+.sidebar-toggle {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
 /* === Sidebar Overlay (mobil) === */
 .sidebar-overlay {
     display: none;
@@ -616,6 +628,7 @@ h4.mb-0 {
     z-index: 1025;
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+    -webkit-tap-highlight-color: transparent;
 }
 .sidebar-overlay.show {
     display: block;

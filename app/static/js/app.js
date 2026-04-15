@@ -18,19 +18,30 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = '';
     }
 
+    function toggleSidebar(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (sidebar && sidebar.classList.contains('show')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    }
+
     if (toggle) {
-        toggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (sidebar && sidebar.classList.contains('show')) {
-                closeSidebar();
-            } else {
-                openSidebar();
-            }
-        });
+        toggle.addEventListener('click', toggleSidebar);
+        toggle.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            toggleSidebar(e);
+        }, { passive: false });
     }
 
     if (overlay) {
         overlay.addEventListener('click', closeSidebar);
+        overlay.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            closeSidebar();
+        }, { passive: false });
     }
 
     // Sidebar icindeki linklere tiklaninca kapat (mobilde)

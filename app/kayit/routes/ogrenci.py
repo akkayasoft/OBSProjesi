@@ -2,7 +2,8 @@ import os
 import uuid
 from datetime import date
 from flask import (Blueprint, render_template, redirect, url_for, flash,
-                   request, current_app, session, send_from_directory, abort)
+                   request, current_app, session, send_from_directory, abort,
+                   send_file)
 from flask_login import login_required
 from werkzeug.utils import secure_filename
 from app.utils import role_required, current_user
@@ -16,6 +17,26 @@ from app.kayit.forms import (
     OgrenciKayitForm, OgrenciDuzenleForm, DurumDegistirForm, VeliForm,
     KarteksYukleForm
 )
+from app.toplu_yukleme import (
+    excel_sablonu_olustur, excel_oku,
+    dogrula_str, dogrula_sayi, dogrula_tarih
+)
+
+
+OGRENCI_BASLIKLAR = [
+    {'key': 'ogrenci_no', 'label': 'Öğrenci No', 'zorunlu': True},
+    {'key': 'ad', 'label': 'Ad', 'zorunlu': True},
+    {'key': 'soyad', 'label': 'Soyad', 'zorunlu': True},
+    {'key': 'tc_kimlik', 'label': 'TC Kimlik'},
+    {'key': 'cinsiyet', 'label': 'Cinsiyet (erkek/kadin)'},
+    {'key': 'dogum_tarihi', 'label': 'Doğum Tarihi (YYYY-MM-DD)'},
+    {'key': 'sinif', 'label': 'Sınıf'},
+    {'key': 'telefon', 'label': 'Telefon'},
+    {'key': 'email', 'label': 'E-posta'},
+    {'key': 'adres', 'label': 'Adres'},
+    {'key': 'veli_ad', 'label': 'Veli Ad Soyad'},
+    {'key': 'veli_telefon', 'label': 'Veli Telefon'},
+]
 
 bp = Blueprint('ogrenci', __name__)
 
@@ -91,6 +112,185 @@ def liste():
                            arama=arama,
                            sinif_filtre=sinif_filtre,
                            durum_filtre=durum_filtre)
+
+
+@bp.route('/toplu-yukle/sablon')
+@login_required
+@role_required('admin', 'muhasebeci', 'yonetici')
+def toplu_yukle_sablon():
+    """Ogrenci toplu yukleme Excel sablonunu indirir."""
+    ornek = [
+        ['1001', 'Ahmet', 'Yılmaz', '12345678901', 'erkek', '2010-05-15',
+         '7-A', '5321234567', 'ahmet@example.com', 'Örnek Mah. 1 Sok.',
+         'Mehmet Yılmaz', '5329876543'],
+        ['1002', 'Ayşe', 'Demir', '10987654321', 'kadin', '2011-08-22',
+         '6-B', '5321234568', '', '', 'Fatma Demir', '5329876544'],
+    ]
+    aciklama = ('Zorunlu alanlar kırmızı renkle işaretlidir. Cinsiyet alanına ' +
+                '"erkek" veya "kadin" yazın. Tarih formatı: YYYY-MM-DD.')
+    output = excel_sablonu_olustur(OGRENCI_BASLIKLAR, ornek_satirlar=ornek,
+                                    aciklama_satiri=aciklama, sayfa_adi='Ogrenciler')
+    return send_file(output, as_attachment=True,
+                     download_name='ogrenci_toplu_yukleme_sablonu.xlsx',
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+@bp.route('/toplu-yukle', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'muhasebeci', 'yonetici')
+def toplu_yukle():
+    """Excel dosyasi uzerinden ogrencileri toplu olusturur."""
+    onizleme = None
+    hatalar_ozet = None
+
+    if request.method == 'POST':
+        dosya = request.files.get('excel')
+        islem = request.form.get('islem', 'onizle')
+
+        if not dosya or not dosya.filename:
+            flash('Lütfen bir Excel dosyası seçin.', 'danger')
+            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None)
+
+        if not dosya.filename.lower().endswith(('.xlsx', '.xlsm')):
+            flash('Sadece .xlsx formatında dosya yükleyebilirsiniz.', 'danger')
+            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None)
+
+        try:
+            satirlar = excel_oku(dosya, OGRENCI_BASLIKLAR)
+        except Exception as exc:
+            flash(f'Dosya okunamadı: {exc}', 'danger')
+            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None)
+
+        # Dogrulama
+        mevcut_numaralar = set(n for (n,) in db.session.query(Ogrenci.ogrenci_no).all())
+        dosya_numaralar = set()
+
+        for s in satirlar:
+            ogr_no, err = dogrula_str(s.get('ogrenci_no'), zorunlu=True, max_len=20, label='Öğrenci No')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['ogrenci_no'] = ogr_no
+                if ogr_no in mevcut_numaralar:
+                    s['_hatalar'].append(f'Öğrenci No "{ogr_no}" zaten kayıtlı.')
+                if ogr_no in dosya_numaralar:
+                    s['_hatalar'].append(f'Öğrenci No "{ogr_no}" dosyada mükerrer.')
+                dosya_numaralar.add(ogr_no)
+
+            ad, err = dogrula_str(s.get('ad'), zorunlu=True, max_len=100, label='Ad')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['ad'] = ad
+
+            soyad, err = dogrula_str(s.get('soyad'), zorunlu=True, max_len=100, label='Soyad')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['soyad'] = soyad
+
+            tc, err = dogrula_str(s.get('tc_kimlik'), max_len=11, label='TC Kimlik')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['tc_kimlik'] = tc
+
+            cins, err = dogrula_str(s.get('cinsiyet'), max_len=10, label='Cinsiyet')
+            if err:
+                s['_hatalar'].append(err)
+            elif cins and cins.lower() not in ('erkek', 'kadin'):
+                s['_hatalar'].append('Cinsiyet "erkek" veya "kadin" olmalı.')
+            else:
+                s['cinsiyet'] = cins.lower() if cins else None
+
+            dt, err = dogrula_tarih(s.get('dogum_tarihi'), label='Doğum Tarihi')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['dogum_tarihi'] = dt
+
+            for key, lbl, mx in [('sinif', 'Sınıf', 20), ('telefon', 'Telefon', 20),
+                                 ('email', 'E-posta', 120), ('veli_ad', 'Veli Ad', 100),
+                                 ('veli_telefon', 'Veli Telefon', 20)]:
+                val, err = dogrula_str(s.get(key), max_len=mx, label=lbl)
+                if err:
+                    s['_hatalar'].append(err)
+                else:
+                    s[key] = val
+
+            adres, err = dogrula_str(s.get('adres'), max_len=1000, label='Adres')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['adres'] = adres
+
+        gecerli = [s for s in satirlar if not s['_hatalar']]
+        hatali = [s for s in satirlar if s['_hatalar']]
+
+        hatalar_ozet = {
+            'toplam': len(satirlar),
+            'gecerli': len(gecerli),
+            'hatali': len(hatali),
+        }
+
+        if islem == 'kaydet' and gecerli:
+            eklenen = 0
+            for s in gecerli:
+                try:
+                    username = s['ogrenci_no']
+                    varsayilan_sifre = s.get('tc_kimlik') or s['ogrenci_no']
+
+                    # Username mukerrer kontrolu
+                    if User.query.filter_by(username=username).first():
+                        s['_hatalar'].append(f'Kullanıcı adı "{username}" zaten var.')
+                        continue
+
+                    user = User(
+                        username=username,
+                        email=s.get('email') or f"{username}@ogrenci.obs",
+                        ad=s['ad'],
+                        soyad=s['soyad'],
+                        rol='ogrenci',
+                        aktif=True
+                    )
+                    user.set_password(varsayilan_sifre)
+                    db.session.add(user)
+                    db.session.flush()
+
+                    ogrenci = Ogrenci(
+                        user_id=user.id,
+                        ogrenci_no=s['ogrenci_no'],
+                        tc_kimlik=s.get('tc_kimlik'),
+                        ad=s['ad'],
+                        soyad=s['soyad'],
+                        cinsiyet=s.get('cinsiyet'),
+                        dogum_tarihi=s.get('dogum_tarihi'),
+                        sinif=s.get('sinif'),
+                        telefon=s.get('telefon'),
+                        email=s.get('email'),
+                        adres=s.get('adres'),
+                        veli_ad=s.get('veli_ad'),
+                        veli_telefon=s.get('veli_telefon'),
+                        aktif=True,
+                    )
+                    db.session.add(ogrenci)
+                    eklenen += 1
+                except Exception as exc:
+                    db.session.rollback()
+                    s['_hatalar'].append(f'Kayıt hatası: {exc}')
+
+            db.session.commit()
+            flash(f'{eklenen} öğrenci başarıyla eklendi.' +
+                  (f' {len(hatali)} satır hata nedeniyle atlandı.' if hatali else ''),
+                  'success' if eklenen else 'warning')
+            if not hatali:
+                return redirect(url_for('kayit.ogrenci.liste'))
+
+        onizleme = satirlar
+
+    return render_template('kayit/ogrenci/toplu_yukle.html',
+                           onizleme=onizleme, hatalar_ozet=hatalar_ozet,
+                           basliklar=OGRENCI_BASLIKLAR)
 
 
 @bp.route('/karteks-yukle', methods=['GET', 'POST'])

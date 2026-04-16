@@ -9,9 +9,14 @@
 {% block personel_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-people-fill me-2"></i>Personel Listesi</h4>
-    <a href="{{ url_for('personel.personel_crud.yeni') }}" class="btn btn-primary">
-        <i class="bi bi-person-plus me-1"></i>Yeni Personel
-    </a>
+    <div>
+        <a href="{{ url_for('personel.personel_crud.toplu_yukle') }}" class="btn btn-outline-success me-2">
+            <i class="bi bi-cloud-upload me-1"></i>Toplu Yükle
+        </a>
+        <a href="{{ url_for('personel.personel_crud.yeni') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus me-1"></i>Yeni Personel
+        </a>
+    </div>
 </div>
 
 <!-- Arama ve Filtreler -->

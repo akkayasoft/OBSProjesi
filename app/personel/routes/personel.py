@@ -1,10 +1,34 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import (Blueprint, render_template, redirect, url_for, flash, request,
+                   send_file)
 from flask_login import login_required
 from app.utils import role_required, current_user
 from app.extensions import db
 from app.models.user import User
 from app.models.muhasebe import Personel
 from app.personel.forms import PersonelForm, PersonelDuzenleForm
+from app.toplu_yukleme import (
+    excel_sablonu_olustur, excel_oku,
+    dogrula_str, dogrula_sayi, dogrula_tarih
+)
+
+
+PERSONEL_BASLIKLAR = [
+    {'key': 'sicil_no', 'label': 'Sicil No', 'zorunlu': True},
+    {'key': 'ad', 'label': 'Ad', 'zorunlu': True},
+    {'key': 'soyad', 'label': 'Soyad', 'zorunlu': True},
+    {'key': 'tc_kimlik', 'label': 'TC Kimlik'},
+    {'key': 'cinsiyet', 'label': 'Cinsiyet (erkek/kadin)'},
+    {'key': 'dogum_tarihi', 'label': 'Doğum Tarihi (YYYY-MM-DD)'},
+    {'key': 'telefon', 'label': 'Telefon'},
+    {'key': 'email', 'label': 'E-posta'},
+    {'key': 'adres', 'label': 'Adres'},
+    {'key': 'pozisyon', 'label': 'Pozisyon'},
+    {'key': 'departman', 'label': 'Departman'},
+    {'key': 'calisma_turu', 'label': 'Çalışma Türü (tam_zamanli/yari_zamanli/sozlesmeli)'},
+    {'key': 'maas', 'label': 'Maaş'},
+    {'key': 'ise_baslama_tarihi', 'label': 'İşe Başlama Tarihi (YYYY-MM-DD)'},
+]
+
 
 bp = Blueprint('personel_crud', __name__)
 
@@ -162,3 +186,203 @@ def durum_degistir(personel_id):
     durum_str = 'aktif' if personel.aktif else 'pasif'
     flash(f'{personel.tam_ad} {durum_str} yapıldı.', 'success')
     return redirect(url_for('personel.personel_crud.detay', personel_id=personel.id))
+
+
+@bp.route('/toplu-yukle/sablon')
+@login_required
+@role_required('admin', 'muhasebeci', 'yonetici')
+def toplu_yukle_sablon():
+    """Personel toplu yukleme Excel sablonunu indirir."""
+    ornek = [
+        ['P001', 'Ali', 'Kaya', '12345678901', 'erkek', '1985-03-12',
+         '5321112233', 'ali@okul.com', 'Örnek Mah. 1 Sok.',
+         'Matematik Öğretmeni', 'Matematik', 'tam_zamanli', '35000', '2020-09-01'],
+        ['P002', 'Zeynep', 'Öz', '98765432109', 'kadin', '1990-07-25',
+         '5322223344', 'zeynep@okul.com', '', 'Türkçe Öğretmeni',
+         'Türkçe', 'yari_zamanli', '25000', '2022-02-15'],
+    ]
+    aciklama = ('Zorunlu alanlar kırmızı renkle işaretlidir. Çalışma türü: '
+                '"tam_zamanli", "yari_zamanli" veya "sozlesmeli". Tarih formatı: YYYY-MM-DD.')
+    output = excel_sablonu_olustur(PERSONEL_BASLIKLAR, ornek_satirlar=ornek,
+                                    aciklama_satiri=aciklama, sayfa_adi='Personeller')
+    return send_file(output, as_attachment=True,
+                     download_name='personel_toplu_yukleme_sablonu.xlsx',
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+@bp.route('/toplu-yukle', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'muhasebeci', 'yonetici')
+def toplu_yukle():
+    """Excel dosyasi uzerinden personelleri toplu olusturur."""
+    onizleme = None
+    hatalar_ozet = None
+
+    if request.method == 'POST':
+        dosya = request.files.get('excel')
+        islem = request.form.get('islem', 'onizle')
+
+        if not dosya or not dosya.filename:
+            flash('Lütfen bir Excel dosyası seçin.', 'danger')
+            return render_template('personel/personel/toplu_yukle.html', onizleme=None)
+
+        if not dosya.filename.lower().endswith(('.xlsx', '.xlsm')):
+            flash('Sadece .xlsx formatında dosya yükleyebilirsiniz.', 'danger')
+            return render_template('personel/personel/toplu_yukle.html', onizleme=None)
+
+        try:
+            satirlar = excel_oku(dosya, PERSONEL_BASLIKLAR)
+        except Exception as exc:
+            flash(f'Dosya okunamadı: {exc}', 'danger')
+            return render_template('personel/personel/toplu_yukle.html', onizleme=None)
+
+        mevcut_siciller = set(n for (n,) in db.session.query(Personel.sicil_no).all())
+        dosya_siciller = set()
+        gecerli_calisma_turleri = {'tam_zamanli', 'yari_zamanli', 'sozlesmeli'}
+
+        for s in satirlar:
+            sicil, err = dogrula_str(s.get('sicil_no'), zorunlu=True, max_len=20, label='Sicil No')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['sicil_no'] = sicil
+                if sicil in mevcut_siciller:
+                    s['_hatalar'].append(f'Sicil No "{sicil}" zaten kayıtlı.')
+                if sicil in dosya_siciller:
+                    s['_hatalar'].append(f'Sicil No "{sicil}" dosyada mükerrer.')
+                dosya_siciller.add(sicil)
+
+            ad, err = dogrula_str(s.get('ad'), zorunlu=True, max_len=100, label='Ad')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['ad'] = ad
+
+            soyad, err = dogrula_str(s.get('soyad'), zorunlu=True, max_len=100, label='Soyad')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['soyad'] = soyad
+
+            tc, err = dogrula_str(s.get('tc_kimlik'), max_len=11, label='TC Kimlik')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['tc_kimlik'] = tc
+
+            cins, err = dogrula_str(s.get('cinsiyet'), max_len=10, label='Cinsiyet')
+            if err:
+                s['_hatalar'].append(err)
+            elif cins and cins.lower() not in ('erkek', 'kadin'):
+                s['_hatalar'].append('Cinsiyet "erkek" veya "kadin" olmalı.')
+            else:
+                s['cinsiyet'] = cins.lower() if cins else None
+
+            dt, err = dogrula_tarih(s.get('dogum_tarihi'), label='Doğum Tarihi')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['dogum_tarihi'] = dt
+
+            bt, err = dogrula_tarih(s.get('ise_baslama_tarihi'), label='İşe Başlama Tarihi')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['ise_baslama_tarihi'] = bt
+
+            for key, lbl, mx in [('telefon', 'Telefon', 20), ('email', 'E-posta', 120),
+                                 ('pozisyon', 'Pozisyon', 100), ('departman', 'Departman', 100)]:
+                val, err = dogrula_str(s.get(key), max_len=mx, label=lbl)
+                if err:
+                    s['_hatalar'].append(err)
+                else:
+                    s[key] = val
+
+            adres, err = dogrula_str(s.get('adres'), max_len=1000, label='Adres')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['adres'] = adres
+
+            ct, err = dogrula_str(s.get('calisma_turu'), max_len=20, label='Çalışma Türü')
+            if err:
+                s['_hatalar'].append(err)
+            elif ct and ct not in gecerli_calisma_turleri:
+                s['_hatalar'].append('Çalışma Türü "tam_zamanli", "yari_zamanli" veya "sozlesmeli" olmalı.')
+            else:
+                s['calisma_turu'] = ct or 'tam_zamanli'
+
+            maas, err = dogrula_sayi(s.get('maas'), min_val=0, label='Maaş')
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s['maas'] = maas
+
+        gecerli = [s for s in satirlar if not s['_hatalar']]
+        hatali = [s for s in satirlar if s['_hatalar']]
+
+        hatalar_ozet = {
+            'toplam': len(satirlar),
+            'gecerli': len(gecerli),
+            'hatali': len(hatali),
+        }
+
+        if islem == 'kaydet' and gecerli:
+            eklenen = 0
+            for s in gecerli:
+                try:
+                    username = s['sicil_no']
+                    varsayilan_sifre = s.get('tc_kimlik') or s['sicil_no']
+
+                    if User.query.filter_by(username=username).first():
+                        s['_hatalar'].append(f'Kullanıcı adı "{username}" zaten var.')
+                        continue
+
+                    user = User(
+                        username=username,
+                        email=s.get('email') or f"{username}@personel.obs",
+                        ad=s['ad'],
+                        soyad=s['soyad'],
+                        rol='ogretmen',
+                        aktif=True
+                    )
+                    user.set_password(varsayilan_sifre)
+                    db.session.add(user)
+                    db.session.flush()
+
+                    personel = Personel(
+                        user_id=user.id,
+                        sicil_no=s['sicil_no'],
+                        tc_kimlik=s.get('tc_kimlik'),
+                        ad=s['ad'],
+                        soyad=s['soyad'],
+                        cinsiyet=s.get('cinsiyet'),
+                        dogum_tarihi=s.get('dogum_tarihi'),
+                        telefon=s.get('telefon'),
+                        email=s.get('email'),
+                        adres=s.get('adres'),
+                        pozisyon=s.get('pozisyon'),
+                        departman=s.get('departman'),
+                        calisma_turu=s.get('calisma_turu') or 'tam_zamanli',
+                        maas=s.get('maas'),
+                        ise_baslama_tarihi=s.get('ise_baslama_tarihi'),
+                        aktif=True,
+                    )
+                    db.session.add(personel)
+                    eklenen += 1
+                except Exception as exc:
+                    db.session.rollback()
+                    s['_hatalar'].append(f'Kayıt hatası: {exc}')
+
+            db.session.commit()
+            flash(f'{eklenen} personel başarıyla eklendi.' +
+                  (f' {len(hatali)} satır hata nedeniyle atlandı.' if hatali else ''),
+                  'success' if eklenen else 'warning')
+            if not hatali:
+                return redirect(url_for('personel.personel_crud.liste'))
+
+        onizleme = satirlar
+
+    return render_template('personel/personel/toplu_yukle.html',
+                           onizleme=onizleme, hatalar_ozet=hatalar_ozet,
+                           basliklar=PERSONEL_BASLIKLAR)

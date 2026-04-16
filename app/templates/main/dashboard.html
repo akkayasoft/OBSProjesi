@@ -2,126 +2,512 @@
 
 {% block title %}Ana Sayfa{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* === Dashboard === */
+    .dashboard-hero {
+        background: linear-gradient(135deg, #2F6DB5 0%, #1e4d80 100%);
+        color: #fff;
+        border-radius: 14px;
+        padding: 1.5rem 1.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 6px 20px rgba(47, 109, 181, 0.25);
+    }
+    .dashboard-hero h3 { margin: 0 0 0.25rem 0; font-weight: 700; }
+    .dashboard-hero p { margin: 0; opacity: 0.92; }
+    .dashboard-hero .hero-actions .btn {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.3);
+        backdrop-filter: blur(4px);
+    }
+    .dashboard-hero .hero-actions .btn:hover {
+        background: rgba(255,255,255,0.28);
+    }
+
+    .kpi-card {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        padding: 1.1rem 1.2rem;
+        display: flex;
+        gap: 0.9rem;
+        align-items: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+    .kpi-card .kpi-icon {
+        width: 48px; height: 48px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+    .kpi-card .kpi-label { font-size: 0.78rem; color: #6c757d; margin: 0 0 0.1rem 0; text-transform: uppercase; letter-spacing: 0.03em; }
+    .kpi-card .kpi-value { font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: -0.02em; line-height: 1.1; }
+    .kpi-card .kpi-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 0.15rem; }
+
+    .kpi-grad-success { background: linear-gradient(135deg, #10b98120, #10b98108); color: #059669; }
+    .kpi-grad-danger  { background: linear-gradient(135deg, #ef444420, #ef444408); color: #dc2626; }
+    .kpi-grad-warning { background: linear-gradient(135deg, #f59e0b20, #f59e0b08); color: #d97706; }
+    .kpi-grad-info    { background: linear-gradient(135deg, #0ea5e920, #0ea5e908); color: #0284c7; }
+    .kpi-grad-primary { background: linear-gradient(135deg, #2F6DB520, #2F6DB508); color: #2F6DB5; }
+    .kpi-grad-purple  { background: linear-gradient(135deg, #8b5cf620, #8b5cf608); color: #7c3aed; }
+    .kpi-grad-pink    { background: linear-gradient(135deg, #ec489920, #ec489908); color: #db2777; }
+    .kpi-grad-dark    { background: linear-gradient(135deg, #37415120, #37415108); color: #1f2937; }
+
+    .panel {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+    .panel-header {
+        padding: 0.85rem 1.1rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex; justify-content: space-between; align-items: center;
+        background: #fafbfc;
+    }
+    .panel-header h6 { margin: 0; font-weight: 600; }
+    .panel-body { padding: 1rem 1.1rem; }
+    .panel-body.no-pad { padding: 0; }
+
+    .hizli-link-kart {
+        display: flex; align-items: center; gap: 0.75rem;
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #fff;
+        color: inherit;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .hizli-link-kart:hover {
+        border-color: #2F6DB5;
+        background: #f0f6ff;
+        color: #2F6DB5;
+        transform: translateY(-1px);
+    }
+    .hizli-link-kart .hl-icon {
+        width: 40px; height: 40px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+    }
+    .hizli-link-kart strong { display: block; font-size: 0.9rem; }
+    .hizli-link-kart small { color: #6c757d; font-size: 0.72rem; }
+
+    .feed-item {
+        padding: 0.75rem 1.1rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex; gap: 0.75rem; align-items: start;
+    }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-item .fi-icon {
+        width: 34px; height: 34px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; font-size: 0.95rem;
+    }
+    .feed-item .fi-body { flex: 1; min-width: 0; }
+    .feed-item .fi-title { font-weight: 600; font-size: 0.88rem; margin: 0 0 0.1rem 0; }
+    .feed-item .fi-meta { font-size: 0.72rem; color: #9ca3af; }
+    .feed-item .fi-right { font-size: 0.8rem; color: #6c757d; white-space: nowrap; }
+
+    .badge-onemli {
+        background: #ef4444 !important;
+        animation: pulse-subtle 2s infinite;
+    }
+    @keyframes pulse-subtle {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-hero { padding: 1.2rem 1.3rem; }
+        .dashboard-hero h3 { font-size: 1.15rem; }
+        .kpi-card { padding: 0.9rem; }
+        .kpi-card .kpi-value { font-size: 1.15rem; }
+        .kpi-card .kpi-icon { width: 40px; height: 40px; font-size: 1.1rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Kontrol Paneli</h4>
-    <span class="text-muted">{{ now().strftime('%d %B %Y') if now is defined else '' }}</span>
-</div>
-
-<!-- Özet Kartları -->
-<div class="row g-4 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Aylık Gelir</p>
-                        <h4 class="mb-0 text-success">{{ "{:,.2f}".format(aylik_gelir) }} ₺</h4>
-                    </div>
-                    <div class="stat-icon bg-success bg-opacity-10 text-success">
-                        <i class="bi bi-arrow-up-circle"></i>
-                    </div>
-                </div>
-            </div>
+{# === HERO === #}
+<div class="dashboard-hero">
+    <div class="row align-items-center g-3">
+        <div class="col-md-7">
+            <h3>
+                {% set hh = simdi.hour %}
+                {% if hh < 12 %}Günaydın{% elif hh < 18 %}İyi günler{% else %}İyi akşamlar{% endif %},
+                {{ current_user.ad }}
+            </h3>
+            <p>
+                Bugün <strong>{{ bugun.strftime('%d.%m.%Y') }}</strong> —
+                <span class="opacity-75">{{ current_user.rol_str }}</span>
+                {% if okunmamis_bildirim > 0 %}
+                · <a href="{{ url_for('bildirim.liste') }}" class="text-white text-decoration-underline">
+                    <i class="bi bi-bell-fill"></i> {{ okunmamis_bildirim }} okunmamış bildirim
+                </a>
+                {% endif %}
+            </p>
         </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Aylık Gider</p>
-                        <h4 class="mb-0 text-danger">{{ "{:,.2f}".format(aylik_gider) }} ₺</h4>
-                    </div>
-                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
-                        <i class="bi bi-arrow-down-circle"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Geciken Taksitler</p>
-                        <h4 class="mb-0 text-warning">{{ geciken_taksitler }}</h4>
-                    </div>
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Banka Bakiyesi</p>
-                        <h4 class="mb-0 text-primary">{{ "{:,.2f}".format(toplam_bakiye) }} ₺</h4>
-                    </div>
-                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-bank"></i>
-                    </div>
-                </div>
-            </div>
+        <div class="col-md-5 text-md-end hero-actions d-flex flex-wrap gap-2 justify-content-md-end">
+            {% if current_user.rol in ['admin', 'yonetici', 'muhasebeci'] %}
+            <a href="{{ url_for('muhasebe.ogrenci_odeme.liste') }}" class="btn btn-sm">
+                <i class="bi bi-cash-coin me-1"></i>Tahsilat
+            </a>
+            {% endif %}
+            {% if current_user.rol in ['admin', 'yonetici'] %}
+            <a href="{{ url_for('kayit.ogrenci.liste') }}" class="btn btn-sm">
+                <i class="bi bi-people me-1"></i>Öğrenciler
+            </a>
+            <a href="{{ url_for('duyurular.duyuru.liste') }}" class="btn btn-sm">
+                <i class="bi bi-megaphone me-1"></i>Duyurular
+            </a>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Son İşlemler -->
-<div class="row g-4">
-    <div class="col-lg-6">
-        <div class="table-container">
-            <div class="p-3 border-bottom">
-                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Son Gelir/Gider İşlemleri</h6>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Tarih</th>
-                            <th>Tür</th>
-                            <th>Açıklama</th>
-                            <th class="text-end">Tutar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for kayit in son_gelir_gider %}
-                        <tr>
-                            <td>{{ kayit.tarih.strftime('%d.%m.%Y') }}</td>
-                            <td>
-                                {% if kayit.tur == 'gelir' %}
-                                <span class="badge bg-success">Gelir</span>
-                                {% else %}
-                                <span class="badge bg-danger">Gider</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ kayit.kategori.ad }}</td>
-                            <td class="text-end fw-bold {% if kayit.tur == 'gelir' %}text-success{% else %}text-danger{% endif %}">
-                                {{ "{:,.2f}".format(kayit.tutar) }} ₺
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">Henüz kayıt bulunmuyor</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+{# === FINANSAL KPI KARTLARI (admin / yonetici / muhasebeci) === #}
+{% if current_user.rol in ['admin', 'yonetici', 'muhasebeci'] %}
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-success"><i class="bi bi-arrow-down-left-circle-fill"></i></div>
+            <div>
+                <p class="kpi-label">Aylık Tahsilat</p>
+                <h5 class="kpi-value text-success">{{ "{:,.0f}".format(aylik_tahsilat) }} ₺</h5>
+                <div class="kpi-sub">Bu ay öğrencilerden alınan</div>
             </div>
         </div>
     </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-info"><i class="bi bi-graph-up-arrow"></i></div>
+            <div>
+                <p class="kpi-label">Aylık Gelir</p>
+                <h5 class="kpi-value text-info">{{ "{:,.0f}".format(aylik_gelir) }} ₺</h5>
+                <div class="kpi-sub">Kayıtlı gelir kalemleri</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-danger"><i class="bi bi-graph-down-arrow"></i></div>
+            <div>
+                <p class="kpi-label">Aylık Gider</p>
+                <h5 class="kpi-value text-danger">{{ "{:,.0f}".format(aylik_gider) }} ₺</h5>
+                <div class="kpi-sub">Kayıtlı gider kalemleri</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon {% if aylik_kar >= 0 %}kpi-grad-primary{% else %}kpi-grad-danger{% endif %}">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+                <p class="kpi-label">Aylık Net</p>
+                <h5 class="kpi-value {% if aylik_kar >= 0 %}text-primary{% else %}text-danger{% endif %}">
+                    {{ "{:,.0f}".format(aylik_kar) }} ₺
+                </h5>
+                <div class="kpi-sub">Gelir - Gider</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-dark"><i class="bi bi-bank2"></i></div>
+            <div>
+                <p class="kpi-label">Banka Bakiyesi</p>
+                <h5 class="kpi-value">{{ "{:,.0f}".format(toplam_bakiye) }} ₺</h5>
+                <div class="kpi-sub">Tüm aktif hesaplar</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div>
+                <p class="kpi-label">Geciken Taksit</p>
+                <h5 class="kpi-value text-warning">{{ geciken_taksitler }}
+                    <small class="ms-1 fw-normal" style="font-size: 0.75rem; color: #9ca3af;">adet</small>
+                </h5>
+                <div class="kpi-sub">{{ "{:,.0f}".format(geciken_tutar) }} ₺ tahsil edilmemiş</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-info"><i class="bi bi-calendar-event"></i></div>
+            <div>
+                <p class="kpi-label">Yaklaşan Vade (30 gün)</p>
+                <h5 class="kpi-value text-info">{{ yaklasan_taksit_sayi }}
+                    <small class="ms-1 fw-normal" style="font-size: 0.75rem; color: #9ca3af;">taksit</small>
+                </h5>
+                <div class="kpi-sub">Takip etmeniz gereken ödemeler</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-purple"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <p class="kpi-label">Toplam Öğrenci</p>
+                <h5 class="kpi-value">{{ toplam_ogrenci }}</h5>
+                <div class="kpi-sub">{{ toplam_personel }} personel · {{ toplam_sinif }} sınıf</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# === OGRETMEN / OGRENCI / VELI BASIT KPI === #}
+{% if current_user.rol in ['ogretmen', 'ogrenci', 'veli'] %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-primary"><i class="bi bi-bell-fill"></i></div>
+            <div>
+                <p class="kpi-label">Okunmamış Bildirim</p>
+                <h5 class="kpi-value">{{ okunmamis_bildirim }}</h5>
+                <div class="kpi-sub">Size özel mesajlar</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-info"><i class="bi bi-megaphone-fill"></i></div>
+            <div>
+                <p class="kpi-label">Aktif Duyurular</p>
+                <h5 class="kpi-value">{{ son_duyurular|length }}</h5>
+                <div class="kpi-sub">Son 30 gün</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-12">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-purple"><i class="bi bi-calendar-event-fill"></i></div>
+            <div>
+                <p class="kpi-label">Yaklaşan Etkinlik</p>
+                <h5 class="kpi-value">{{ yaklasan_etkinlikler|length }}</h5>
+                <div class="kpi-sub">Önümüzdeki 30 gün</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# === OKUL OPERASYON KPI (admin, yonetici) === #}
+{% if current_user.rol in ['admin', 'yonetici'] %}
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-pink"><i class="bi bi-person-x-fill"></i></div>
+            <div>
+                <p class="kpi-label">Bugünkü Devamsızlık</p>
+                <h5 class="kpi-value">{{ bugunku_devamsizlik }}
+                    <small class="ms-1 fw-normal" style="font-size: 0.75rem; color: #9ca3af;">bugün</small>
+                </h5>
+                <div class="kpi-sub">{{ haftalik_devamsizlik }} bu hafta</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-warning"><i class="bi bi-hourglass-split"></i></div>
+            <div>
+                <p class="kpi-label">Bekleyen İzin Talepleri</p>
+                <h5 class="kpi-value text-warning">{{ bekleyen_izin }}</h5>
+                <div class="kpi-sub">Personel izinleri</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-purple"><i class="bi bi-chat-heart"></i></div>
+            <div>
+                <p class="kpi-label">Bu Haftaki Görüşme</p>
+                <h5 class="kpi-value">{{ haftalik_gorusme }}</h5>
+                <div class="kpi-sub">Rehberlik planlı</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 col-sm-6">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-grad-info"><i class="bi bi-bell-fill"></i></div>
+            <div>
+                <p class="kpi-label">Bildirimler</p>
+                <h5 class="kpi-value text-info">{{ okunmamis_bildirim }}</h5>
+                <div class="kpi-sub">Okunmamış mesajınız</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# === GRAFIK + HIZLI LINKLER === #}
+{% if current_user.rol in ['admin', 'yonetici', 'muhasebeci'] %}
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h6><i class="bi bi-bar-chart-line me-2"></i>Son 6 Ay — Finansal Trend</h6>
+                <span class="badge bg-light text-dark">Gelir · Gider · Tahsilat</span>
+            </div>
+            <div class="panel-body">
+                <canvas id="finansalGrafik" height="110"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h6><i class="bi bi-lightning-charge me-2"></i>Hızlı İşlemler</h6>
+            </div>
+            <div class="panel-body">
+                <div class="d-flex flex-column gap-2">
+                    <a href="{{ url_for('muhasebe.ogrenci_odeme.liste') }}" class="hizli-link-kart">
+                        <span class="hl-icon kpi-grad-success"><i class="bi bi-cash"></i></span>
+                        <div>
+                            <strong>Ödeme Al</strong>
+                            <small>Öğrenci taksiti tahsil et</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('muhasebe.ogrenci_odeme.geciken') }}" class="hizli-link-kart">
+                        <span class="hl-icon kpi-grad-danger"><i class="bi bi-exclamation-triangle"></i></span>
+                        <div>
+                            <strong>Geciken Taksitler</strong>
+                            <small>{{ geciken_taksitler }} taksit bekliyor</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('kayit.ogrenci.yeni_kayit') }}" class="hizli-link-kart">
+                        <span class="hl-icon kpi-grad-primary"><i class="bi bi-person-plus"></i></span>
+                        <div>
+                            <strong>Yeni Öğrenci</strong>
+                            <small>Hızlı kayıt oluştur</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('kayit.ogrenci.toplu_yukle') }}" class="hizli-link-kart">
+                        <span class="hl-icon kpi-grad-info"><i class="bi bi-cloud-upload"></i></span>
+                        <div>
+                            <strong>Toplu Yükle</strong>
+                            <small>Excel ile öğrenci/personel/plan</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# === DUYURULAR + ETKINLIKLER === #}
+<div class="row g-3 mb-4">
     <div class="col-lg-6">
-        <div class="table-container">
-            <div class="p-3 border-bottom">
-                <h6 class="mb-0"><i class="bi bi-cash-coin me-2"></i>Son Öğrenci Ödemeleri</h6>
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h6><i class="bi bi-megaphone me-2"></i>Son Duyurular</h6>
+                <a href="{{ url_for('duyurular.duyuru.liste') }}" class="text-muted small">Tümü</a>
+            </div>
+            <div class="panel-body no-pad">
+                {% for d in son_duyurular %}
+                <div class="feed-item">
+                    <div class="fi-icon" style="background: {{ d.kategori_renk }}22; color: {{ d.kategori_renk }};">
+                        {% if d.kategori == 'acil' %}<i class="bi bi-exclamation-octagon-fill"></i>
+                        {% elif d.kategori == 'akademik' %}<i class="bi bi-book-fill"></i>
+                        {% elif d.kategori == 'etkinlik' %}<i class="bi bi-calendar-event-fill"></i>
+                        {% elif d.kategori == 'idari' %}<i class="bi bi-building"></i>
+                        {% else %}<i class="bi bi-megaphone-fill"></i>{% endif %}
+                    </div>
+                    <div class="fi-body">
+                        <p class="fi-title">
+                            {% if d.sabitlenmis %}<i class="bi bi-pin-angle-fill text-warning me-1" title="Sabitlenmiş"></i>{% endif %}
+                            {{ d.baslik }}
+                            {% if d.oncelik == 'acil' %}
+                            <span class="badge badge-onemli text-white ms-1">ACİL</span>
+                            {% elif d.oncelik == 'onemli' %}
+                            <span class="badge bg-warning text-dark ms-1">Önemli</span>
+                            {% endif %}
+                        </p>
+                        <div class="fi-meta">
+                            <span class="badge bg-{{ d.kategori_badge }} me-1">{{ d.kategori_str }}</span>
+                            · {{ d.hedef_kitle_str }} ·
+                            {{ d.yayinlanma_tarihi.strftime('%d.%m.%Y') }}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-megaphone" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0 small">Henüz duyuru yok.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h6><i class="bi bi-calendar-event me-2"></i>Yaklaşan Etkinlikler</h6>
+                <span class="badge bg-light text-dark">30 gün</span>
+            </div>
+            <div class="panel-body no-pad">
+                {% for e in yaklasan_etkinlikler %}
+                <div class="feed-item">
+                    <div class="fi-icon kpi-grad-primary">
+                        <i class="bi bi-calendar-event-fill"></i>
+                    </div>
+                    <div class="fi-body">
+                        <p class="fi-title">{{ e.baslik }}</p>
+                        <div class="fi-meta">
+                            {{ e.baslangic_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                            {% if e.konum %}· {{ e.konum }}{% endif %}
+                        </div>
+                    </div>
+                    {% set gun_farki = (e.baslangic_tarihi.date() - bugun).days %}
+                    <div class="fi-right">
+                        {% if gun_farki == 0 %}<span class="badge bg-danger">Bugün</span>
+                        {% elif gun_farki == 1 %}<span class="badge bg-warning text-dark">Yarın</span>
+                        {% elif gun_farki <= 7 %}<span class="badge bg-info">{{ gun_farki }} gün</span>
+                        {% else %}<span class="text-muted">{{ gun_farki }} gün</span>{% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0 small">Yaklaşan etkinlik yok.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# === SON ODEMELER + YAKLASAN VADELER (muhasebe) === #}
+{% if current_user.rol in ['admin', 'yonetici', 'muhasebeci'] %}
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h6><i class="bi bi-cash-coin me-2"></i>Son Öğrenci Ödemeleri</h6>
+                <a href="{{ url_for('muhasebe.ogrenci_odeme.liste') }}" class="text-muted small">Tümü</a>
             </div>
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover mb-0">
                     <thead>
                         <tr>
                             <th>Tarih</th>
@@ -131,17 +517,64 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for odeme in son_odemeler %}
+                        {% for o in son_odemeler %}
                         <tr>
-                            <td>{{ odeme.tarih.strftime('%d.%m.%Y') }}</td>
-                            <td>{{ odeme.taksit.odeme_plani.ogrenci.tam_ad }}</td>
-                            <td><span class="badge bg-info">{{ odeme.odeme_turu }}</span></td>
-                            <td class="text-end fw-bold text-success">{{ "{:,.2f}".format(odeme.tutar) }} ₺</td>
+                            <td class="small">{{ o.tarih.strftime('%d.%m.%Y') }}</td>
+                            <td class="small">{{ o.taksit.odeme_plani.ogrenci.tam_ad }}</td>
+                            <td><span class="badge bg-info text-white text-uppercase small">{{ o.odeme_turu }}</span></td>
+                            <td class="text-end fw-bold text-success">{{ "{:,.0f}".format(o.tutar) }} ₺</td>
                         </tr>
                         {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-4 small">Henüz ödeme yok</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h6><i class="bi bi-hourglass-top me-2"></i>Vadesi Yaklaşan Taksitler</h6>
+                <span class="badge bg-warning text-dark">14 gün</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
                         <tr>
-                            <td colspan="4" class="text-center text-muted py-4">Henüz ödeme bulunmuyor</td>
+                            <th>Vade</th>
+                            <th>Öğrenci</th>
+                            <th class="text-center">Durum</th>
+                            <th class="text-end">Tutar</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in yaklasan_taksitler %}
+                        {% set gun_farki = (t.vade_tarihi - bugun).days %}
+                        <tr>
+                            <td class="small">
+                                {{ t.vade_tarihi.strftime('%d.%m.%Y') }}
+                                {% if gun_farki == 0 %}<span class="badge bg-danger ms-1">Bugün</span>
+                                {% elif gun_farki <= 3 %}<span class="badge bg-warning text-dark ms-1">{{ gun_farki }} gün</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                <a href="{{ url_for('muhasebe.ogrenci_odeme.detay', ogrenci_id=t.odeme_plani.ogrenci_id) }}">
+                                    {{ t.odeme_plani.ogrenci.tam_ad }}
+                                </a>
+                            </td>
+                            <td class="text-center small">
+                                {% if t.durum == 'kismi_odendi' %}
+                                <span class="badge bg-info">Kısmi</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Bekliyor</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end fw-bold">{{ "{:,.0f}".format(t.kalan) }} ₺</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-4 small">Yaklaşan vade yok 🎉</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -149,4 +582,163 @@
         </div>
     </div>
 </div>
+
+{# === SON GELIR-GIDER + HAFTALIK IZIN (admin/yonetici/muhasebeci) === #}
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h6><i class="bi bi-clock-history me-2"></i>Son Gelir / Gider</h6>
+                <a href="{{ url_for('muhasebe.gelir_gider.liste') }}" class="text-muted small">Tümü</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Tür</th>
+                            <th>Kategori</th>
+                            <th class="text-end">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for k in son_gelir_gider %}
+                        <tr>
+                            <td class="small">{{ k.tarih.strftime('%d.%m.%Y') }}</td>
+                            <td>
+                                {% if k.tur == 'gelir' %}
+                                <span class="badge bg-success">Gelir</span>
+                                {% else %}
+                                <span class="badge bg-danger">Gider</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">{{ k.kategori.ad }}</td>
+                            <td class="text-end fw-bold {% if k.tur == 'gelir' %}text-success{% else %}text-danger{% endif %}">
+                                {{ "{:,.0f}".format(k.tutar) }} ₺
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-4 small">Henüz kayıt yok</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h6><i class="bi bi-person-vcard me-2"></i>Bu Hafta İzinli Personel</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Personel</th>
+                            <th>İzin Türü</th>
+                            <th>Başlangıç</th>
+                            <th>Bitiş</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in bu_hafta_izindeki %}
+                        <tr>
+                            <td class="small">{{ i.personel.tam_ad }}</td>
+                            <td class="small">{{ i.izin_turu }}</td>
+                            <td class="small">{{ i.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+                            <td class="small">{{ i.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-4 small">İzinde personel yok</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if current_user.rol in ['admin', 'yonetici', 'muhasebeci'] %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    const ctx = document.getElementById('finansalGrafik');
+    if (!ctx) return;
+
+    const labels = {{ grafik_labels|tojson }};
+    const gelir = {{ grafik_gelir|tojson }};
+    const gider = {{ grafik_gider|tojson }};
+    const tahsilat = {{ grafik_tahsilat|tojson }};
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Tahsilat',
+                    data: tahsilat,
+                    backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                    borderRadius: 6,
+                    order: 2
+                },
+                {
+                    label: 'Gelir',
+                    data: gelir,
+                    backgroundColor: 'rgba(14, 165, 233, 0.85)',
+                    borderRadius: 6,
+                    order: 2
+                },
+                {
+                    label: 'Gider',
+                    data: gider,
+                    backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                    borderRadius: 6,
+                    order: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 14, font: { size: 12 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.dataset.label + ': ' +
+                                new Intl.NumberFormat('tr-TR').format(ctx.parsed.y) + ' ₺';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                            if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
+                            return value;
+                        }
+                    },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

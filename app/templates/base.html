@@ -201,6 +201,60 @@
             if (b) b.remove();
             console.log('[PWA] Uygulama yuklendi');
         });
+
+        // iOS Safari: beforeinstallprompt yok — manuel "Ana Ekrana Ekle" rehberi
+        (function () {
+            var ua = window.navigator.userAgent || '';
+            var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+            var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+            var isStandalone = window.navigator.standalone === true ||
+                window.matchMedia('(display-mode: standalone)').matches;
+            var path = location.pathname || '';
+            var portalSayfasi = path.startsWith('/portal/') || path.startsWith('/auth/');
+
+            if (!isIOS || !isSafari || isStandalone || !portalSayfasi) return;
+            try {
+                if (sessionStorage.getItem('iosInstallDismissed') === '1') return;
+            } catch (e) {}
+
+            window.addEventListener('load', function () {
+                setTimeout(showIosInstallBanner, 1200);
+            });
+
+            function showIosInstallBanner() {
+                if (document.getElementById('iosInstallBanner')) return;
+                var b = document.createElement('div');
+                b.id = 'iosInstallBanner';
+                b.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);' +
+                    'z-index:1090;background:#fff;color:#212529;border-radius:14px;' +
+                    'box-shadow:0 10px 30px rgba(0,0,0,.18);padding:14px 18px;' +
+                    'max-width:92vw;width:360px;font-size:14px;border:1px solid #e5e7eb;';
+                b.innerHTML =
+                    '<div style="display:flex;align-items:flex-start;gap:10px;">' +
+                    '  <div style="width:40px;height:40px;border-radius:10px;background:#e7f1ff;' +
+                    '       color:#0d6efd;display:flex;align-items:center;justify-content:center;' +
+                    '       flex-shrink:0;font-size:1.3rem;">' +
+                    '    <i class="bi bi-phone"></i>' +
+                    '  </div>' +
+                    '  <div style="flex:1;line-height:1.35;">' +
+                    '    <strong>Uygulamayı iPhone’a ekleyin</strong>' +
+                    '    <div style="color:#6c757d;margin-top:4px;">' +
+                    '      Safari’de alttaki <i class="bi bi-box-arrow-up" style="color:#0d6efd;"></i> ' +
+                    '      <b>Paylaş</b> simgesine dokunun, sonra ' +
+                    '      <b>“Ana Ekrana Ekle”</b> seçeneğini seçin.' +
+                    '    </div>' +
+                    '  </div>' +
+                    '  <button id="iosInstallClose" aria-label="Kapat" ' +
+                    '          style="background:none;border:none;color:#6c757d;font-size:1.1rem;' +
+                    '                 padding:0 4px;cursor:pointer;">&times;</button>' +
+                    '</div>';
+                document.body.appendChild(b);
+                document.getElementById('iosInstallClose').onclick = function () {
+                    b.remove();
+                    try { sessionStorage.setItem('iosInstallDismissed', '1'); } catch (e) {}
+                };
+            }
+        })();
     })();
     </script>
 

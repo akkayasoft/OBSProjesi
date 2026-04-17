@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 from datetime import date
 from flask import (Blueprint, render_template, redirect, url_for, flash,
@@ -30,13 +31,98 @@ OGRENCI_BASLIKLAR = [
     {'key': 'tc_kimlik', 'label': 'TC Kimlik'},
     {'key': 'cinsiyet', 'label': 'Cinsiyet (erkek/kadin)'},
     {'key': 'dogum_tarihi', 'label': 'Doğum Tarihi (YYYY-MM-DD)'},
-    {'key': 'sinif', 'label': 'Sınıf'},
+    {'key': 'donem_ad', 'label': 'Eğitim-Öğretim Yılı'},
+    {'key': 'sinif_ad', 'label': 'Sınıf'},
+    {'key': 'sube_ad', 'label': 'Şube'},
     {'key': 'telefon', 'label': 'Telefon'},
     {'key': 'email', 'label': 'E-posta'},
     {'key': 'adres', 'label': 'Adres'},
     {'key': 'veli_ad', 'label': 'Veli Ad Soyad'},
     {'key': 'veli_telefon', 'label': 'Veli Telefon'},
 ]
+
+
+def _seviye_from_ad(ad: str) -> int:
+    """'9. Sınıf' -> 9, 'TYT' -> 13, 'AYT' -> 14, diger -> 0."""
+    if not ad:
+        return 0
+    m = re.search(r'(\d+)', ad)
+    if m:
+        try:
+            n = int(m.group(1))
+            if 1 <= n <= 12:
+                return n
+        except ValueError:
+            pass
+    u = ad.strip().upper()
+    if 'TYT' in u:
+        return 13
+    if 'AYT' in u:
+        return 14
+    return 0
+
+
+def _parse_donem_tarihleri(ad: str):
+    """'2025-2026' -> (2025-09-01, 2026-06-30). Bulunamazsa bugünden +1 yil."""
+    m = re.search(r'(20\d{2})\s*[-/]\s*(20\d{2})', str(ad or ''))
+    if m:
+        y1 = int(m.group(1))
+        y2 = int(m.group(2))
+        return date(y1, 9, 1), date(y2, 6, 30)
+    # Tek yil yazilmis olabilir
+    m1 = re.search(r'(20\d{2})', str(ad or ''))
+    if m1:
+        y1 = int(m1.group(1))
+        return date(y1, 9, 1), date(y1 + 1, 6, 30)
+    today = date.today()
+    return today, date(today.year + 1, today.month, today.day)
+
+
+def resolve_or_create_donem(ad: str) -> 'KayitDonemi':
+    """Isme göre KayitDonemi bulur veya olusturur. `ad` bos ise None."""
+    if not ad:
+        return None
+    ad = ad.strip()
+    donem = KayitDonemi.query.filter(db.func.lower(KayitDonemi.ad) == ad.lower()).first()
+    if donem:
+        return donem
+    bas, bit = _parse_donem_tarihleri(ad)
+    donem = KayitDonemi(ad=ad, baslangic_tarihi=bas, bitis_tarihi=bit, aktif=True)
+    db.session.add(donem)
+    db.session.flush()
+    return donem
+
+
+def resolve_or_create_sinif(ad: str) -> 'Sinif':
+    """Isme göre Sinif bulur veya olusturur. `ad` bos ise None."""
+    if not ad:
+        return None
+    ad = ad.strip()
+    sinif = Sinif.query.filter(db.func.lower(Sinif.ad) == ad.lower()).first()
+    if sinif:
+        return sinif
+    seviye = _seviye_from_ad(ad)
+    sinif = Sinif(ad=ad, seviye=seviye, aktif=True)
+    db.session.add(sinif)
+    db.session.flush()
+    return sinif
+
+
+def resolve_or_create_sube(sinif: 'Sinif', ad: str, kontenjan: int = 30) -> 'Sube':
+    """Verilen sinifin altinda Sube bulur veya olusturur. `ad` veya sinif bos ise None."""
+    if not sinif or not ad:
+        return None
+    ad = ad.strip()
+    sube = Sube.query.filter(
+        Sube.sinif_id == sinif.id,
+        db.func.lower(Sube.ad) == ad.lower()
+    ).first()
+    if sube:
+        return sube
+    sube = Sube(sinif_id=sinif.id, ad=ad, kontenjan=kontenjan, aktif=True)
+    db.session.add(sube)
+    db.session.flush()
+    return sube
 
 bp = Blueprint('ogrenci', __name__)
 
@@ -121,13 +207,16 @@ def toplu_yukle_sablon():
     """Ogrenci toplu yukleme Excel sablonunu indirir."""
     ornek = [
         ['1001', 'Ahmet', 'Yılmaz', '12345678901', 'erkek', '2010-05-15',
-         '7-A', '5321234567', 'ahmet@example.com', 'Örnek Mah. 1 Sok.',
-         'Mehmet Yılmaz', '5329876543'],
+         '2025-2026', '9. Sınıf', 'A', '5321234567', 'ahmet@example.com',
+         'Örnek Mah. 1 Sok.', 'Mehmet Yılmaz', '5329876543'],
         ['1002', 'Ayşe', 'Demir', '10987654321', 'kadin', '2011-08-22',
-         '6-B', '5321234568', '', '', 'Fatma Demir', '5329876544'],
+         '2025-2026', 'TYT', 'A', '5321234568', '', '',
+         'Fatma Demir', '5329876544'],
     ]
     aciklama = ('Zorunlu alanlar kırmızı renkle işaretlidir. Cinsiyet alanına ' +
-                '"erkek" veya "kadin" yazın. Tarih formatı: YYYY-MM-DD.')
+                '"erkek" veya "kadin" yazın. Tarih formatı: YYYY-MM-DD. ' +
+                'Eğitim-Öğretim Yılı / Sınıf / Şube boş bırakılırsa form üstünden ' +
+                'seçilen varsayılan değerler kullanılır; yazılırsa otomatik oluşturulur.')
     output = excel_sablonu_olustur(OGRENCI_BASLIKLAR, ornek_satirlar=ornek,
                                     aciklama_satiri=aciklama, sayfa_adi='Ogrenciler')
     return send_file(output, as_attachment=True,
@@ -169,13 +258,9 @@ def toplu_yukle():
                                    secili_donem_id=secili_donem_id,
                                    secili_sube_id=secili_sube_id)
 
-        # Donem ve sube dogrulamasi (kaydet adimi icin zorunlu)
-        donem = KayitDonemi.query.get(secili_donem_id) if secili_donem_id else None
-        sube = Sube.query.get(secili_sube_id) if secili_sube_id else None
-
-        if islem == 'kaydet' and (not donem or not sube):
-            flash('Lütfen Kayıt Dönemi ve Şube seçin.', 'danger')
-            islem = 'onizle'  # Donem/sube secilmemis -> kaydetme
+        # Varsayilan donem/sube (form'dan secilenler fallback olarak kullanilacak)
+        varsayilan_donem = KayitDonemi.query.get(secili_donem_id) if secili_donem_id else None
+        varsayilan_sube = Sube.query.get(secili_sube_id) if secili_sube_id else None
 
         try:
             satirlar = excel_oku(dosya, OGRENCI_BASLIKLAR)
@@ -234,7 +319,7 @@ def toplu_yukle():
             else:
                 s['dogum_tarihi'] = dt
 
-            for key, lbl, mx in [('sinif', 'Sınıf', 20), ('telefon', 'Telefon', 20),
+            for key, lbl, mx in [('telefon', 'Telefon', 20),
                                  ('email', 'E-posta', 120), ('veli_ad', 'Veli Ad', 100),
                                  ('veli_telefon', 'Veli Telefon', 20)]:
                 val, err = dogrula_str(s.get(key), max_len=mx, label=lbl)
@@ -248,6 +333,48 @@ def toplu_yukle():
                 s['_hatalar'].append(err)
             else:
                 s['adres'] = adres
+
+            # --- Donem / Sinif / Sube cozumleme ---
+            donem_ad, err = dogrula_str(s.get('donem_ad'), max_len=20, label='Eğitim-Öğretim Yılı')
+            if err:
+                s['_hatalar'].append(err)
+            sinif_ad, err = dogrula_str(s.get('sinif_ad'), max_len=50, label='Sınıf')
+            if err:
+                s['_hatalar'].append(err)
+            sube_ad, err = dogrula_str(s.get('sube_ad'), max_len=10, label='Şube')
+            if err:
+                s['_hatalar'].append(err)
+
+            # Etkin donem: satirdaki ad varsa o, yoksa formdaki varsayilan
+            if donem_ad:
+                s['_donem_ad'] = donem_ad
+            elif varsayilan_donem:
+                s['_donem_ad'] = varsayilan_donem.ad
+            else:
+                s['_hatalar'].append(
+                    'Eğitim-Öğretim Yılı boş (ne satırda ne de formda seçili).'
+                )
+
+            # Etkin sinif: satirda varsa o, yoksa varsayilan_sube.sinif.ad
+            if sinif_ad:
+                s['_sinif_ad'] = sinif_ad
+            elif varsayilan_sube:
+                s['_sinif_ad'] = varsayilan_sube.sinif.ad
+            else:
+                s['_hatalar'].append('Sınıf boş (ne satırda ne de formda seçili).')
+
+            # Etkin sube: satirda sube_ad varsa o, yoksa varsayilan
+            if sube_ad:
+                s['_sube_ad'] = sube_ad
+            elif varsayilan_sube:
+                s['_sube_ad'] = varsayilan_sube.ad
+                # Sinif da verilmediyse varsayilandan al (zaten yukarida atanmis)
+            else:
+                s['_hatalar'].append('Şube boş (ne satırda ne de formda seçili).')
+
+            # Ogrenci.sinif string alani icin
+            if s.get('_sinif_ad'):
+                s['sinif'] = s['_sinif_ad']
 
         gecerli = [s for s in satirlar if not s['_hatalar']]
         hatali = [s for s in satirlar if s['_hatalar']]
@@ -270,6 +397,17 @@ def toplu_yukle():
                         s['_hatalar'].append(f'Kullanıcı adı "{username}" zaten var.')
                         continue
 
+                    # Donem / Sinif / Sube cozumle (yoksa olustur)
+                    donem = resolve_or_create_donem(s.get('_donem_ad'))
+                    sinif = resolve_or_create_sinif(s.get('_sinif_ad'))
+                    sube = resolve_or_create_sube(sinif, s.get('_sube_ad'))
+
+                    if not donem or not sube:
+                        s['_hatalar'].append(
+                            'Dönem / Sınıf / Şube çözümlenemedi.'
+                        )
+                        continue
+
                     user = User(
                         username=username,
                         email=s.get('email') or f"{username}@ogrenci.obs",
@@ -290,7 +428,7 @@ def toplu_yukle():
                         soyad=s['soyad'],
                         cinsiyet=s.get('cinsiyet'),
                         dogum_tarihi=s.get('dogum_tarihi'),
-                        sinif=s.get('sinif') or (sube.sinif.ad if sube else None),
+                        sinif=s.get('sinif') or sube.sinif.ad,
                         telefon=s.get('telefon'),
                         email=s.get('email'),
                         adres=s.get('adres'),
@@ -317,7 +455,7 @@ def toplu_yukle():
                     s['_hatalar'].append(f'Kayıt hatası: {exc}')
 
             db.session.commit()
-            flash(f'{eklenen} öğrenci başarıyla eklendi ({donem.ad} / {sube.tam_ad}).' +
+            flash(f'{eklenen} öğrenci başarıyla eklendi.' +
                   (f' {len(hatali)} satır hata nedeniyle atlandı.' if hatali else ''),
                   'success' if eklenen else 'warning')
             if not hatali:
@@ -543,7 +681,22 @@ def detay(ogrenci_id):
 @role_required('admin', 'muhasebeci', 'yonetici')
 def duzenle(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
+    aktif_kayit = OgrenciKayit.query.filter_by(
+        ogrenci_id=ogrenci_id, durum='aktif'
+    ).first()
+
     form = OgrenciDuzenleForm(obj=ogrenci)
+
+    # Donem + sube secenekleri
+    donemler = KayitDonemi.query.filter_by(aktif=True).order_by(KayitDonemi.ad.desc()).all()
+    subeler = Sube.query.filter_by(aktif=True).join(Sinif).order_by(Sinif.seviye, Sube.ad).all()
+    form.donem_id.choices = [(0, '-- Seçiniz --')] + [(d.id, d.ad) for d in donemler]
+    form.sube_id.choices = [(0, '-- Seçiniz --')] + [(s.id, s.tam_ad) for s in subeler]
+
+    # GET: aktif kaydin degerlerini secili hale getir
+    if request.method == 'GET' and aktif_kayit:
+        form.donem_id.data = aktif_kayit.donem_id
+        form.sube_id.data = aktif_kayit.sube_id
 
     if form.validate_on_submit():
         ogrenci.ogrenci_no = form.ogrenci_no.data
@@ -558,12 +711,44 @@ def duzenle(ogrenci_id):
         ogrenci.email = form.email.data or None
         ogrenci.adres = form.adres.data or None
 
+        # Donem / sube guncelleme
+        yeni_donem_id = form.donem_id.data or 0
+        yeni_sube_id = form.sube_id.data or 0
+        kayit_mesaji = None
+
+        if yeni_donem_id and yeni_sube_id:
+            if aktif_kayit:
+                if (aktif_kayit.donem_id != yeni_donem_id or
+                        aktif_kayit.sube_id != yeni_sube_id):
+                    aktif_kayit.donem_id = yeni_donem_id
+                    aktif_kayit.sube_id = yeni_sube_id
+                    kayit_mesaji = 'Dönem/şube güncellendi.'
+            else:
+                # Aktif kayit yok — yeni olustur
+                yeni_kayit = OgrenciKayit(
+                    ogrenci_id=ogrenci.id,
+                    donem_id=yeni_donem_id,
+                    sube_id=yeni_sube_id,
+                    kayit_tarihi=date.today(),
+                    durum='aktif',
+                    olusturan_id=current_user.id,
+                )
+                db.session.add(yeni_kayit)
+                kayit_mesaji = 'Öğrenciye aktif kayıt oluşturuldu.'
+
+            # Ogrenci.sinif string alanini da yeni subenin sinifina ayarla
+            sube = Sube.query.get(yeni_sube_id)
+            if sube:
+                ogrenci.sinif = sube.sinif.ad
+
         db.session.commit()
-        flash('Öğrenci bilgileri güncellendi.', 'success')
+        flash('Öğrenci bilgileri güncellendi.' +
+              (f' {kayit_mesaji}' if kayit_mesaji else ''), 'success')
         return redirect(url_for('kayit.ogrenci.detay', ogrenci_id=ogrenci_id))
 
     return render_template('kayit/ogrenci/duzenle.html',
-                           form=form, ogrenci=ogrenci)
+                           form=form, ogrenci=ogrenci,
+                           aktif_kayit=aktif_kayit)
 
 
 @bp.route('/<int:ogrenci_id>/durum', methods=['GET', 'POST'])

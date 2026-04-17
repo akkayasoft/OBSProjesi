@@ -24,6 +24,7 @@
             <ol class="mb-0 mt-1 ps-3">
                 <li>Önce <strong>“Excel Şablonunu İndir”</strong> butonuna tıklayarak örnek dosyayı indirin.</li>
                 <li>Kırmızı renkli başlıklar <strong>zorunlu</strong> alanlardır. Şablon başlıklarını değiştirmeyin.</li>
+                <li>Excel'deki <strong>Eğitim-Öğretim Yılı</strong>, <strong>Sınıf</strong> ve <strong>Şube</strong> sütunları sistemde <strong>yoksa otomatik oluşturulur</strong>. Bu sütunları boş bırakırsanız aşağıdaki <em>varsayılan</em> seçim kullanılır.</li>
                 <li>Doldurduğunuz dosyayı aşağıdan yükleyin ve <strong>“Önizle”</strong> butonuna basın.</li>
                 <li>Önizlemede hatalı satırları düzeltip tekrar yükleyin, ardından <strong>“Kaydet”</strong> butonuyla öğrencileri ekleyin.</li>
             </ol>
@@ -32,22 +33,24 @@
         <form method="POST" enctype="multipart/form-data" class="row g-3 align-items-end">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="col-md-4">
-                <label class="form-label">Kayıt Dönemi <span class="text-danger">*</span></label>
-                <select name="donem_id" class="form-select" required>
-                    <option value="">-- Seçin --</option>
+                <label class="form-label">Varsayılan Kayıt Dönemi</label>
+                <select name="donem_id" class="form-select">
+                    <option value="">-- Satırdan al --</option>
                     {% for d in donemler %}
                     <option value="{{ d.id }}" {% if secili_donem_id == d.id %}selected{% endif %}>{{ d.ad }}</option>
                     {% endfor %}
                 </select>
+                <small class="text-muted">Excel'de boş satırlar için</small>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Şube <span class="text-danger">*</span></label>
-                <select name="sube_id" class="form-select" required>
-                    <option value="">-- Seçin --</option>
+                <label class="form-label">Varsayılan Şube</label>
+                <select name="sube_id" class="form-select">
+                    <option value="">-- Satırdan al --</option>
                     {% for s in subeler %}
                     <option value="{{ s.id }}" {% if secili_sube_id == s.id %}selected{% endif %}>{{ s.tam_ad }}</option>
                     {% endfor %}
                 </select>
+                <small class="text-muted">Excel'de boş satırlar için</small>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Excel Dosyası (.xlsx) <span class="text-danger">*</span></label>
@@ -57,7 +60,7 @@
                 <button type="submit" name="islem" value="onizle" class="btn btn-primary">
                     <i class="bi bi-eye me-1"></i>Önizle
                 </button>
-                <small class="text-muted ms-2">Seçtiğiniz dönem ve şube tüm öğrencilere uygulanacak.</small>
+                <small class="text-muted ms-2">Excel'de Eğitim-Öğretim Yılı / Sınıf / Şube belirtirseniz her satır kendi bilgileriyle oluşur; yoksa yukarıdaki varsayılanlar kullanılır.</small>
             </div>
         </form>
     </div>

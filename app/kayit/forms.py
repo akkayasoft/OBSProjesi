@@ -63,6 +63,11 @@ class OgrenciDuzenleForm(FlaskForm):
     telefon = StringField('Öğrenci Telefon', validators=[Optional(), Length(max=20)])
     email = StringField('E-posta', validators=[Optional(), Length(max=120)])
     adres = TextAreaField('Adres', validators=[Optional(), Length(max=500)])
+
+    # Aktif kayit bilgileri (degistirilirse OgrenciKayit guncellenir)
+    donem_id = SelectField('Eğitim-Öğretim Yılı', coerce=int, validators=[Optional()])
+    sube_id = SelectField('Sınıf / Şube', coerce=int, validators=[Optional()])
+
     submit = SubmitField('Güncelle')
 
 

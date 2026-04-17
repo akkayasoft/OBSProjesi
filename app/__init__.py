@@ -450,6 +450,60 @@ def create_app(config_class=Config):
         db.session.commit()
         print('Başlangıç verisi başarıyla eklendi!')
 
+    # Kayitsiz ogrencileri bir donem+sube'ye atama komutu
+    import click
+
+    @app.cli.command('kayitsiz-ogrencileri-kaydet')
+    @click.option('--donem-id', type=int, required=True, help='KayitDonemi ID')
+    @click.option('--sube-id', type=int, required=True, help='Sube ID')
+    def kayitsiz_kaydet_command(donem_id, sube_id):
+        """Aktif OgrenciKayit kaydi olmayan tum ogrencileri verilen
+        donem ve subeye aktif olarak kaydet."""
+        from app.models.user import User
+        from app.models.muhasebe import Ogrenci
+        from app.models.kayit import KayitDonemi, Sube, OgrenciKayit
+        from datetime import date
+
+        donem = KayitDonemi.query.get(donem_id)
+        sube = Sube.query.get(sube_id)
+        if not donem:
+            click.echo(f'Donem #{donem_id} bulunamadi.')
+            return
+        if not sube:
+            click.echo(f'Sube #{sube_id} bulunamadi.')
+            return
+
+        # Admin kullanicisini olusturan olarak ata
+        admin = User.query.filter_by(rol='admin').first()
+        if not admin:
+            click.echo('Admin kullanici bulunamadi.')
+            return
+
+        eklenen = 0
+        for o in Ogrenci.query.all():
+            aktif_k = OgrenciKayit.query.filter_by(
+                ogrenci_id=o.id, durum='aktif'
+            ).first()
+            if aktif_k:
+                continue
+            kayit = OgrenciKayit(
+                ogrenci_id=o.id,
+                donem_id=donem.id,
+                sube_id=sube.id,
+                kayit_tarihi=date.today(),
+                durum='aktif',
+                olusturan_id=admin.id,
+            )
+            db.session.add(kayit)
+            # Sinif alani bossa doldur
+            if not o.sinif:
+                o.sinif = sube.sinif.ad
+            eklenen += 1
+            click.echo(f'  {o.tam_ad} ({o.ogrenci_no}) -> {donem.ad} / {sube.tam_ad}')
+
+        db.session.commit()
+        click.echo(f'\nToplam {eklenen} ogrenci kaydedildi.')
+
     # Portal hesaplari icin backfill komutu
     @app.cli.command('portal-backfill')
     def portal_backfill_command():

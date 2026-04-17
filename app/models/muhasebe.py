@@ -69,6 +69,17 @@ class Ogrenci(db.Model):
         return f"{self.ad} {self.soyad}"
 
     @property
+    def aktif_sinif_sube(self):
+        """Aktif OgrenciKayit'tan 'Sinif - Sube' yazisi; yoksa legacy sinif alani."""
+        try:
+            k = self.kayitlar.filter_by(durum='aktif').first()
+            if k and k.sube:
+                return f"{k.sube.sinif.ad} - {k.sube.ad}"
+        except Exception:
+            pass
+        return self.sinif or None
+
+    @property
     def toplam_borc(self):
         toplam = 0
         for plan in self.odeme_planlari:

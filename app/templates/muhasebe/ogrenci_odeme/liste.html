@@ -59,7 +59,7 @@
                 <tr>
                     <td><strong>{{ ogrenci.ogrenci_no }}</strong></td>
                     <td>{{ ogrenci.tam_ad }}</td>
-                    <td>{{ ogrenci.sinif or '-' }}</td>
+                    <td>{{ ogrenci.aktif_sinif_sube or '-' }}</td>
                     <td>{{ ogrenci.veli_ad or '-' }}</td>
                     <td class="text-end">
                         {% set borc = ogrenci.toplam_borc %}

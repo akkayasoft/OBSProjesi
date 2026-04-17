@@ -16,7 +16,7 @@
                 <h5 class="mb-1">{{ ogrenci.tam_ad }}</h5>
                 <p class="text-muted mb-0">
                     <span class="me-3"><i class="bi bi-hash me-1"></i>{{ ogrenci.ogrenci_no }}</span>
-                    <span class="me-3"><i class="bi bi-book me-1"></i>{{ ogrenci.sinif or 'Belirtilmemiş' }}</span>
+                    <span class="me-3"><i class="bi bi-book me-1"></i>{{ ogrenci.aktif_sinif_sube or 'Belirtilmemiş' }}</span>
                     {% if ogrenci.veli_ad %}
                     <span><i class="bi bi-person me-1"></i>{{ ogrenci.veli_ad }} {{ ogrenci.veli_telefon or '' }}</span>
                     {% endif %}

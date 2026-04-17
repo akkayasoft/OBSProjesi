@@ -504,6 +504,33 @@ def create_app(config_class=Config):
         db.session.commit()
         click.echo(f'\nToplam {eklenen} ogrenci kaydedildi.')
 
+    # Ogrenci.sinif string alanini aktif OgrenciKayit.sube.sinif.ad ile senkronla
+    @app.cli.command('ogrenci-sinif-senkronla')
+    def ogrenci_sinif_senkronla_command():
+        """Her aktif OgrenciKayit icin Ogrenci.sinif alanini
+        kayit.sube.sinif.ad degeri ile eszaman eder. Boylece kayit listesi ile
+        muhasebe ekranlarinda ayni sinif bilgisi gorunur."""
+        from app.models.muhasebe import Ogrenci
+        from app.models.kayit import OgrenciKayit
+
+        duzeltilen = 0
+        for o in Ogrenci.query.all():
+            aktif_k = OgrenciKayit.query.filter_by(
+                ogrenci_id=o.id, durum='aktif'
+            ).first()
+            if not aktif_k or not aktif_k.sube:
+                continue
+            dogru_deger = aktif_k.sube.sinif.ad
+            if o.sinif != dogru_deger:
+                click.echo(
+                    f'  {o.tam_ad} ({o.ogrenci_no}): "{o.sinif}" -> "{dogru_deger}"'
+                )
+                o.sinif = dogru_deger
+                duzeltilen += 1
+
+        db.session.commit()
+        click.echo(f'\nToplam {duzeltilen} ogrencinin sinif bilgisi senkronlandi.')
+
     # Portal hesaplari icin backfill komutu
     @app.cli.command('portal-backfill')
     def portal_backfill_command():

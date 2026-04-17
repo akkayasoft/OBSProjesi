@@ -36,7 +36,7 @@
                             {{ ogrenci.tam_ad }}
                         </a>
                     </td>
-                    <td>{{ ogrenci.sinif or '-' }}</td>
+                    <td>{{ ogrenci.aktif_sinif_sube or '-' }}</td>
                     <td>{{ taksit.odeme_plani.donem }}</td>
                     <td>{{ taksit.taksit_no }}. Taksit</td>
                     <td class="text-danger">{{ taksit.vade_tarihi.strftime('%d.%m.%Y') }}</td>

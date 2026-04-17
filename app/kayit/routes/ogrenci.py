@@ -143,23 +143,48 @@ def toplu_yukle():
     onizleme = None
     hatalar_ozet = None
 
+    # Donem + sube secenekleri (her zaman hazirla - GET + POST)
+    donemler = KayitDonemi.query.filter_by(aktif=True).order_by(KayitDonemi.ad.desc()).all()
+    subeler = Sube.query.filter_by(aktif=True).join(Sinif).order_by(Sinif.seviye, Sube.ad).all()
+
+    # Secili degerler
+    secili_donem_id = request.values.get('donem_id', type=int)
+    secili_sube_id = request.values.get('sube_id', type=int)
+
     if request.method == 'POST':
         dosya = request.files.get('excel')
         islem = request.form.get('islem', 'onizle')
 
         if not dosya or not dosya.filename:
             flash('Lütfen bir Excel dosyası seçin.', 'danger')
-            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None)
+            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None,
+                                   donemler=donemler, subeler=subeler,
+                                   secili_donem_id=secili_donem_id,
+                                   secili_sube_id=secili_sube_id)
 
         if not dosya.filename.lower().endswith(('.xlsx', '.xlsm')):
             flash('Sadece .xlsx formatında dosya yükleyebilirsiniz.', 'danger')
-            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None)
+            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None,
+                                   donemler=donemler, subeler=subeler,
+                                   secili_donem_id=secili_donem_id,
+                                   secili_sube_id=secili_sube_id)
+
+        # Donem ve sube dogrulamasi (kaydet adimi icin zorunlu)
+        donem = KayitDonemi.query.get(secili_donem_id) if secili_donem_id else None
+        sube = Sube.query.get(secili_sube_id) if secili_sube_id else None
+
+        if islem == 'kaydet' and (not donem or not sube):
+            flash('Lütfen Kayıt Dönemi ve Şube seçin.', 'danger')
+            islem = 'onizle'  # Donem/sube secilmemis -> kaydetme
 
         try:
             satirlar = excel_oku(dosya, OGRENCI_BASLIKLAR)
         except Exception as exc:
             flash(f'Dosya okunamadı: {exc}', 'danger')
-            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None)
+            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None,
+                                   donemler=donemler, subeler=subeler,
+                                   secili_donem_id=secili_donem_id,
+                                   secili_sube_id=secili_sube_id)
 
         # Dogrulama
         mevcut_numaralar = set(n for (n,) in db.session.query(Ogrenci.ogrenci_no).all())
@@ -265,7 +290,7 @@ def toplu_yukle():
                         soyad=s['soyad'],
                         cinsiyet=s.get('cinsiyet'),
                         dogum_tarihi=s.get('dogum_tarihi'),
-                        sinif=s.get('sinif'),
+                        sinif=s.get('sinif') or (sube.sinif.ad if sube else None),
                         telefon=s.get('telefon'),
                         email=s.get('email'),
                         adres=s.get('adres'),
@@ -274,13 +299,25 @@ def toplu_yukle():
                         aktif=True,
                     )
                     db.session.add(ogrenci)
+                    db.session.flush()
+
+                    # OgrenciKayit olustur (donem + sube baglantisi)
+                    kayit = OgrenciKayit(
+                        ogrenci_id=ogrenci.id,
+                        donem_id=donem.id,
+                        sube_id=sube.id,
+                        kayit_tarihi=date.today(),
+                        durum='aktif',
+                        olusturan_id=current_user.id,
+                    )
+                    db.session.add(kayit)
                     eklenen += 1
                 except Exception as exc:
                     db.session.rollback()
                     s['_hatalar'].append(f'Kayıt hatası: {exc}')
 
             db.session.commit()
-            flash(f'{eklenen} öğrenci başarıyla eklendi.' +
+            flash(f'{eklenen} öğrenci başarıyla eklendi ({donem.ad} / {sube.tam_ad}).' +
                   (f' {len(hatali)} satır hata nedeniyle atlandı.' if hatali else ''),
                   'success' if eklenen else 'warning')
             if not hatali:
@@ -290,7 +327,10 @@ def toplu_yukle():
 
     return render_template('kayit/ogrenci/toplu_yukle.html',
                            onizleme=onizleme, hatalar_ozet=hatalar_ozet,
-                           basliklar=OGRENCI_BASLIKLAR)
+                           basliklar=OGRENCI_BASLIKLAR,
+                           donemler=donemler, subeler=subeler,
+                           secili_donem_id=secili_donem_id,
+                           secili_sube_id=secili_sube_id)
 
 
 @bp.route('/karteks-yukle', methods=['GET', 'POST'])

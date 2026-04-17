@@ -16,6 +16,7 @@ from datetime import datetime
 from typing import Iterable
 
 from flask import current_app
+from py_vapid import Vapid
 from pywebpush import WebPushException, webpush
 
 from app.extensions import db
@@ -24,15 +25,37 @@ from app.models.bildirim import PushAbonelik
 
 logger = logging.getLogger(__name__)
 
+# pywebpush, vapid_private_key parametresine raw string verildiginde
+# Vapid.from_string() kullanir (raw base64url ister). Biz PEM tutuyoruz,
+# o yuzden Vapid objesini bir kez olusturup ornek olarak cache'liyoruz.
+_vapid_cache: dict = {}
 
-def _vapid_ayarlari() -> tuple[str, dict] | None:
-    """Yapilandirmadan VAPID bilgilerini cek. Eksikse None dondur."""
-    priv = current_app.config.get('VAPID_PRIVATE_KEY') or ''
-    email = current_app.config.get('VAPID_CLAIM_EMAIL') or 'mailto:admin@obs.local'
-    if not priv.strip():
+
+def _vapid_objesi() -> Vapid | None:
+    """PEM'den Vapid objesi olustur (cache'li). Yoksa None."""
+    priv = (current_app.config.get('VAPID_PRIVATE_KEY') or '').strip()
+    if not priv:
         return None
-    claims = {'sub': email}
-    return priv, claims
+    cached = _vapid_cache.get('key'), _vapid_cache.get('obj')
+    if cached[0] == priv and cached[1] is not None:
+        return cached[1]
+    try:
+        obj = Vapid.from_pem(priv.encode('utf-8'))
+    except Exception as e:  # noqa: BLE001
+        logger.warning('VAPID PEM parse edilemedi: %s', e)
+        return None
+    _vapid_cache['key'] = priv
+    _vapid_cache['obj'] = obj
+    return obj
+
+
+def _vapid_ayarlari() -> tuple[Vapid, dict] | None:
+    """Yapilandirmadan VAPID objesi + claims cek. Eksikse None dondur."""
+    vapid = _vapid_objesi()
+    if vapid is None:
+        return None
+    email = current_app.config.get('VAPID_CLAIM_EMAIL') or 'mailto:admin@obs.local'
+    return vapid, {'sub': email}
 
 
 def push_gonder_abonelik(abonelik: PushAbonelik, payload: dict) -> bool:
@@ -44,12 +67,12 @@ def push_gonder_abonelik(abonelik: PushAbonelik, payload: dict) -> bool:
     if not ayar:
         logger.debug('VAPID yapilandirilmadi — push atlandi')
         return False
-    priv, claims = ayar
+    vapid_obj, claims = ayar
     try:
         webpush(
             subscription_info=abonelik.subscription_info(),
             data=json.dumps(payload, ensure_ascii=False),
-            vapid_private_key=priv,
+            vapid_private_key=vapid_obj,
             vapid_claims=claims,
             ttl=60 * 60 * 24,  # 24 saat
         )

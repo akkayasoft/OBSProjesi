@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çevrimdışı - OBS Portal</title>
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/pwa/icons/icon-192.png">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #e7f1ff 0%, #f8f9fa 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: #212529;
+        }
+        .card {
+            background: #fff; border-radius: 16px; padding: 40px 32px;
+            text-align: center; max-width: 420px; width: 92%;
+            box-shadow: 0 12px 40px rgba(13, 110, 253, .12);
+        }
+        .icon {
+            width: 88px; height: 88px; border-radius: 50%;
+            background: #f1f5ff; color: #0d6efd;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 20px;
+        }
+        .icon svg { width: 48px; height: 48px; }
+        h1 { font-size: 22px; margin: 0 0 10px; }
+        p { color: #6c757d; line-height: 1.5; margin: 0 0 24px; font-size: 15px; }
+        button {
+            background: #0d6efd; color: #fff; border: none; border-radius: 10px;
+            padding: 12px 24px; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: background .15s;
+        }
+        button:hover { background: #0b5ed7; }
+        .status { margin-top: 16px; font-size: 13px; color: #6c757d; }
+        .status.online { color: #198754; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 1l22 22"/>
+                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+                <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
+                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+        </div>
+        <h1>Çevrimdışısınız</h1>
+        <p>
+            İnternet bağlantınız şu anda yok.
+            Bağlantı geri geldiğinde sayfa otomatik olarak yenilenecek.
+        </p>
+        <button onclick="location.reload()">Tekrar Dene</button>
+        <div class="status" id="status">Bağlantı bekleniyor...</div>
+    </div>
+    <script>
+    (function () {
+        var s = document.getElementById('status');
+        function update() {
+            if (navigator.onLine) {
+                s.textContent = 'Bağlantı geldi, yenileniyor...';
+                s.classList.add('online');
+                setTimeout(function () { location.reload(); }, 600);
+            } else {
+                s.textContent = 'Bağlantı bekleniyor...';
+            }
+        }
+        window.addEventListener('online', update);
+        window.addEventListener('offline', update);
+        update();
+    })();
+    </script>
+</body>
+</html>

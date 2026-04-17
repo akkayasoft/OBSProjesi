@@ -1,0 +1,51 @@
+{
+  "name": "OBS - Öğrenci Portalı",
+  "short_name": "OBS Portal",
+  "description": "Öğrenci Bilgi Sistemi - notlar, devamsızlık, ödemeler ve duyurular cebinizde.",
+  "start_url": "/portal/",
+  "scope": "/portal/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "lang": "tr",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/static/pwa/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/pwa/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/pwa/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Notlarım",
+      "url": "/portal/notlar/",
+      "icons": [{ "src": "/static/pwa/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Devamsızlık",
+      "url": "/portal/devamsizlik/",
+      "icons": [{ "src": "/static/pwa/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Program",
+      "url": "/portal/program/",
+      "icons": [{ "src": "/static/pwa/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

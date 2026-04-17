@@ -79,6 +79,30 @@
                     <i class="bi bi-arrow-repeat"></i>
                 </a>
                 {% endif %}
+
+                {% set odeme_var = plan.odenen_toplam and plan.odenen_toplam > 0 %}
+                {% if plan.durum == 'aktif' and not odeme_var %}
+                <form method="POST"
+                      action="{{ url_for('muhasebe.ogrenci_odeme.plan_sil', plan_id=plan.id) }}"
+                      class="d-inline"
+                      onsubmit="return confirm('Bu planı tamamen silmek istediğinize emin misiniz? (Hiç ödeme alınmadığı için geri alınabilir bir işlem değildir.)');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Planı Sil">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                {% elif plan.durum == 'aktif' and odeme_var %}
+                <form method="POST"
+                      action="{{ url_for('muhasebe.ogrenci_odeme.plan_iptal', plan_id=plan.id) }}"
+                      class="d-inline"
+                      onsubmit="var n=prompt('İptal nedeni (opsiyonel):',''); if(n===null) return false; this.querySelector('input[name=neden]').value=n; return confirm('Planı iptal etmek istediğinize emin misiniz?\\nÖdenmiş taksitler korunur, kalan taksitler iptal edilir.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="neden" value="">
+                    <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Planı İptal Et">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </div>
         {% if plan.kapanma_nedeni %}

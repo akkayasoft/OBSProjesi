@@ -197,6 +197,91 @@ def makbuz(odeme_id):
                            odeme=odeme, ogrenci=ogrenci)
 
 
+@bp.route('/plan/<int:plan_id>/sil', methods=['POST'])
+@login_required
+@role_required('admin', 'muhasebeci')
+def plan_sil(plan_id):
+    """
+    Odeme planini tamamen siler. Sadece HIC odeme alinmamis planlar silinebilir.
+    Odeme varsa plan_iptal kullanilmali.
+    """
+    plan = OdemePlani.query.get_or_404(plan_id)
+    ogrenci_id = plan.ogrenci_id
+
+    # Odenmis ya da kismi odenmis bir taksit var mi?
+    odeme_var = any(float(t.odenen_tutar or 0) > 0 for t in plan.taksitler)
+    if odeme_var:
+        flash('Bu planda ödeme alınmış taksitler var. Planı "İptal Et" ile '
+              'pasif duruma alabilirsiniz, ancak silemezsiniz.', 'danger')
+        return redirect(url_for('muhasebe.ogrenci_odeme.detay',
+                                ogrenci_id=ogrenci_id))
+
+    # Plani baska bir plana yeniden yapilandirma referans verdiyse blokla
+    if plan.yeni_plan:
+        flash('Bu plan yeniden yapılandırıldığı için silinemez.', 'danger')
+        return redirect(url_for('muhasebe.ogrenci_odeme.detay',
+                                ogrenci_id=ogrenci_id))
+
+    # Hic odenmemis — taksitler + plan silinebilir
+    try:
+        for t in list(plan.taksitler):
+            db.session.delete(t)
+        db.session.delete(plan)
+        db.session.commit()
+        flash(f'{plan.donem} dönem planı silindi.', 'success')
+    except Exception as exc:
+        db.session.rollback()
+        flash(f'Plan silinemedi: {exc}', 'danger')
+
+    return redirect(url_for('muhasebe.ogrenci_odeme.detay',
+                            ogrenci_id=ogrenci_id))
+
+
+@bp.route('/plan/<int:plan_id>/iptal', methods=['POST'])
+@login_required
+@role_required('admin', 'muhasebeci')
+def plan_iptal(plan_id):
+    """
+    Planı iptal eder (soft delete). Odenmis taksitler korunur, odenmemisler
+    'iptal' statusune cekilir; plan kalan borcu sifirlanir.
+    """
+    plan = OdemePlani.query.get_or_404(plan_id)
+    ogrenci_id = plan.ogrenci_id
+
+    if plan.durum in ('iptal', 'kapali'):
+        flash('Bu plan zaten iptal edilmiş / kapalı.', 'warning')
+        return redirect(url_for('muhasebe.ogrenci_odeme.detay',
+                                ogrenci_id=ogrenci_id))
+
+    neden = (request.form.get('neden') or '').strip()[:150]
+
+    try:
+        plan.durum = 'iptal'
+        from datetime import datetime
+        plan.kapanma_tarihi = datetime.utcnow()
+        plan.kapanma_nedeni = f'İptal: {neden}' if neden else 'İptal edildi'
+
+        # Odenmemis taksitleri iptal et (odenen kismi koru)
+        for t in plan.taksitler:
+            if t.durum == 'odendi':
+                continue
+            if float(t.odenen_tutar or 0) > 0:
+                # Kismi odenmis — kalani sifirla ki borca eklenmesin
+                t.tutar = Decimal(str(t.odenen_tutar))
+                t.durum = 'odendi'
+            else:
+                t.durum = 'iptal'
+
+        db.session.commit()
+        flash(f'{plan.donem} dönem planı iptal edildi. Ödenmiş taksitler korundu.', 'success')
+    except Exception as exc:
+        db.session.rollback()
+        flash(f'Plan iptal edilemedi: {exc}', 'danger')
+
+    return redirect(url_for('muhasebe.ogrenci_odeme.detay',
+                            ogrenci_id=ogrenci_id))
+
+
 @bp.route('/toplu-plan/sablon')
 @login_required
 @role_required('admin', 'muhasebeci')

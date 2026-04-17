@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required
 from app.utils import role_required, current_user
 from app.extensions import db
@@ -60,6 +60,37 @@ def yeni():
         )
         db.session.add(duyuru)
         db.session.commit()
+
+        # Web Push gonderimi — hedef kitleye gore
+        try:
+            from app.models.user import User
+            from app.utils.push import push_gonder_kullanicilar
+
+            rol_map = {
+                'ogretmenler': ['ogretmen'],
+                'ogrenciler': ['ogrenci'],
+                'veliler': ['veli'],
+                'personel': ['personel', 'muhasebeci', 'ogretmen'],
+                'tumu': ['ogretmen', 'ogrenci', 'veli', 'personel',
+                         'muhasebeci', 'admin'],
+            }
+            roller = rol_map.get(duyuru.hedef_kitle, ['ogrenci', 'veli'])
+            kullanici_ids = [
+                u.id for u in User.query.filter(
+                    User.rol.in_(roller), User.aktif.is_(True)
+                ).all()
+            ]
+            onek = '📌 ' if duyuru.oncelik == 'acil' else ''
+            push_gonder_kullanicilar(
+                kullanici_ids,
+                title=f'{onek}{duyuru.baslik}',
+                body=(duyuru.icerik or '')[:140],
+                url=f'/duyurular/duyuru/{duyuru.id}',
+                tag=f'duyuru-{duyuru.id}',
+            )
+        except Exception as e:  # noqa: BLE001
+            current_app.logger.warning('Duyuru push hatasi: %s', e)
+
         flash('Duyuru başarıyla oluşturuldu.', 'success')
         return redirect(url_for('duyurular.duyuru.liste'))
 

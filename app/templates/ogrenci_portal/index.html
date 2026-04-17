@@ -132,6 +132,31 @@
 </div>
 {% else %}
 
+<!-- Bildirim Abone Banner (Web Push) -->
+<div id="pushBanner" class="alert alert-info d-none align-items-center justify-content-between mb-3 shadow-sm border-0" style="border-radius: 12px;">
+    <div class="d-flex align-items-center gap-2 flex-grow-1">
+        <i class="bi bi-bell-fill fs-4 text-primary"></i>
+        <div>
+            <strong>Bildirimleri açın</strong>
+            <div class="small text-muted" id="pushBannerSub">Yeni duyuru, not ve devamsızlık bilgileri anında telefonunuza gelsin.</div>
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-shrink-0">
+        <button id="pushSubscribeBtn" type="button" class="btn btn-primary btn-sm">
+            <i class="bi bi-bell me-1"></i>Bildirimleri Aç
+        </button>
+        <button id="pushUnsubscribeBtn" type="button" class="btn btn-outline-secondary btn-sm d-none">
+            <i class="bi bi-bell-slash me-1"></i>Kapat
+        </button>
+        <button id="pushTestBtn" type="button" class="btn btn-outline-primary btn-sm d-none">
+            Test
+        </button>
+        <button id="pushDismissBtn" type="button" class="btn btn-link btn-sm text-muted" aria-label="Kapat">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+</div>
+
 <!-- Hero -->
 <div class="portal-hero mb-4">
     <div class="d-flex align-items-center gap-3 position-relative" style="z-index:1;">
@@ -373,4 +398,149 @@
 </div>
 
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* Web Push (VAPID) abonelik yonetimi */
+(function () {
+  var banner      = document.getElementById('pushBanner');
+  var subBtn      = document.getElementById('pushSubscribeBtn');
+  var unsubBtn    = document.getElementById('pushUnsubscribeBtn');
+  var testBtn     = document.getElementById('pushTestBtn');
+  var dismissBtn  = document.getElementById('pushDismissBtn');
+  var subText     = document.getElementById('pushBannerSub');
+  if (!banner) return;
+
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) ||
+      !('Notification' in window)) {
+    return; // destek yok, banneri gosterme
+  }
+  if (Notification.permission === 'denied') return;
+
+  function urlBase64ToUint8Array(base64String) {
+    var padding = '='.repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    var rawData = window.atob(base64);
+    var outputArray = new Uint8Array(rawData.length);
+    for (var i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  }
+
+  function show() { banner.classList.remove('d-none'); banner.classList.add('d-flex'); }
+  function hide() { banner.classList.add('d-none'); banner.classList.remove('d-flex'); }
+
+  function setSubscribedUI(isSub) {
+    if (isSub) {
+      subBtn.classList.add('d-none');
+      unsubBtn.classList.remove('d-none');
+      testBtn.classList.remove('d-none');
+      subText.textContent = 'Bildirimler aktif. Test butonuyla deneyebilirsiniz.';
+    } else {
+      subBtn.classList.remove('d-none');
+      unsubBtn.classList.add('d-none');
+      testBtn.classList.add('d-none');
+      subText.textContent = 'Yeni duyuru, not ve devamsızlık bilgileri anında telefonunuza gelsin.';
+    }
+  }
+
+  async function mevcutAbonelik() {
+    var reg = await navigator.serviceWorker.ready;
+    return reg.pushManager.getSubscription();
+  }
+
+  async function abonOl() {
+    subBtn.disabled = true;
+    try {
+      var keyResp = await fetch('/portal/push/vapid-key');
+      var keyData = await keyResp.json();
+      if (!keyData.enabled || !keyData.key) {
+        alert('Push sistemi su an aktif degil (sunucu anahtari yapilandirilmamis).');
+        return;
+      }
+      var reg = await navigator.serviceWorker.ready;
+      var sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyData.key)
+      });
+      var resp = await fetch('/portal/push/abone-ol', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(sub.toJSON())
+      });
+      var data = await resp.json();
+      if (data.ok) {
+        setSubscribedUI(true);
+      } else {
+        alert('Abonelik kaydedilemedi: ' + (data.msg || 'bilinmeyen hata'));
+      }
+    } catch (e) {
+      console.warn('[Push] abone olma hatasi:', e);
+      if (Notification.permission === 'denied') {
+        alert('Tarayici bildirimleri reddedilmis. Tarayici ayarlarindan OBS icin bildirimlere izin verin.');
+      } else {
+        alert('Abonelik sirasinda hata: ' + e.message);
+      }
+    } finally {
+      subBtn.disabled = false;
+    }
+  }
+
+  async function abonCik() {
+    unsubBtn.disabled = true;
+    try {
+      var sub = await mevcutAbonelik();
+      if (sub) {
+        await fetch('/portal/push/abone-cik', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({endpoint: sub.endpoint})
+        });
+        await sub.unsubscribe();
+      }
+      setSubscribedUI(false);
+    } catch (e) {
+      console.warn('[Push] abone cikma hatasi:', e);
+    } finally {
+      unsubBtn.disabled = false;
+    }
+  }
+
+  async function test() {
+    testBtn.disabled = true;
+    try {
+      var resp = await fetch('/portal/push/test', {method: 'POST'});
+      var data = await resp.json();
+      if (!data.gonderilen) {
+        alert('Test gonderilemedi. Bildirimleri tekrar acmayi deneyin.');
+      }
+    } catch (e) {
+      alert('Test hatasi: ' + e.message);
+    } finally {
+      testBtn.disabled = false;
+    }
+  }
+
+  subBtn.addEventListener('click', abonOl);
+  unsubBtn.addEventListener('click', abonCik);
+  testBtn.addEventListener('click', test);
+  dismissBtn.addEventListener('click', function () {
+    hide();
+    try { sessionStorage.setItem('pushBannerDismissed', '1'); } catch (e) {}
+  });
+
+  (async function init() {
+    try {
+      if (sessionStorage.getItem('pushBannerDismissed') === '1' &&
+          Notification.permission !== 'granted') return;
+    } catch (e) {}
+
+    var reg = await navigator.serviceWorker.ready.catch(function () { return null; });
+    if (!reg) return;
+    var sub = await reg.pushManager.getSubscription();
+    setSubscribedUI(!!sub);
+    show();
+  })();
+})();
+</script>
 {% endblock %}

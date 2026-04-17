@@ -21,6 +21,16 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB
     ALLOWED_BELGE_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'}
 
+    # === Web Push (VAPID) ===
+    # Anahtarlari uretmek icin: `vapid --gen` (py-vapid). Ardindan .env'e:
+    #   VAPID_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+    #   VAPID_PUBLIC_KEY=<base64url>
+    #   VAPID_CLAIM_EMAIL=mailto:admin@example.com
+    # Bos ise push sistemi pasif kalir.
+    VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '').replace('\\n', '\n')
+    VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
+    VAPID_CLAIM_EMAIL = os.environ.get('VAPID_CLAIM_EMAIL', 'mailto:admin@obs.local')
+
 
 class ProductionConfig(Config):
     DEBUG = False

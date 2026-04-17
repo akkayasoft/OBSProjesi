@@ -5,7 +5,7 @@
  * - Kapsam: /portal/ ve statik varliklar.
  */
 
-const CACHE_VERSION = 'obs-portal-v1';
+const CACHE_VERSION = 'obs-portal-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -119,4 +119,56 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+});
+
+// === Web Push ===============================================================
+// Backend payload format: { title, body, url, icon, badge, tag }
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (e) {
+    payload = { title: 'OBS Bildirim', body: event.data ? event.data.text() : '' };
+  }
+
+  const title = payload.title || 'OBS Bildirim';
+  const options = {
+    body: payload.body || '',
+    icon: payload.icon || '/static/pwa/icons/icon-192.png',
+    badge: payload.badge || '/static/pwa/icons/icon-192.png',
+    tag: payload.tag || 'obs-notification',
+    data: { url: payload.url || '/portal/' },
+    renotify: true,
+    requireInteraction: false
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Bildirime tiklaninca uygulamayi ac / odakla
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/portal/';
+
+  event.waitUntil((async () => {
+    const allClients = await self.clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    });
+    // Acik bir pencere varsa onu kullan
+    for (const client of allClients) {
+      try {
+        const url = new URL(client.url);
+        if (url.pathname.startsWith('/portal') || url.pathname === '/') {
+          await client.focus();
+          if ('navigate' in client) {
+            try { await client.navigate(targetUrl); } catch (_) {}
+          }
+          return;
+        }
+      } catch (_) {}
+    }
+    // Yoksa yeni pencere ac
+    await self.clients.openWindow(targetUrl);
+  })());
 });

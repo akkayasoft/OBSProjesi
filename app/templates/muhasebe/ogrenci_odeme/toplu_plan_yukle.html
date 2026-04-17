@@ -30,6 +30,7 @@
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="row g-3 align-items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="col-md-8">
                 <label class="form-label">Excel Dosyası (.xlsx)</label>
                 <input type="file" name="excel" accept=".xlsx,.xlsm" class="form-control" required>
@@ -78,6 +79,7 @@
         <h6 class="mb-0"><i class="bi bi-table me-2"></i>Önizleme</h6>
         {% if hatalar_ozet and hatalar_ozet.gecerli > 0 %}
         <form method="POST" enctype="multipart/form-data" id="kaydetForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="file" name="excel" id="kaydetExcel" class="d-none" accept=".xlsx,.xlsm">
             <button type="button" class="btn btn-success" onclick="tekrarYukleVeKaydet()">
                 <i class="bi bi-check-circle me-1"></i>Geçerli {{ hatalar_ozet.gecerli }} Planı Oluştur

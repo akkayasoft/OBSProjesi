@@ -4,15 +4,10 @@ from app.utils import role_required
 from app.models.muhasebe import Ogrenci
 from app.models.not_defteri import OgrenciNot, Sinav
 from app.models.ders_dagitimi import Ders
+from app.ogrenci_portal.helpers import get_current_ogrenci
 from app.extensions import db
 
 bp = Blueprint('notlar', __name__)
-
-
-def get_current_ogrenci():
-    if current_user.rol == 'veli':
-        return Ogrenci.query.filter_by(soyad=current_user.soyad, aktif=True).first()
-    return Ogrenci.query.filter_by(ad=current_user.ad, soyad=current_user.soyad, aktif=True).first()
 
 
 @bp.route('/notlar/')

@@ -450,4 +450,93 @@ def create_app(config_class=Config):
         db.session.commit()
         print('Başlangıç verisi başarıyla eklendi!')
 
+    # Portal hesaplari icin backfill komutu
+    @app.cli.command('portal-backfill')
+    def portal_backfill_command():
+        """Eski kayitlari tarayip user_id'si olmayan Ogrenci ve VeliBilgisi
+        kayitlari icin kullanici hesaplari olusturur."""
+        from app.models.user import User
+        from app.models.muhasebe import Ogrenci
+        from app.models.kayit import VeliBilgisi
+
+        olusturulan_ogrenci = 0
+        olusturulan_veli = 0
+        hatalar = []
+
+        # === Ogrenciler ===
+        ogrenciler = Ogrenci.query.filter(Ogrenci.user_id.is_(None)).all()
+        for o in ogrenciler:
+            username = o.ogrenci_no
+            if not username:
+                hatalar.append(f'Ogrenci #{o.id} ({o.tam_ad}) icin ogrenci_no bos — atlandi.')
+                continue
+            if User.query.filter_by(username=username).first():
+                hatalar.append(f'Ogrenci #{o.id}: "{username}" kullanici adi zaten kullanimda — atlandi.')
+                continue
+            sifre = o.tc_kimlik if o.tc_kimlik else username
+            email = o.email or f'{username}@ogrenci.obs'
+            # Email cakismasi kontrolu
+            if User.query.filter_by(email=email).first():
+                email = f'{username}@ogrenci.obs'
+                if User.query.filter_by(email=email).first():
+                    email = f'{username}_{o.id}@ogrenci.obs'
+            user = User(
+                username=username,
+                email=email,
+                ad=o.ad,
+                soyad=o.soyad,
+                rol='ogrenci',
+                aktif=True,
+            )
+            user.set_password(sifre)
+            db.session.add(user)
+            db.session.flush()
+            o.user_id = user.id
+            olusturulan_ogrenci += 1
+            print(f'[Ogrenci] {o.tam_ad} -> kullanici: {username} / sifre: {sifre}')
+
+        # === Veliler ===
+        veliler = VeliBilgisi.query.filter(VeliBilgisi.user_id.is_(None)).all()
+        for v in veliler:
+            ogrenci = v.ogrenci
+            if not ogrenci:
+                hatalar.append(f'Veli #{v.id} ({v.tam_ad}) icin ogrenci bulunamadi — atlandi.')
+                continue
+            username = f'veli_{ogrenci.ogrenci_no}_{v.yakinlik}'
+            if User.query.filter_by(username=username).first():
+                username = f'{username}_{v.id}'
+            sifre = v.tc_kimlik if v.tc_kimlik else username
+            email = v.email or f'{username}@veli.obs'
+            if User.query.filter_by(email=email).first():
+                email = f'{username}@veli.obs'
+                if User.query.filter_by(email=email).first():
+                    email = f'{username}_{v.id}@veli.obs'
+            user = User(
+                username=username,
+                email=email,
+                ad=v.ad,
+                soyad=v.soyad,
+                rol='veli',
+                aktif=True,
+            )
+            user.set_password(sifre)
+            db.session.add(user)
+            db.session.flush()
+            v.user_id = user.id
+            olusturulan_veli += 1
+            print(f'[Veli]    {v.tam_ad} ({ogrenci.tam_ad}) -> kullanici: {username} / sifre: {sifre}')
+
+        db.session.commit()
+
+        print('')
+        print('=' * 60)
+        print(f'Backfill tamamlandi:')
+        print(f'  Olusturulan ogrenci hesabi : {olusturulan_ogrenci}')
+        print(f'  Olusturulan veli hesabi    : {olusturulan_veli}')
+        if hatalar:
+            print(f'  Uyarilar / atlananlar      : {len(hatalar)}')
+            for h in hatalar:
+                print(f'    - {h}')
+        print('=' * 60)
+
     return app

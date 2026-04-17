@@ -3,16 +3,11 @@ from flask_login import login_required, current_user
 from app.utils import role_required
 from app.models.muhasebe import Ogrenci
 from app.models.devamsizlik import Devamsizlik
+from app.ogrenci_portal.helpers import get_current_ogrenci
 from app.extensions import db
 from datetime import date
 
 bp = Blueprint('devamsizlik_portal', __name__)
-
-
-def get_current_ogrenci():
-    if current_user.rol == 'veli':
-        return Ogrenci.query.filter_by(soyad=current_user.soyad, aktif=True).first()
-    return Ogrenci.query.filter_by(ad=current_user.ad, soyad=current_user.soyad, aktif=True).first()
 
 
 @bp.route('/devamsizlik/')

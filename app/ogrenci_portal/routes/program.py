@@ -4,18 +4,13 @@ from app.utils import role_required
 from app.models.muhasebe import Ogrenci
 from app.models.kayit import OgrenciKayit
 from app.models.ders_dagitimi import DersProgrami
+from app.ogrenci_portal.helpers import get_current_ogrenci
 from app.extensions import db
 
 bp = Blueprint('program', __name__)
 
 GUNLER = ['Pazartesi', 'Sali', 'Carsamba', 'Persembe', 'Cuma']
 SAATLER = list(range(1, 9))
-
-
-def get_current_ogrenci():
-    if current_user.rol == 'veli':
-        return Ogrenci.query.filter_by(soyad=current_user.soyad, aktif=True).first()
-    return Ogrenci.query.filter_by(ad=current_user.ad, soyad=current_user.soyad, aktif=True).first()
 
 
 @bp.route('/program/')

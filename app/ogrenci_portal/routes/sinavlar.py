@@ -4,16 +4,11 @@ from app.utils import role_required
 from app.models.muhasebe import Ogrenci
 from app.models.kayit import OgrenciKayit
 from app.models.online_sinav import OnlineSinav, SinavKatilim
+from app.ogrenci_portal.helpers import get_current_ogrenci
 from app.extensions import db
 from datetime import datetime
 
 bp = Blueprint('sinavlar', __name__)
-
-
-def get_current_ogrenci():
-    if current_user.rol == 'veli':
-        return Ogrenci.query.filter_by(soyad=current_user.soyad, aktif=True).first()
-    return Ogrenci.query.filter_by(ad=current_user.ad, soyad=current_user.soyad, aktif=True).first()
 
 
 @bp.route('/sinavlar/')

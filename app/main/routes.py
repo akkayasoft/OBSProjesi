@@ -1,6 +1,6 @@
 """Ana sayfa (dashboard) — role-aware, zengin icerik."""
 from datetime import date, datetime, timedelta
-from flask import render_template
+from flask import render_template, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy import func, extract
 from app.main import main_bp
@@ -58,6 +58,10 @@ AY_ADLARI = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
 @main_bp.route('/')
 @login_required
 def dashboard():
+    # Ogrenci ve veli rollerini kendi portalina yonlendir
+    if current_user.rol in ('ogrenci', 'veli'):
+        return redirect(url_for('ogrenci_portal.dashboard.index'))
+
     bugun = date.today()
     ay_basi = bugun.replace(day=1)
     hafta_basi = bugun - timedelta(days=bugun.weekday())

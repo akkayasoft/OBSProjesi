@@ -6,118 +6,244 @@
 <li class="breadcrumb-item active">Genel Bakış</li>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.portal-hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 22px 26px;
+    box-shadow: 0 10px 30px rgba(76, 29, 149, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+.portal-hero::after {
+    content: "";
+    position: absolute; top: -60px; right: -60px;
+    width: 240px; height: 240px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+}
+.portal-hero .avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; font-weight: 700; flex-shrink: 0;
+}
+.portal-hero .chip {
+    display: inline-flex; align-items: center;
+    background: rgba(255,255,255,0.18);
+    padding: 4px 12px; border-radius: 999px;
+    font-size: .82rem; margin-right: 6px; margin-top: 4px;
+}
+.veli-banner {
+    background: linear-gradient(90deg, #fef3c7, #fde68a);
+    border: 1px solid #f59e0b;
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: #78350f;
+}
+.kpi-card {
+    border: none; border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    transition: transform .15s ease, box-shadow .15s ease;
+    overflow: hidden; position: relative;
+}
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+.kpi-card .kpi-icon {
+    width: 46px; height: 46px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+}
+.kpi-g-1 { background: linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; }
+.kpi-g-2 { background: linear-gradient(135deg,#ef4444,#f97316); color:#fff; }
+.kpi-g-3 { background: linear-gradient(135deg,#10b981,#059669); color:#fff; }
+.kpi-g-4 { background: linear-gradient(135deg,#0ea5e9,#3b82f6); color:#fff; }
+.kpi-g-5 { background: linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+.kpi-g-6 { background: linear-gradient(135deg,#ec4899,#db2777); color:#fff; }
+
+.kpi-card.gradient-card .card-body { color:#fff; }
+.kpi-card.gradient-card .text-muted { color: rgba(255,255,255,.85) !important; }
+
+.portal-link {
+    display:flex; align-items:center; gap:12px;
+    padding: 14px; border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    text-decoration: none; color:#374151;
+    background:#fff;
+    transition: all .15s ease;
+}
+.portal-link:hover {
+    border-color:#6366f1; color:#4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(99,102,241,.12);
+}
+.portal-link .icon {
+    width:42px;height:42px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.2rem;flex-shrink:0;
+}
+
+.panel { border:none; border-radius:12px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+.panel .card-header { background:#fff; border-bottom:1px solid #f1f5f9; border-radius: 12px 12px 0 0; padding: 14px 18px; }
+
+.feed-item { padding: 12px 18px; border-left: 3px solid transparent; transition: background .12s; }
+.feed-item:hover { background: #f8fafc; border-left-color: #6366f1; }
+
+.not-pill {
+    display:inline-block; min-width: 42px; padding:3px 10px; border-radius: 999px;
+    font-weight: 700; text-align: center; font-size: .88rem;
+}
+.not-aa, .not-ba { background:#dcfce7; color:#166534; }
+.not-bb, .not-cb { background:#dbeafe; color:#1e3a8a; }
+.not-cc, .not-dc { background:#fef3c7; color:#854d0e; }
+.not-dd, .not-fd { background:#fee2e2; color:#991b1b; }
+.not-ff { background:#fecaca; color:#7f1d1d; }
+</style>
+{% endblock %}
+
 {% block portal_content %}
-<h4 class="mb-4"><i class="bi bi-mortarboard me-2"></i>Öğrenci Portalı</h4>
+{% set hh = simdi.hour %}
+{% if hh < 5 %}{% set selamlama = 'İyi geceler' %}
+{% elif hh < 12 %}{% set selamlama = 'Günaydın' %}
+{% elif hh < 18 %}{% set selamlama = 'İyi günler' %}
+{% else %}{% set selamlama = 'İyi akşamlar' %}
+{% endif %}
+
+{% if veli %}
+<div class="veli-banner mb-3 d-flex align-items-center">
+    <i class="bi bi-person-heart fs-4 me-2"></i>
+    <div>
+        <strong>Veli Oturumu</strong> &middot;
+        {{ veli.tam_ad }} ({{ veli.yakinlik|capitalize }})
+        {% if ogrenci %}
+        — <strong>{{ ogrenci.tam_ad }}</strong>’nın bilgilerini görüntülüyorsunuz
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
 {% if not ogrenci %}
-<div class="alert alert-warning">
-    <i class="bi bi-exclamation-triangle me-2"></i>Öğrenci kaydınız bulunamadı.
+<div class="alert alert-warning shadow-sm border-0">
+    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle me-2"></i>Öğrenci kaydınız bulunamadı</h5>
+    <p class="mb-0">
+        Kullanıcı hesabınız sisteme kayıtlı bir öğrenciye bağlı değil.
+        Lütfen okul yönetimi ile iletişime geçerek kaydınızın tamamlanmasını isteyin.
+    </p>
 </div>
 {% else %}
 
-<div class="alert alert-light border mb-4">
-    <h5 class="mb-1">Hoşgeldiniz, {{ ogrenci.tam_ad }}</h5>
-    <small class="text-muted">
-        {{ ogrenci.ogrenci_no }}
-        {% if sube %} - {{ sube.tam_ad }}{% endif %}
-    </small>
+<!-- Hero -->
+<div class="portal-hero mb-4">
+    <div class="d-flex align-items-center gap-3 position-relative" style="z-index:1;">
+        <div class="avatar">
+            {{ ogrenci.ad[0]|upper if ogrenci.ad else '?' }}{{ ogrenci.soyad[0]|upper if ogrenci.soyad else '' }}
+        </div>
+        <div class="flex-grow-1">
+            <div class="small opacity-75 mb-1">{{ selamlama }},</div>
+            <h4 class="mb-1 fw-bold">{{ ogrenci.tam_ad }}</h4>
+            <div>
+                <span class="chip"><i class="bi bi-person-badge me-1"></i>{{ ogrenci.ogrenci_no }}</span>
+                {% if sube %}
+                <span class="chip"><i class="bi bi-building me-1"></i>{{ sube.tam_ad }}</span>
+                {% endif %}
+                {% if ogrenci.sinif %}
+                <span class="chip"><i class="bi bi-mortarboard me-1"></i>{{ ogrenci.sinif }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-none d-md-block text-end">
+            <div class="small opacity-75">{{ simdi.strftime('%d %B %Y') }}</div>
+            <div class="fs-5 fw-semibold">{{ simdi.strftime('%H:%M') }}</div>
+        </div>
+    </div>
 </div>
 
-<!-- İstatistik Kartları -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card stat-card border-start border-primary border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted small mb-1">Not Ortalaması</p>
-                        <h3 class="mb-0">{{ ortalama }}</h3>
-                    </div>
-                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-journal-check"></i>
-                    </div>
+<!-- KPI Kartlari -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card kpi-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted small mb-1">Not Ortalaması</p>
+                    <h3 class="mb-0 fw-bold">{{ ortalama }}</h3>
+                    <small class="text-muted">{{ sinav_sayisi }} sınav</small>
                 </div>
+                <div class="kpi-icon kpi-g-1"><i class="bi bi-journal-check"></i></div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card border-start border-danger border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted small mb-1">Devamsızlık (Gün)</p>
-                        <h3 class="mb-0">{{ devamsizlik_gun }}</h3>
-                    </div>
-                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
-                        <i class="bi bi-calendar-x"></i>
-                    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card kpi-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted small mb-1">Devamsızlık</p>
+                    <h3 class="mb-0 fw-bold">{{ devamsizlik_gun }}</h3>
+                    <small class="text-muted">Bu hafta: {{ haftalik_devamsizlik }}</small>
                 </div>
+                <div class="kpi-icon kpi-g-2"><i class="bi bi-calendar-x"></i></div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card border-start border-info border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted small mb-1">Sınav Sayısı</p>
-                        <h3 class="mb-0">{{ sinav_sayisi }}</h3>
-                    </div>
-                    <div class="stat-icon bg-info bg-opacity-10 text-info">
-                        <i class="bi bi-pencil-square"></i>
-                    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card kpi-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted small mb-1">Yaklaşan Sınav</p>
+                    <h3 class="mb-0 fw-bold">{{ yaklasan_online|length }}</h3>
+                    <small class="text-muted">Önümüzdeki 14 gün</small>
                 </div>
+                <div class="kpi-icon kpi-g-4"><i class="bi bi-pencil-square"></i></div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card border-start border-success border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted small mb-1">Duyurular</p>
-                        <h3 class="mb-0">{{ duyurular|length }}</h3>
-                    </div>
-                    <div class="stat-icon bg-success bg-opacity-10 text-success">
-                        <i class="bi bi-megaphone"></i>
-                    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card kpi-card h-100 {% if bekleyen_borc > 0 %}gradient-card kpi-g-5{% endif %}">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted small mb-1">Bekleyen Ödeme</p>
+                    <h3 class="mb-0 fw-bold">{{ "{:,.0f}".format(bekleyen_borc) }} ₺</h3>
+                    <small class="text-muted">{{ bekleyen_taksit }} taksit</small>
                 </div>
+                <div class="kpi-icon kpi-g-3"><i class="bi bi-cash-coin"></i></div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- Hızlı Erişim -->
-    <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white">
+    <!-- Hizli Erisim -->
+    <div class="col-12">
+        <div class="card panel">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="mb-0"><i class="bi bi-grid me-2"></i>Hızlı Erişim</h6>
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-6">
-                        <a href="{{ url_for('ogrenci_portal.notlar.index') }}" class="btn btn-outline-primary w-100 py-3">
-                            <i class="bi bi-journal-check d-block fs-3 mb-1"></i>
-                            Notlarım
+                    <div class="col-6 col-md-3">
+                        <a href="{{ url_for('ogrenci_portal.notlar.index') }}" class="portal-link h-100">
+                            <div class="icon kpi-g-1"><i class="bi bi-journal-check"></i></div>
+                            <div><div class="fw-semibold">Notlarım</div><small class="text-muted">Tüm sınavlar</small></div>
                         </a>
                     </div>
-                    <div class="col-6">
-                        <a href="{{ url_for('ogrenci_portal.devamsizlik_portal.index') }}" class="btn btn-outline-danger w-100 py-3">
-                            <i class="bi bi-calendar-x d-block fs-3 mb-1"></i>
-                            Devamsızlık
+                    <div class="col-6 col-md-3">
+                        <a href="{{ url_for('ogrenci_portal.devamsizlik_portal.index') }}" class="portal-link h-100">
+                            <div class="icon kpi-g-2"><i class="bi bi-calendar-x"></i></div>
+                            <div><div class="fw-semibold">Devamsızlık</div><small class="text-muted">Geçmiş kayıtlar</small></div>
                         </a>
                     </div>
-                    <div class="col-6">
-                        <a href="{{ url_for('ogrenci_portal.program.index') }}" class="btn btn-outline-success w-100 py-3">
-                            <i class="bi bi-calendar-week d-block fs-3 mb-1"></i>
-                            Ders Programı
+                    <div class="col-6 col-md-3">
+                        <a href="{{ url_for('ogrenci_portal.program.index') }}" class="portal-link h-100">
+                            <div class="icon kpi-g-3"><i class="bi bi-calendar-week"></i></div>
+                            <div><div class="fw-semibold">Ders Programı</div><small class="text-muted">Haftalık</small></div>
                         </a>
                     </div>
-                    <div class="col-6">
-                        <a href="{{ url_for('ogrenci_portal.sinavlar.index') }}" class="btn btn-outline-info w-100 py-3">
-                            <i class="bi bi-pencil-square d-block fs-3 mb-1"></i>
-                            Sınavlar
+                    <div class="col-6 col-md-3">
+                        <a href="{{ url_for('ogrenci_portal.sinavlar.index') }}" class="portal-link h-100">
+                            <div class="icon kpi-g-4"><i class="bi bi-pencil-square"></i></div>
+                            <div><div class="fw-semibold">Online Sınavlar</div><small class="text-muted">Katılım / sonuç</small></div>
                         </a>
                     </div>
                 </div>
@@ -125,35 +251,122 @@
         </div>
     </div>
 
-    <!-- Son Duyurular -->
+    <!-- Son Notlar -->
     <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h6 class="mb-0"><i class="bi bi-megaphone me-2"></i>Son Duyurular</h6>
-                <a href="{{ url_for('ogrenci_portal.duyurular_portal.index') }}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-list"></i> Tümü
+        <div class="card panel h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-journal-check me-2 text-primary"></i>Son Sınav Notlarım</h6>
+                <a href="{{ url_for('ogrenci_portal.notlar.index') }}" class="btn btn-sm btn-outline-primary">
+                    Tümü
                 </a>
             </div>
             <div class="card-body p-0">
+                {% if son_notlar %}
+                <div class="list-group list-group-flush">
+                    {% for n in son_notlar %}
+                    <div class="feed-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ n.sinav.ders.ad if n.sinav and n.sinav.ders else '—' }}</strong>
+                            <div class="small text-muted">
+                                {{ n.sinav.ad if n.sinav else '' }}
+                                {% if n.sinav and n.sinav.tarih %} · {{ n.sinav.tarih.strftime('%d.%m.%Y') }}{% endif %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold fs-5">{{ "{:.0f}".format(n.puan) if n.puan is not none else '—' }}</div>
+                            {% if n.harf_notu %}
+                            <span class="not-pill not-{{ n.harf_notu|lower }}">{{ n.harf_notu }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                    Henüz not girişi yok
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Yaklasan Online Sinavlar -->
+    <div class="col-lg-6">
+        <div class="card panel h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-calendar-event me-2 text-info"></i>Yaklaşan Online Sınavlar</h6>
+                <a href="{{ url_for('ogrenci_portal.sinavlar.index') }}" class="btn btn-sm btn-outline-info">
+                    Tümü
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if yaklasan_online %}
+                <div class="list-group list-group-flush">
+                    {% for s in yaklasan_online %}
+                    <div class="feed-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ s.baslik }}</strong>
+                                <div class="small text-muted">
+                                    {{ s.ders.ad if s.ders else '' }}
+                                    · {{ s.sure }} dk
+                                    · {{ s.sinav_turu_str }}
+                                </div>
+                            </div>
+                            <div class="text-end small">
+                                <div class="fw-semibold">{{ s.baslangic_zamani.strftime('%d.%m.%Y') }}</div>
+                                <div class="text-muted">{{ s.baslangic_zamani.strftime('%H:%M') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-calendar-check fs-2 d-block mb-2 opacity-50"></i>
+                    Önümüzdeki 14 gün içinde planlanmış online sınav yok
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Duyurular -->
+    <div class="col-12">
+        <div class="card panel">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-megaphone me-2 text-warning"></i>Son Duyurular</h6>
+                <a href="{{ url_for('ogrenci_portal.duyurular_portal.index') }}" class="btn btn-sm btn-outline-warning">
+                    Tümü
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if duyurular %}
                 <div class="list-group list-group-flush">
                     {% for d in duyurular %}
-                    <div class="list-group-item py-3">
+                    <div class="feed-item">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <strong>{{ d.baslik }}</strong>
-                                <small class="text-muted d-block">
+                                <strong>
+                                    {% if d.sabitlenmis %}<i class="bi bi-pin-angle-fill text-danger me-1"></i>{% endif %}
+                                    {{ d.baslik }}
+                                </strong>
+                                <div class="small text-muted">
                                     <i class="bi bi-clock me-1"></i>{{ d.yayinlanma_tarihi.strftime('%d.%m.%Y %H:%M') }}
-                                </small>
+                                </div>
                             </div>
                             <span class="badge bg-{{ d.kategori_badge }}">{{ d.kategori_str }}</span>
                         </div>
                     </div>
-                    {% else %}
-                    <div class="list-group-item text-center text-muted py-4">
-                        Duyuru bulunmuyor
-                    </div>
                     {% endfor %}
                 </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-megaphone fs-2 d-block mb-2 opacity-50"></i>
+                    Henüz duyuru bulunmuyor
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

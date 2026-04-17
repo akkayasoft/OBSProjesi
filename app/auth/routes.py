@@ -14,10 +14,17 @@ def _is_safe_next_url(target):
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 
+def _giris_sonrasi_hedef(user):
+    """Role gore giris sonrasi yonlendirilecek URL'i dondur."""
+    if user.rol in ('ogrenci', 'veli'):
+        return url_for('ogrenci_portal.dashboard.index')
+    return url_for('main.dashboard')
+
+
 @auth_bp.route('/giris', methods=['GET', 'POST'])
 def giris():
     if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
+        return redirect(_giris_sonrasi_hedef(current_user))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -31,7 +38,7 @@ def giris():
             flash(f'Hoş geldiniz, {user.tam_ad}!', 'success')
             if _is_safe_next_url(next_page):
                 return redirect(next_page)
-            return redirect(url_for('main.dashboard'))
+            return redirect(_giris_sonrasi_hedef(user))
         else:
             flash('Kullanıcı adı veya şifre hatalı.', 'danger')
 

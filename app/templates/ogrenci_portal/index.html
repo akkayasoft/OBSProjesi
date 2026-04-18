@@ -247,25 +247,37 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-4">
                         <a href="{{ url_for('ogrenci_portal.notlar.index') }}" class="portal-link h-100">
                             <div class="icon kpi-g-1"><i class="bi bi-journal-check"></i></div>
-                            <div><div class="fw-semibold">Notlarım</div><small class="text-muted">Tüm sınavlar</small></div>
+                            <div><div class="fw-semibold">Notlarım</div><small class="text-muted">Sınıf içi sınavlar</small></div>
                         </a>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-4">
+                        <a href="{{ url_for('ogrenci_portal.deneme.index') }}" class="portal-link h-100">
+                            <div class="icon kpi-g-6"><i class="bi bi-bar-chart-line"></i></div>
+                            <div><div class="fw-semibold">Deneme Sonuçlarım</div><small class="text-muted">Net, sıralama, ortalama</small></div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="{{ url_for('ogrenci_portal.karne_portal.index') }}" class="portal-link h-100">
+                            <div class="icon kpi-g-5"><i class="bi bi-file-earmark-text"></i></div>
+                            <div><div class="fw-semibold">Karnelerim</div><small class="text-muted">Dönem sonu</small></div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
                         <a href="{{ url_for('ogrenci_portal.devamsizlik_portal.index') }}" class="portal-link h-100">
                             <div class="icon kpi-g-2"><i class="bi bi-calendar-x"></i></div>
                             <div><div class="fw-semibold">Devamsızlık</div><small class="text-muted">Geçmiş kayıtlar</small></div>
                         </a>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-4">
                         <a href="{{ url_for('ogrenci_portal.program.index') }}" class="portal-link h-100">
                             <div class="icon kpi-g-3"><i class="bi bi-calendar-week"></i></div>
                             <div><div class="fw-semibold">Ders Programı</div><small class="text-muted">Haftalık</small></div>
                         </a>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-4">
                         <a href="{{ url_for('ogrenci_portal.sinavlar.index') }}" class="portal-link h-100">
                             <div class="icon kpi-g-4"><i class="bi bi-pencil-square"></i></div>
                             <div><div class="fw-semibold">Online Sınavlar</div><small class="text-muted">Katılım / sonuç</small></div>

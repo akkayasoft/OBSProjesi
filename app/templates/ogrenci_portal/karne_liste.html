@@ -1,0 +1,63 @@
+{% extends "ogrenci_portal/_layout.html" %}
+
+{% block title %}Karnelerim{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Karnelerim</li>
+{% endblock %}
+
+{% block portal_content %}
+<h4 class="mb-4"><i class="bi bi-file-earmark-text me-2"></i>Karnelerim</h4>
+
+{% if not ogrenci %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>Öğrenci kaydınız bulunamadı.
+</div>
+{% elif not karneler %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-file-earmark fs-1 d-block mb-2 opacity-50"></i>
+        Henüz onaylanmış karneniz bulunmuyor.
+        <div class="small mt-2">Karneler dönem sonunda öğretmen tarafından onaylandıktan sonra burada görünür.</div>
+    </div>
+</div>
+{% else %}
+<div class="row g-3">
+    {% for k in karneler %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div class="text-muted small">{{ k.ogretim_yili }}</div>
+                        <h5 class="mb-0">{{ k.donem }}</h5>
+                    </div>
+                    <span class="badge bg-{{ k.durum_badge }}">{{ k.durum_str }}</span>
+                </div>
+                <div class="small text-muted mb-2">
+                    <i class="bi bi-mortarboard me-1"></i>{{ k.sinif.ad if k.sinif else '—' }}
+                </div>
+                <hr class="my-2">
+                <div class="row text-center g-2 mb-3">
+                    <div class="col-6">
+                        <div class="text-muted small">Genel Ortalama</div>
+                        <div class="fs-4 fw-bold text-primary">
+                            {{ "{:.2f}".format(k.genel_ortalama) if k.genel_ortalama is not none else '—' }}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted small">Devamsızlık</div>
+                        <div class="fs-4 fw-bold text-warning">{{ k.toplam_devamsizlik }}</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('ogrenci_portal.karne_portal.detay', karne_id=k.id) }}"
+                   class="btn btn-primary w-100">
+                    <i class="bi bi-eye me-1"></i>Karneyi Görüntüle
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

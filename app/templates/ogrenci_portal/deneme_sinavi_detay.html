@@ -1,0 +1,265 @@
+{% extends "ogrenci_portal/_layout.html" %}
+
+{% block title %}{{ sinav.ad }} - Sonuç{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('ogrenci_portal.deneme_sinavi_portal.index') }}">YKS/LGS Denemeleri</a></li>
+<li class="breadcrumb-item active">{{ sinav.ad }}</li>
+{% endblock %}
+
+{% block portal_content %}
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-bar-chart-line me-2"></i>{{ sinav.ad }}
+            <span class="badge bg-secondary ms-2">{{ sinav.tip_str }}</span>
+        </h4>
+        <small class="text-muted">
+            <i class="bi bi-calendar me-1"></i>{{ sinav.tarih.strftime('%d.%m.%Y') }}
+            <span class="mx-2">|</span>
+            <i class="bi bi-collection me-1"></i>{{ sinav.donem }}
+        </small>
+    </div>
+    <a href="{{ url_for('ogrenci_portal.deneme_sinavi_portal.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Listeye Dön
+    </a>
+</div>
+
+<!-- Toplam sonuç kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Toplam Doğru</div>
+                <div class="fs-3 fw-bold text-success">{{ katilim.toplam_dogru or 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Toplam Yanlış</div>
+                <div class="fs-3 fw-bold text-danger">{{ katilim.toplam_yanlis or 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Toplam Net</div>
+                <div class="fs-3 fw-bold text-info">
+                    {{ "{:.2f}".format(katilim.toplam_net) if katilim.toplam_net is not none else '—' }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Puan</div>
+                <div class="fs-3 fw-bold text-primary">
+                    {{ "{:.2f}".format(katilim.toplam_puan) if katilim.toplam_puan is not none else '—' }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Siralama ve karsilastirma -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-trophy me-2"></i>Seviye (Tüm Şubeler)</h6></div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="text-muted small">Sıralama</div>
+                        <div class="fs-4 fw-bold text-warning">
+                            {% if siralama %}{{ siralama }}.{% else %}—{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">Katılımcı</div>
+                        <div class="fs-4 fw-bold">{{ katilimci }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">Ortalama Puan</div>
+                        <div class="fs-4 fw-bold text-info">
+                            {{ "{:.2f}".format(seviye_puan_ort) if seviye_puan_ort is not none else '—' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-people me-2"></i>Şubemde</h6></div>
+            <div class="card-body">
+                {% if katilim.sube %}
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="text-muted small">Sıralama</div>
+                        <div class="fs-4 fw-bold text-warning">
+                            {% if sube_siralama %}{{ sube_siralama }}.{% else %}—{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">Katılımcı</div>
+                        <div class="fs-4 fw-bold">{{ sube_katilimci }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">Şube Ort.</div>
+                        <div class="fs-4 fw-bold text-info">
+                            {{ "{:.2f}".format(sube_puan_ort) if sube_puan_ort is not none else '—' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center text-muted small mt-2">{{ katilim.sube.tam_ad }}</div>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    Şube bilgisi bulunmuyor.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ders bazli detay -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-list-columns-reverse me-2"></i>Ders Bazlı Sonuçlar</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ders</th>
+                        <th class="text-center">Soru</th>
+                        <th class="text-center">Doğru</th>
+                        <th class="text-center">Yanlış</th>
+                        <th class="text-center">Boş</th>
+                        <th class="text-center">Net</th>
+                        {% if katilim.sube %}
+                        <th class="text-center">Şube Ort. Net</th>
+                        {% endif %}
+                        <th class="text-center">Seviye Ort. Net</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ist in ders_istatistikleri %}
+                    {% set d = ist.ders %}
+                    {% set s = ist.sonuc %}
+                    <tr>
+                        <td class="fw-semibold">{{ d.ders_adi }}</td>
+                        <td class="text-center">{{ d.soru_sayisi }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-success-subtle text-success">{{ s.dogru if s else 0 }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-danger-subtle text-danger">{{ s.yanlis if s else 0 }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary-subtle text-secondary">{{ s.bos if s else 0 }}</span>
+                        </td>
+                        <td class="text-center fw-bold text-primary">
+                            {{ "{:.2f}".format(s.net) if s and s.net is not none else '—' }}
+                        </td>
+                        {% if katilim.sube %}
+                        <td class="text-center text-muted">
+                            {{ "{:.2f}".format(ist.sube_ort) if ist.sube_ort is not none else '—' }}
+                        </td>
+                        {% endif %}
+                        <td class="text-center text-muted">
+                            {{ "{:.2f}".format(ist.seviye_ort) if ist.seviye_ort is not none else '—' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Ders net karsilastirma grafigi -->
+{% if ders_istatistikleri %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Ders Bazlı Karşılaştırma</h6>
+    </div>
+    <div class="card-body">
+        <canvas id="dersKarsilastirma" height="120"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    const ctx = document.getElementById('dersKarsilastirma');
+    if (!ctx) return;
+    const labels = {{ ders_istatistikleri|map(attribute='ders.ders_adi')|list|tojson }};
+    const benim = [
+        {% for ist in ders_istatistikleri %}
+        {{ (ist.sonuc.net if ist.sonuc and ist.sonuc.net is not none else 0) }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    const seviyeOrt = [
+        {% for ist in ders_istatistikleri %}
+        {{ (ist.seviye_ort if ist.seviye_ort is not none else 0) }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    {% if katilim.sube %}
+    const subeOrt = [
+        {% for ist in ders_istatistikleri %}
+        {{ (ist.sube_ort if ist.sube_ort is not none else 0) }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    {% endif %}
+
+    const datasets = [
+        {
+            label: 'Benim Netim',
+            data: benim,
+            backgroundColor: '#3b82f6',
+        },
+        {% if katilim.sube %}
+        {
+            label: 'Şube Ortalaması',
+            data: subeOrt,
+            backgroundColor: '#10b981',
+        },
+        {% endif %}
+        {
+            label: 'Seviye Ortalaması',
+            data: seviyeOrt,
+            backgroundColor: '#f59e0b',
+        }
+    ];
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels, datasets: datasets },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Net' } }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+
+{% if katilim.obp %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    <strong>OBP (Okul Başarı Puanı):</strong> {{ "{:.2f}".format(katilim.obp) }}
+    {% if sinav.sinav_tipi == 'lgs' %}
+    <br><small>LGS puanınızın %30'u OBP üzerinden hesaplanır.</small>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

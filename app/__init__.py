@@ -14,7 +14,7 @@ def create_app(config_class=Config):
     csrf.init_app(app)
 
     # Modelleri import et (migration için gerekli)
-    from app.models import user, muhasebe, kayit, devamsizlik, personel, ders_dagitimi, not_defteri, duyurular, rehberlik, saglik, iletisim, online_sinav, kulupler, kurum, ayarlar, bildirim, denetim, belge  # noqa: F401
+    from app.models import user, muhasebe, kayit, devamsizlik, personel, ders_dagitimi, not_defteri, duyurular, rehberlik, saglik, iletisim, online_sinav, kulupler, kurum, ayarlar, bildirim, denetim, belge, deneme_sinavi  # noqa: F401
 
     # Blueprint'leri kaydet
     from app.auth import auth_bp
@@ -94,6 +94,9 @@ def create_app(config_class=Config):
 
     from app.ortak_sinav import ortak_sinav_bp
     app.register_blueprint(ortak_sinav_bp, url_prefix='/ortak-sinav')
+
+    from app.deneme_sinavi import deneme_sinavi_bp
+    app.register_blueprint(deneme_sinavi_bp, url_prefix='/deneme-sinavi')
 
     from app.anket import anket_bp
     app.register_blueprint(anket_bp, url_prefix='/anket')
@@ -271,6 +274,10 @@ def create_app(config_class=Config):
                 {'label': 'Sınav Listesi', 'icon': 'bi-list-ul', 'url': '/ortak-sinav/sinav/'},
                 {'label': 'Yeni Sınav', 'icon': 'bi-plus-circle', 'url': '/ortak-sinav/sinav/yeni'},
                 {'label': 'Raporlar', 'icon': 'bi-bar-chart', 'url': '/ortak-sinav/rapor/'},
+            ]},
+            {'label': 'Deneme Sınavları', 'icon': 'bi-bar-chart-line', 'url': '/deneme-sinavi/sinav/', 'modul_key': 'deneme_sinavi', 'children': [
+                {'label': 'Sınav Listesi', 'icon': 'bi-list-ul', 'url': '/deneme-sinavi/sinav/'},
+                {'label': 'Yeni Deneme', 'icon': 'bi-plus-circle', 'url': '/deneme-sinavi/sinav/yeni'},
             ]},
             {'label': 'Online Anket', 'icon': 'bi-ui-checks-grid', 'url': '/anket/yonetim/', 'modul_key': 'anket', 'children': [
                 {'label': 'Anket Listesi', 'icon': 'bi-list-ul', 'url': '/anket/yonetim/'},

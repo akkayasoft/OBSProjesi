@@ -1,0 +1,181 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}Rapor - {{ sinav.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.ad }}</a></li>
+<li class="breadcrumb-item active">Rapor</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-0">
+            <i class="bi bi-bar-chart me-2"></i>{{ sinav.ad }}
+            <span class="badge bg-secondary ms-2">{{ sinav.tip_str }}</span>
+        </h4>
+        <small class="text-muted">
+            {{ sinav.tarih.strftime('%d.%m.%Y') }} — {{ sinav.donem }}
+            <span class="mx-2">|</span>
+            Katilimci: <strong>{{ katilimlar|length }}</strong>
+        </small>
+    </div>
+    <a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Sinava Don
+    </a>
+</div>
+
+{% if not katilimlar %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-clipboard-x fs-1 d-block mb-2 opacity-50"></i>
+        Bu sinav icin henuz katilim kaydi girilmemis.
+        <div class="mt-3">
+            <a href="{{ url_for('deneme_sinavi.cevap.giris', sinav_id=sinav.id) }}"
+               class="btn btn-sm btn-primary">Cevap Girisi Yap</a>
+        </div>
+    </div>
+</div>
+{% else %}
+
+<!-- Ders ortalamalari -->
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Ders Bazli Ortalama Netler</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ders</th>
+                        <th class="text-center">Soru</th>
+                        <th class="text-center">Ortalama Net</th>
+                        <th>Dagilim</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in dersler %}
+                    {% set ort = ders_ortalamalari[d.id] %}
+                    {% set oran = (ort / d.soru_sayisi * 100) if d.soru_sayisi else 0 %}
+                    <tr>
+                        <td class="fw-semibold">{{ d.ders_adi }}</td>
+                        <td class="text-center">{{ d.soru_sayisi }}</td>
+                        <td class="text-center fw-bold text-primary">{{ "{:.2f}".format(ort) }}</td>
+                        <td style="min-width: 200px;">
+                            <div class="progress" style="height: 18px;">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     style="width: {{ '%.1f'|format(oran) }}%;"
+                                     aria-valuenow="{{ oran }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ "{:.0f}".format(oran) }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Siralama -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-trophy me-2"></i>Ogrenci Siralamasi</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 65vh;">
+                    <table class="table table-sm table-hover mb-0 align-middle">
+                        <thead class="table-light sticky-top" style="top: 0;">
+                            <tr>
+                                <th class="text-center" style="width: 60px;">#</th>
+                                <th>Ogrenci</th>
+                                <th>Sube</th>
+                                <th class="text-center">Toplam Net</th>
+                                <th class="text-center">Puan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for k in katilimlar %}
+                            <tr>
+                                <td class="text-center">
+                                    {% if loop.index == 1 %}
+                                        <i class="bi bi-trophy-fill text-warning"></i>
+                                    {% elif loop.index == 2 %}
+                                        <i class="bi bi-award-fill text-secondary"></i>
+                                    {% elif loop.index == 3 %}
+                                        <i class="bi bi-award text-info"></i>
+                                    {% else %}
+                                        <span class="text-muted">{{ loop.index }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">{{ k.ogrenci.tam_ad if k.ogrenci else '—' }}</span>
+                                    {% if k.ogrenci and k.ogrenci.ogrenci_no %}
+                                    <br><small class="text-muted">{{ k.ogrenci.ogrenci_no }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if k.sube %}
+                                    <span class="badge bg-light text-dark border">{{ k.sube.tam_ad }}</span>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {{ "{:.2f}".format(k.toplam_net) if k.toplam_net else '0.00' }}
+                                </td>
+                                <td class="text-center fw-bold text-primary">
+                                    {{ "{:.2f}".format(k.toplam_puan) if k.toplam_puan else '—' }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sube ortalamalari -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-people me-2"></i>Sube Ortalamalari</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if sube_ozetleri %}
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sube</th>
+                                <th class="text-center">Kisi</th>
+                                <th class="text-center">Net</th>
+                                <th class="text-center">Puan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in sube_ozetleri %}
+                            <tr>
+                                <td class="fw-semibold">{{ s.sube.tam_ad }}</td>
+                                <td class="text-center">{{ s.katilimci }}</td>
+                                <td class="text-center">{{ "{:.2f}".format(s.ortalama_net) }}</td>
+                                <td class="text-center fw-bold text-primary">{{ "{:.2f}".format(s.ortalama_puan) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <small>Sube bilgisi olan katilim bulunmuyor.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

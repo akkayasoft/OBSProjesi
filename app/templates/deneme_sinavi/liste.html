@@ -1,0 +1,110 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}Deneme Sınavları{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Liste</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Deneme Sınavları</h4>
+    <a href="{{ url_for('deneme_sinavi.sinav.yeni') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Deneme Sınavı
+    </a>
+</div>
+
+<!-- Filtre -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <select name="tip" class="form-select form-select-sm">
+                    <option value="">Tüm Tipler</option>
+                    <option value="tyt" {% if tip_filtre=='tyt' %}selected{% endif %}>YKS - TYT</option>
+                    <option value="ayt_say" {% if tip_filtre=='ayt_say' %}selected{% endif %}>YKS - AYT SAY</option>
+                    <option value="ayt_soz" {% if tip_filtre=='ayt_soz' %}selected{% endif %}>YKS - AYT SÖZ</option>
+                    <option value="ayt_ea" {% if tip_filtre=='ayt_ea' %}selected{% endif %}>YKS - AYT EA</option>
+                    <option value="ayt_dil" {% if tip_filtre=='ayt_dil' %}selected{% endif %}>YKS - YDT</option>
+                    <option value="lgs" {% if tip_filtre=='lgs' %}selected{% endif %}>LGS</option>
+                    <option value="msu" {% if tip_filtre=='msu' %}selected{% endif %}>MSÜ</option>
+                    <option value="ozel" {% if tip_filtre=='ozel' %}selected{% endif %}>Özel</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="durum" class="form-select form-select-sm">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="hazirlaniyor" {% if durum_filtre=='hazirlaniyor' %}selected{% endif %}>Hazırlanıyor</option>
+                    <option value="yayinlandi" {% if durum_filtre=='yayinlandi' %}selected{% endif %}>Yayınlandı</option>
+                    <option value="uygulandi" {% if durum_filtre=='uygulandi' %}selected{% endif %}>Uygulandı</option>
+                    <option value="tamamlandi" {% if durum_filtre=='tamamlandi' %}selected{% endif %}>Tamamlandı</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sm btn-outline-primary w-100">Filtrele</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        {% if sinavlar %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sınav Adı</th>
+                        <th>Tip</th>
+                        <th>Dönem</th>
+                        <th>Tarih</th>
+                        <th class="text-center">Soru</th>
+                        <th class="text-center">Katılımcı</th>
+                        <th class="text-center">Ort. Puan</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sinavlar %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=s.id) }}"
+                               class="fw-semibold text-decoration-none">{{ s.ad }}</a>
+                            {% if s.hedef_seviye %}<br><small class="text-muted">{{ s.hedef_seviye }}</small>{% endif %}
+                        </td>
+                        <td><span class="badge bg-secondary">{{ s.tip_str }}</span></td>
+                        <td>{{ s.donem }}</td>
+                        <td>{{ s.tarih.strftime('%d.%m.%Y') }}</td>
+                        <td class="text-center">{{ s.toplam_soru }}</td>
+                        <td class="text-center">{{ s.katilimci_sayisi }}</td>
+                        <td class="text-center fw-bold text-primary">
+                            {{ "{:.2f}".format(s.ortalama_puan) if s.ortalama_puan else '—' }}
+                        </td>
+                        <td><span class="badge bg-{{ s.durum_badge }}">{{ s.durum_str }}</span></td>
+                        <td class="text-end">
+                            <a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=s.id) }}"
+                               class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                            <a href="{{ url_for('deneme_sinavi.cevap.giris', sinav_id=s.id) }}"
+                               class="btn btn-sm btn-outline-success" title="Cevap Girişi">
+                                <i class="bi bi-input-cursor-text"></i>
+                            </a>
+                            <a href="{{ url_for('deneme_sinavi.rapor.sinav_raporu', sinav_id=s.id) }}"
+                               class="btn btn-sm btn-outline-info" title="Rapor">
+                                <i class="bi bi-bar-chart"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-clipboard-data fs-1 d-block mb-2 opacity-50"></i>
+            Henüz deneme sınavı eklenmemiş.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

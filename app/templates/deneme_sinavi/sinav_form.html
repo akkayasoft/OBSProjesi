@@ -1,0 +1,96 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-journal-plus me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control", placeholder="Ornek: Nisan TYT Genel Denemesi") }}
+                            {% for error in form.ad.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.sinav_tipi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sinav_tipi(class="form-select") }}
+                            {% for error in form.sinav_tipi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.donem.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.donem(class="form-control") }}
+                            {% for error in form.donem.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.tarih.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.tarih(class="form-control") }}
+                            {% for error in form.tarih.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.sure_dakika.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.sure_dakika(class="form-control", min="10", max="480") }}
+                            {% for error in form.sure_dakika.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.hedef_seviye.label.text }}</label>
+                            {{ form.hedef_seviye(class="form-control", placeholder="8, 12, mezun") }}
+                            <small class="text-muted">{{ form.hedef_seviye.description }}</small>
+                            {% for error in form.hedef_seviye.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control", rows="2") }}
+                            {% for error in form.aciklama.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        {% if not duzenleme %}
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.sablondan_olustur.label.text }}</label>
+                            {{ form.sablondan_olustur(class="form-select") }}
+                            <small class="text-muted">
+                                Evet secilirse, secilen sinav tipine gore ders bloklari (soru sayisi,
+                                katsayi dahil) otomatik eklenir. Sonrasinda isterseniz manuel duzenleyebilirsiniz.
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('deneme_sinavi.sinav.liste') }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

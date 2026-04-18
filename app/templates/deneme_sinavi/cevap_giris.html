@@ -1,0 +1,180 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}Cevap Girisi - {{ sinav.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.ad }}</a></li>
+<li class="breadcrumb-item active">Cevap Girisi</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-0">
+            <i class="bi bi-input-cursor-text me-2"></i>Cevap Girisi
+            <span class="badge bg-secondary ms-2">{{ sinav.tip_str }}</span>
+        </h4>
+        <small class="text-muted">{{ sinav.ad }} — {{ sinav.tarih.strftime('%d.%m.%Y') }}</small>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('deneme_sinavi.cevap.sablon', sinav_id=sinav.id, sube_id=sube_id) if sube_id else url_for('deneme_sinavi.cevap.sablon', sinav_id=sinav.id) }}"
+           class="btn btn-outline-success btn-sm">
+            <i class="bi bi-download me-1"></i>Excel Sablon
+        </a>
+        <a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Sinava Don
+        </a>
+    </div>
+</div>
+
+<!-- Sube secimi -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <label class="form-label mb-0 small text-muted">Sube Sec:</label>
+                <select name="sube_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">— Sube seciniz —</option>
+                    {% for sb in subeler %}
+                    <option value="{{ sb.id }}" {% if sube_id==sb.id %}selected{% endif %}>{{ sb.tam_ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 text-md-end">
+                {% if sube_id %}
+                <span class="badge bg-info text-white">{{ ogrenci_satirlari|length }} ogrenci</span>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if not dersler %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Bu sinava henuz ders blogu eklenmemis.
+    <a href="{{ url_for('deneme_sinavi.ders.yeni', sinav_id=sinav.id) }}">Ders ekleyin</a>.
+</div>
+{% elif not sube_id %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-arrow-up fs-1 d-block mb-2 opacity-50"></i>
+        Cevap girisi icin once bir sube seciniz.
+    </div>
+</div>
+{% elif not ogrenci_satirlari %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Secilen subede aktif ogrenci bulunmuyor.
+</div>
+{% else %}
+<form method="POST" action="{{ url_for('deneme_sinavi.cevap.giris', sinav_id=sinav.id) }}">
+    <input type="hidden" name="sube_id" value="{{ sube_id }}">
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 70vh;">
+                <table class="table table-sm table-bordered table-hover mb-0 align-middle"
+                       style="font-size: 0.85rem; white-space: nowrap;">
+                    <thead class="table-light sticky-top" style="top: 0; z-index: 2;">
+                        <tr>
+                            <th rowspan="2" class="align-middle" style="min-width: 200px;">Ogrenci</th>
+                            {% for d in dersler %}
+                            <th colspan="3" class="text-center bg-light">
+                                {{ d.ders_adi }}<br>
+                                <small class="text-muted">({{ d.soru_sayisi }} soru)</small>
+                            </th>
+                            {% endfor %}
+                            {% if sinav.sinav_tipi == 'lgs' %}
+                            <th rowspan="2" class="text-center align-middle">OBP</th>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            {% for d in dersler %}
+                            <th class="text-center text-success"><small>D</small></th>
+                            <th class="text-center text-danger"><small>Y</small></th>
+                            <th class="text-center text-muted"><small>B</small></th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in ogrenci_satirlari %}
+                        {% set o = row.ogrenci %}
+                        {% set mevcut = row.sonuclar %}
+                        {% set katilim = row.katilim %}
+                        <tr>
+                            <td class="fw-semibold">
+                                {{ o.tam_ad }}
+                                {% if o.ogrenci_no %}
+                                <br><small class="text-muted">{{ o.ogrenci_no }}</small>
+                                {% endif %}
+                            </td>
+                            {% for d in dersler %}
+                            {% set s = mevcut.get(d.id) %}
+                            <td class="p-1">
+                                <input type="number" name="d_{{ o.id }}_{{ d.id }}_D"
+                                       class="form-control form-control-sm text-center p-1"
+                                       style="width: 60px;" min="0" max="{{ d.soru_sayisi }}"
+                                       value="{{ s.dogru if s else '' }}">
+                            </td>
+                            <td class="p-1">
+                                <input type="number" name="d_{{ o.id }}_{{ d.id }}_Y"
+                                       class="form-control form-control-sm text-center p-1"
+                                       style="width: 60px;" min="0" max="{{ d.soru_sayisi }}"
+                                       value="{{ s.yanlis if s else '' }}">
+                            </td>
+                            <td class="p-1">
+                                <input type="number" name="d_{{ o.id }}_{{ d.id }}_B"
+                                       class="form-control form-control-sm text-center p-1"
+                                       style="width: 60px;" min="0" max="{{ d.soru_sayisi }}"
+                                       value="{{ s.bos if s else '' }}">
+                            </td>
+                            {% endfor %}
+                            {% if sinav.sinav_tipi == 'lgs' %}
+                            <td class="p-1">
+                                <input type="number" name="obp_{{ o.id }}"
+                                       class="form-control form-control-sm text-center p-1"
+                                       style="width: 80px;" min="0" max="500" step="0.01"
+                                       value="{{ katilim.obp if katilim and katilim.obp else '' }}">
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3 mb-5">
+        <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Net hesabi: D - Y/4 (bos cevaplar puan degistirmez). Sadece deger girilen satirlar kaydedilir.
+        </small>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-1"></i>Sonuclari Kaydet
+        </button>
+    </div>
+</form>
+{% endif %}
+
+<script>
+// Tab ile D → Y → B gecisi icin otomatik odaklama (isteyen kolayca klavye ile girebilir).
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="number"]').forEach(function(inp) {
+        inp.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // Sonraki input'a gec
+                const inputs = Array.from(document.querySelectorAll('input[type="number"]'));
+                const idx = inputs.indexOf(e.target);
+                if (idx >= 0 && idx + 1 < inputs.length) {
+                    inputs[idx + 1].focus();
+                    inputs[idx + 1].select();
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.ad }}</a></li>
+<li class="breadcrumb-item active">{{ baslik }}</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-journal-plus me-2"></i>{{ baslik }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ders_kodu.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ders_kodu(class="form-control") }}
+                            <small class="text-muted">{{ form.ders_kodu.description }}</small>
+                            {% for error in form.ders_kodu.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ders_adi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ders_adi(class="form-control") }}
+                            {% for error in form.ders_adi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.soru_sayisi.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.soru_sayisi(class="form-control", min="1", max="200") }}
+                            {% for error in form.soru_sayisi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.katsayi.label.text }}</label>
+                            {{ form.katsayi(class="form-control", step="0.01") }}
+                            <small class="text-muted">{{ form.katsayi.description }}</small>
+                            {% for error in form.katsayi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.sira.label.text }}</label>
+                            {{ form.sira(class="form-control", min="0", max="100") }}
+                            {% for error in form.sira.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.alan.label.text }}</label>
+                            {{ form.alan(class="form-control") }}
+                            <small class="text-muted">{{ form.alan.description }}</small>
+                            {% for error in form.alan.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}" class="btn btn-secondary me-2">Iptal</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

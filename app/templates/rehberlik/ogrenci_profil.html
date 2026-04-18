@@ -92,6 +92,15 @@
             <i class="bi bi-map me-1"></i>Planlar ({{ planlar|length }})
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link {% if akademik.katilim_sayisi %}position-relative{% endif %}" id="akademik-tab"
+           data-bs-toggle="tab" href="#akademik-pane" role="tab">
+            <i class="bi bi-mortarboard me-1"></i>Akademik Durum
+            {% if akademik.katilim_sayisi %}
+            <span class="badge bg-primary ms-1">{{ akademik.katilim_sayisi }}</span>
+            {% endif %}
+        </a>
+    </li>
 </ul>
 
 <div class="tab-content">
@@ -263,6 +272,216 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Akademik Durum Sekmesi -->
+    <div class="tab-pane fade" id="akademik-pane" role="tabpanel">
+        {% if not akademik.katilim_sayisi %}
+        <div class="card shadow-sm">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-clipboard-data fs-1 d-block mb-2 opacity-50"></i>
+                Bu ogrencinin henuz yayinlanmis deneme sinavi sonucu bulunmuyor.
+            </div>
+        </div>
+        {% else %}
+
+        <!-- Ozet kartlari -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <div class="card border-primary">
+                    <div class="card-body py-2 text-center">
+                        <small class="text-muted">Deneme Sayisi</small>
+                        <div class="fs-4 fw-bold text-primary">{{ akademik.katilim_sayisi }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-info">
+                    <div class="card-body py-2 text-center">
+                        <small class="text-muted">Ortalama Puan</small>
+                        <div class="fs-4 fw-bold text-info">
+                            {{ "{:.2f}".format(akademik.ortalama_puan) if akademik.ortalama_puan is not none else '—' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-success">
+                    <div class="card-body py-2 text-center">
+                        <small class="text-muted">Ortalama Net</small>
+                        <div class="fs-4 fw-bold text-success">
+                            {{ "{:.2f}".format(akademik.ortalama_net) if akademik.ortalama_net is not none else '—' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-warning">
+                    <div class="card-body py-2 text-center">
+                        <small class="text-muted">Seviye Dilimi</small>
+                        <div class="fs-4 fw-bold text-warning">
+                            {% if akademik.yuzdelik_dilim %}ilk %{{ akademik.yuzdelik_dilim }}{% else %}—{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trend ve seviye kiyasi -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="bi bi-graph-up me-1"></i>Trend</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if akademik.trend == 'yukseliyor' %}
+                        <span class="badge bg-success fs-6"><i class="bi bi-arrow-up me-1"></i>Yukseliyor</span>
+                        <span class="text-muted ms-2">Son denemede puan {{ "%+.2f"|format(akademik.trend_fark) }}</span>
+                        {% elif akademik.trend == 'dusuyor' %}
+                        <span class="badge bg-danger fs-6"><i class="bi bi-arrow-down me-1"></i>Dusuyor</span>
+                        <span class="text-muted ms-2">Son denemede puan {{ "%+.2f"|format(akademik.trend_fark) }}</span>
+                        {% elif akademik.trend == 'sabit' %}
+                        <span class="badge bg-secondary fs-6"><i class="bi bi-dash me-1"></i>Sabit</span>
+                        <span class="text-muted ms-2">Son denemede puan {{ "%+.2f"|format(akademik.trend_fark) }}</span>
+                        {% else %}
+                        <span class="text-muted">Trend hesaplamak icin en az 2 deneme gerekli.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="bi bi-people me-1"></i>Seviye Kiyasi</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if akademik.seviye_kiyas == 'ustunde' %}
+                        <span class="badge bg-success fs-6">Seviye Ortalamasinin Ustunde</span>
+                        {% elif akademik.seviye_kiyas == 'altinda' %}
+                        <span class="badge bg-danger fs-6">Seviye Ortalamasinin Altinda</span>
+                        {% elif akademik.seviye_kiyas == 'ortalama' %}
+                        <span class="badge bg-info fs-6">Seviye Ortalamasinda</span>
+                        {% else %}
+                        <span class="text-muted">Karsilastirma icin yeterli veri yok.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oneriler -->
+        {% if akademik.oneriler %}
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-lightbulb me-1"></i>Rehberlik Onerileri</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for o in akademik.oneriler %}
+                <div class="list-group-item">
+                    {% set renk = 'success' if o.tur == 'basari' else ('warning' if o.tur == 'uyari' else 'info') %}
+                    <div class="d-flex align-items-start">
+                        <span class="badge bg-{{ renk }}-subtle text-{{ renk }} me-2 mt-1">
+                            <i class="bi {{ o.ikon }}"></i>
+                        </span>
+                        <div>{{ o.mesaj }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Zayif / guclu dersler -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0 text-danger"><i class="bi bi-arrow-down me-1"></i>Gelistirilmesi Gereken Dersler</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if akademik.en_zayif_dersler %}
+                        <table class="table mb-0 small">
+                            <thead class="table-light">
+                                <tr><th>Ders</th><th class="text-end">Benim Net</th><th class="text-end">Seviye</th><th class="text-end">Fark</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for d in akademik.en_zayif_dersler %}
+                                <tr>
+                                    <td>{{ d.ders_adi }}</td>
+                                    <td class="text-end">{{ "%.2f"|format(d.benim_net) }}</td>
+                                    <td class="text-end text-muted">{{ "%.2f"|format(d.seviye_ort) if d.seviye_ort is not none else '—' }}</td>
+                                    <td class="text-end text-danger fw-bold">{{ "%+.2f"|format(d.fark) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="p-3 text-muted small">Seviye altinda kalan ders yok.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0 text-success"><i class="bi bi-arrow-up me-1"></i>Guclu Oldugu Dersler</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if akademik.en_guclu_dersler %}
+                        <table class="table mb-0 small">
+                            <thead class="table-light">
+                                <tr><th>Ders</th><th class="text-end">Benim Net</th><th class="text-end">Seviye</th><th class="text-end">Fark</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for d in akademik.en_guclu_dersler %}
+                                <tr>
+                                    <td>{{ d.ders_adi }}</td>
+                                    <td class="text-end">{{ "%.2f"|format(d.benim_net) }}</td>
+                                    <td class="text-end text-muted">{{ "%.2f"|format(d.seviye_ort) if d.seviye_ort is not none else '—' }}</td>
+                                    <td class="text-end text-success fw-bold">{{ "%+.2f"|format(d.fark) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="p-3 text-muted small">Seviye ustu gosteren ders yok.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Son denemeler listesi -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-list-ul me-1"></i>Son Denemeler</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sinav</th>
+                            <th>Tarih</th>
+                            <th class="text-end">Net</th>
+                            <th class="text-end">Puan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for k in akademik.son_katilimlar %}
+                        <tr>
+                            <td>{{ k.sinav.ad }} <span class="badge bg-secondary">{{ k.sinav.tip_str }}</span></td>
+                            <td>{{ k.sinav.tarih.strftime('%d.%m.%Y') }}</td>
+                            <td class="text-end">{{ "{:.2f}".format(k.toplam_net) if k.toplam_net is not none else '—' }}</td>
+                            <td class="text-end fw-bold text-primary">{{ "{:.2f}".format(k.toplam_puan) if k.toplam_puan is not none else '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% endif %}
     </div>
 </div>
 

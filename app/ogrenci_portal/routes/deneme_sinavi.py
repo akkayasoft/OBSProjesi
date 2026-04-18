@@ -12,6 +12,7 @@ from app.extensions import db
 from app.models.deneme_sinavi import (DenemeSinavi, DenemeDersi,
                                       DenemeKatilim, DenemeDersSonucu)
 from app.ogrenci_portal.helpers import get_current_ogrenci
+from app.rehberlik.akademik_analiz import ogrenci_analizi
 
 
 bp = Blueprint('deneme_sinavi_portal', __name__, url_prefix='/deneme-sinavi')
@@ -173,6 +174,9 @@ def detay(katilim_id):
             sube_siralama = sum(1 for p in sube_puanlar if p > katilim.toplam_puan) + 1
     sube_katilimci = len(sube_puanlar)
 
+    # Ogrenciye ozel rehberlik analizi (guclu/zayif ders + motivasyon)
+    akademik = ogrenci_analizi(ogrenci.id)
+
     return render_template(
         'ogrenci_portal/deneme_sinavi_detay.html',
         ogrenci=ogrenci,
@@ -185,4 +189,5 @@ def detay(katilim_id):
         sube_puan_ort=sube_puan_ort,
         sube_siralama=sube_siralama,
         sube_katilimci=sube_katilimci,
+        akademik=akademik,
     )

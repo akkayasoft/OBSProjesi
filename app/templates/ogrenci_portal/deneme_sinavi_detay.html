@@ -262,4 +262,85 @@
     {% endif %}
 </div>
 {% endif %}
+
+<!-- Kisisellestirilmis rehberlik tavsiyeleri (ogrenci tonunda) -->
+{% if akademik and akademik.katilim_sayisi %}
+<div class="card shadow-sm border-primary mb-4">
+    <div class="card-header bg-primary bg-opacity-10">
+        <h6 class="mb-0 text-primary">
+            <i class="bi bi-compass me-2"></i>Senin Icin Rehberlik Onerileri
+        </h6>
+    </div>
+    <div class="card-body">
+
+        {% if akademik.trend == 'yukseliyor' %}
+        <div class="alert alert-success py-2 mb-3">
+            <i class="bi bi-stars me-2"></i>
+            Harika! Son denemeye gore puanin <strong>{{ "%+.2f"|format(akademik.trend_fark) }}</strong> artti.
+            Mevcut calisma plani ise yariyor, surdurmeye devam!
+        </div>
+        {% elif akademik.trend == 'dusuyor' %}
+        <div class="alert alert-warning py-2 mb-3">
+            <i class="bi bi-lightbulb me-2"></i>
+            Son denemede puan biraz geriledi. Her donem inislerin olabilir — moralini bozma,
+            asagidaki guclu/zayif ders listene bakip calisma planini biraz ayarla.
+            Istersen rehber ogretmeninle de gorusebilirsin.
+        </div>
+        {% endif %}
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <h6 class="text-success mb-2"><i class="bi bi-trophy me-1"></i>Guclu Yanlarin</h6>
+                {% if akademik.en_guclu_dersler %}
+                <ul class="list-group list-group-flush">
+                    {% for d in akademik.en_guclu_dersler %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>{{ d.ders_adi }}</strong>
+                            <br><small class="text-muted">Net: {{ "%.2f"|format(d.benim_net) }} (seviyenin {{ "%+.2f"|format(d.fark) }} uzerinde)</small>
+                        </div>
+                        <span class="badge bg-success">+{{ "%.1f"|format(d.fark) }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <small class="text-muted mt-2 d-block">
+                    Bu alanlari daha da gelistirip yuksek zorluk sorulariyla kendini sina.
+                </small>
+                {% else %}
+                <p class="text-muted small">Henuz seviyenin bariz ustunde oldugun bir ders yok — hedef koyabilirsin.</p>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <h6 class="text-warning mb-2"><i class="bi bi-book me-1"></i>Gelistirebilecegin Dersler</h6>
+                {% if akademik.en_zayif_dersler %}
+                <ul class="list-group list-group-flush">
+                    {% for d in akademik.en_zayif_dersler %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>{{ d.ders_adi }}</strong>
+                            <br><small class="text-muted">Net: {{ "%.2f"|format(d.benim_net) }} (seviyenin {{ "%+.2f"|format(d.fark) }} altinda)</small>
+                        </div>
+                        <span class="badge bg-warning text-dark">{{ "%.1f"|format(d.fark) }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <small class="text-muted mt-2 d-block">
+                    Oncelikli calisma konusu olabilir. Ogretmeninden ek kaynak/soru isteyebilirsin.
+                </small>
+                {% else %}
+                <p class="text-muted small">Tum derslerin dengeli, devam et!</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="text-muted small mt-3 pt-2 border-top">
+            <i class="bi bi-info-circle me-1"></i>
+            Bu oneriler son denemenin seviye ortalamasina kiyasla otomatik uretilir.
+            Detayli bir calisma plani icin rehber ogretmeninle gorusmeni oneririz.
+        </div>
+
+    </div>
+</div>
+{% endif %}
 {% endblock %}

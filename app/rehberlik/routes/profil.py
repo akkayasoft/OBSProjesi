@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models.rehberlik import OgrenciProfil, Gorusme, DavranisKaydi, VeliGorusmesi, RehberlikPlani
 from app.models.muhasebe import Ogrenci
 from app.rehberlik.forms import OgrenciProfilForm
+from app.rehberlik.akademik_analiz import ogrenci_analizi
 
 bp = Blueprint('profil', __name__)
 
@@ -61,6 +62,9 @@ def ogrenci_profil(ogrenci_id):
     olumlu_davranis = DavranisKaydi.query.filter_by(ogrenci_id=ogrenci_id, tur='olumlu').count()
     olumsuz_davranis = DavranisKaydi.query.filter_by(ogrenci_id=ogrenci_id, tur='olumsuz').count()
 
+    # Deneme sinavi akademik analizi
+    akademik = ogrenci_analizi(ogrenci_id)
+
     return render_template('rehberlik/ogrenci_profil.html',
                            ogrenci=ogrenci,
                            profil=profil,
@@ -69,7 +73,8 @@ def ogrenci_profil(ogrenci_id):
                            veli_gorusmeleri=veli_gorusmeleri,
                            planlar=planlar,
                            olumlu_davranis=olumlu_davranis,
-                           olumsuz_davranis=olumsuz_davranis)
+                           olumsuz_davranis=olumsuz_davranis,
+                           akademik=akademik)
 
 
 @bp.route('/<int:ogrenci_id>/duzenle', methods=['GET', 'POST'])

@@ -92,8 +92,12 @@ def ogretmen_programi():
     # Eğer ogretmen_id verilmemişse ve kullanıcı öğretmense kendi programını göster
     if not ogretmen_id and current_user.rol == 'ogretmen':
         personel = Personel.query.filter_by(
-            eposta=current_user.email
+            user_id=current_user.id
         ).first()
+        if not personel and current_user.email:
+            personel = Personel.query.filter_by(
+                email=current_user.email
+            ).first()
         if personel:
             ogretmen_id = personel.id
 

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Öğrenci Belgeleri{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">
+        <i class="bi bi-file-earmark me-2"></i>{{ ogrenci.tam_ad }} — Belgeler
+        <small class="text-muted">({{ ogrenci.ogrenci_no }})</small>
+    </h4>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('kayit.ogrenci.detay', ogrenci_id=ogrenci.id) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Öğrenciye Dön
+        </a>
+        <a href="{{ url_for('kayit.belge.ekle', ogrenci_id=ogrenci.id) }}"
+           class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Belge Ekle
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        {% if belgeler %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Belge Türü</th>
+                        <th>Durum</th>
+                        <th>Teslim Tarihi</th>
+                        <th>Dosya</th>
+                        <th>Açıklama</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in belgeler %}
+                    <tr>
+                        <td><strong>{{ b.belge_turu_ad }}</strong></td>
+                        <td>
+                            {% if b.teslim_edildi %}
+                            <span class="badge bg-success">Teslim edildi</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Bekliyor</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ b.teslim_tarihi.strftime('%d.%m.%Y') if b.teslim_tarihi else '—' }}</td>
+                        <td>
+                            {% if b.dosya_yolu %}
+                            <a href="{{ url_for('kayit.belge.dosya_indir', belge_id=b.id) }}"
+                               class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="bi bi-download me-1"></i>{{ b.orijinal_ad or 'Dosya' }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ b.aciklama or '—' }}</td>
+                        <td class="text-end">
+                            <form action="{{ url_for('kayit.belge.teslim_toggle', belge_id=b.id) }}"
+                                  method="post" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-{% if b.teslim_edildi %}warning{% else %}success{% endif %}">
+                                    <i class="bi bi-{% if b.teslim_edildi %}x-circle{% else %}check-circle{% endif %} me-1"></i>
+                                    {% if b.teslim_edildi %}Geri Al{% else %}Teslim Al{% endif %}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-file-earmark fs-1 d-block mb-2 opacity-50"></i>
+            Henüz belge kaydı yok
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -134,7 +134,7 @@
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h6 class="mb-0"><i class="bi bi-emoji-smile me-2"></i>Son Davranis Kayitlari</h6>
-                <a href="{{ url_for('rehberlik.davranis.yeni') }}" class="btn btn-sm btn-outline-success">
+                <a href="{{ url_for('davranis.kayit.yeni') }}" class="btn btn-sm btn-outline-success">
                     <i class="bi bi-plus"></i> Yeni
                 </a>
             </div>
@@ -159,7 +159,7 @@
                 </div>
                 {% if son_davranislar %}
                 <div class="card-footer bg-white text-center">
-                    <a href="{{ url_for('rehberlik.davranis.liste') }}" class="text-decoration-none">
+                    <a href="{{ url_for('davranis.kayit.liste') }}" class="text-decoration-none">
                         Tum kayitlari goruntule <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>

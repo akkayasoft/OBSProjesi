@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models.davranis import DavranisDeğerlendirme
 from app.models.muhasebe import Ogrenci
 from app.models.kayit import Sinif
-from sqlalchemy import func
+from sqlalchemy import func, extract, cast, Integer
 from datetime import date, timedelta
 
 bp = Blueprint('rapor', __name__)
@@ -76,20 +76,29 @@ def genel():
         kategori_labels.append(kategori_map.get(kat, kat))
         kategori_values.append(sayi)
 
-    # Aylik trend (son 6 ay)
-    aylik_trend = db.session.query(
-        func.strftime('%Y-%m', DavranisDeğerlendirme.tarih),
+    # Aylik trend (son 6 ay) — DB-bagimsiz: yil ve ay'i ayri extract edip
+    # Python tarafinda 'YYYY-MM' olarak birlestir. (strftime sadece SQLite'ta var.)
+    yil_col = cast(extract('year', DavranisDeğerlendirme.tarih), Integer)
+    ay_col = cast(extract('month', DavranisDeğerlendirme.tarih), Integer)
+    aylik_trend_q = db.session.query(
+        yil_col.label('yil'),
+        ay_col.label('ay'),
         DavranisDeğerlendirme.tur,
         func.count(DavranisDeğerlendirme.id)
     ).filter(
         DavranisDeğerlendirme.tarih >= date.today() - timedelta(days=180)
     )
     if sinif_id:
-        aylik_trend = aylik_trend.filter(DavranisDeğerlendirme.sinif_id == int(sinif_id))
-    aylik_trend = aylik_trend.group_by(
-        func.strftime('%Y-%m', DavranisDeğerlendirme.tarih),
-        DavranisDeğerlendirme.tur
+        aylik_trend_q = aylik_trend_q.filter(DavranisDeğerlendirme.sinif_id == int(sinif_id))
+    aylik_trend_rows = aylik_trend_q.group_by(
+        yil_col, ay_col, DavranisDeğerlendirme.tur
     ).all()
+
+    # (yil, ay, tur, sayi) -> 'YYYY-MM' format
+    aylik_trend = [
+        (f'{int(yil):04d}-{int(ay):02d}', tur, sayi)
+        for yil, ay, tur, sayi in aylik_trend_rows
+    ]
 
     # Trend verisi isle
     aylar = sorted(set(row[0] for row in aylik_trend))

@@ -171,6 +171,13 @@
                       action="{{ url_for('deneme_sinavi.cevap.excel_import', sinav_id=sinav.id) }}"
                       enctype="multipart/form-data">
                     <input type="file" name="dosya" accept=".xlsx" class="form-control form-control-sm mb-2" required>
+                    <div class="form-check form-switch mb-2 small">
+                        <input class="form-check-input" type="checkbox" id="importBildirim"
+                               name="bildirim_gonder" value="1" checked>
+                        <label class="form-check-label" for="importBildirim">
+                            <i class="bi bi-bell me-1"></i>Bildirim gonder
+                        </label>
+                    </div>
                     <button type="submit" class="btn btn-sm btn-outline-primary w-100">
                         <i class="bi bi-upload me-1"></i>Yukle ve Import Et
                     </button>

@@ -12,6 +12,7 @@ from app.models.deneme_sinavi import (DenemeSinavi, DenemeDersi,
                                       DenemeKatilim, DenemeDersSonucu)
 from app.models.kayit import Sube, OgrenciKayit
 from app.deneme_sinavi.hesaplar import guncelle_katilim_toplamlari
+from app.deneme_sinavi.bildirim import bildirim_gonder_katilimlar
 
 
 bp = Blueprint('cevap', __name__, url_prefix='/sinav/<int:sinav_id>/cevap')
@@ -94,6 +95,8 @@ def giris(sinav_id):
     if request.method == 'POST' and sube_id:
         # Form alan ismi: d_{ogrenci_id}_{ders_id}_{D|Y|B}
         kaydedilen = 0
+        bildirim_katilimlari: list[DenemeKatilim] = []
+        bildirim_gonder = request.form.get('bildirim_gonder') == '1'
         for row in ogrenci_satirlari:
             o = row['ogrenci']
             herhangi_girildi = False
@@ -139,9 +142,19 @@ def giris(sinav_id):
                 s.hesapla_net()
             guncelle_katilim_toplamlari(katilim)
             kaydedilen += 1
+            bildirim_katilimlari.append(katilim)
 
         db.session.commit()
-        flash(f'{kaydedilen} ogrencinin sonuclari kaydedildi.', 'success')
+
+        bildirim_sayisi = 0
+        if bildirim_gonder and bildirim_katilimlari:
+            bildirim_sayisi = bildirim_gonder_katilimlar(bildirim_katilimlari)
+            db.session.commit()
+
+        msg = f'{kaydedilen} ogrencinin sonuclari kaydedildi.'
+        if bildirim_sayisi:
+            msg += f' {bildirim_sayisi} bildirim gonderildi.'
+        flash(msg, 'success')
         return redirect(url_for('deneme_sinavi.cevap.giris',
                                 sinav_id=sinav.id, sube_id=sube_id))
 
@@ -270,6 +283,9 @@ def excel_import(sinav_id):
         flash('Dosyada hicbir ders sutunu bulunamadi.', 'danger')
         return redirect(url_for('deneme_sinavi.cevap.giris', sinav_id=sinav.id))
 
+    bildirim_gonder = request.form.get('bildirim_gonder') == '1'
+    bildirim_katilimlari: list[DenemeKatilim] = []
+
     eklenen = 0
     atlanan = 0
     for row in rows[1:]:
@@ -314,10 +330,19 @@ def excel_import(sinav_id):
 
         guncelle_katilim_toplamlari(katilim)
         eklenen += 1
+        bildirim_katilimlari.append(katilim)
 
     db.session.commit()
+
+    bildirim_sayisi = 0
+    if bildirim_gonder and bildirim_katilimlari:
+        bildirim_sayisi = bildirim_gonder_katilimlar(bildirim_katilimlari)
+        db.session.commit()
+
     msg = f'{eklenen} ogrencinin sonuclari import edildi.'
     if atlanan:
         msg += f' {atlanan} satir ogrenci no eslesmedigi icin atlandi.'
+    if bildirim_sayisi:
+        msg += f' {bildirim_sayisi} bildirim gonderildi.'
     flash(msg, 'success')
     return redirect(url_for('deneme_sinavi.cevap.giris', sinav_id=sinav.id))

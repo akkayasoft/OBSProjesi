@@ -146,14 +146,23 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-3 mb-5">
+    <div class="d-flex justify-content-between align-items-center mt-3 mb-5 flex-wrap gap-2">
         <small class="text-muted">
             <i class="bi bi-info-circle me-1"></i>
             Net hesabi: D - Y/4 (bos cevaplar puan degistirmez). Sadece deger girilen satirlar kaydedilir.
         </small>
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-circle me-1"></i>Sonuclari Kaydet
-        </button>
+        <div class="d-flex align-items-center gap-3">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="bildirimGonder"
+                       name="bildirim_gonder" value="1" checked>
+                <label class="form-check-label small" for="bildirimGonder">
+                    <i class="bi bi-bell me-1"></i>Ogrenci ve velilere bildirim gonder
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i>Sonuclari Kaydet
+            </button>
+        </div>
     </div>
 </form>
 {% endif %}

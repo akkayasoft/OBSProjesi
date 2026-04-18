@@ -338,8 +338,11 @@ def create_app(config_class=Config):
         if current_user.is_authenticated:
             from app.module_registry import modul_renk_kategorisi, url_to_modul_key
 
-            # Ilk kurulumda varsayilan izinleri olustur
-            if RolModulIzin.query.count() == 0:
+            # Ilk kurulumda varsayilan izinleri olustur. Ayrica yeni modul
+            # eklendiyse (MODULLER'de olup DB'de kaydi olmayan) eksikleri tamamla.
+            # Fonksiyon idempotenttir: mevcut kayitlara dokunmaz.
+            toplam_olmasi_gereken = len(RolModulIzin.MODULLER) * len(RolModulIzin.ROLLER)
+            if RolModulIzin.query.count() < toplam_olmasi_gereken:
                 RolModulIzin.varsayilan_izinleri_olustur()
 
             # Kullanicinin erisebildigi modulleri

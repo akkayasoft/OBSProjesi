@@ -169,6 +169,37 @@ def migrate_all_cmd():
         raise click.ClickException(f'{hata} tenant migration basarisiz.')
 
 
+@tenant_cli.command('seed-all')
+def seed_all_cmd():
+    """Tum aktif tenant'lar icin `flask seed` calistir (idempotent)."""
+    with master_session() as s:
+        tenantler = s.execute(
+            select(Tenant).where(Tenant.durum == 'aktif')
+        ).scalars().all()
+        for t in tenantler:
+            s.expunge(t)
+
+    from .engines import _build_url
+    hata = 0
+    for t in tenantler:
+        url = _build_url(t.db_name)
+        env = os.environ.copy()
+        env['DATABASE_URL'] = url
+        env['MULTITENANT_ENABLED'] = '0'
+        click.echo(f'-> {t.slug} ({t.db_name})')
+        result = subprocess.run(
+            [sys.executable, '-m', 'flask', 'seed'],
+            env=env, capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            hata += 1
+            click.echo(f'  HATA:\n{result.stderr}', err=True)
+        else:
+            click.echo(f'  ✓ {result.stdout.strip().splitlines()[-1] if result.stdout else "OK"}')
+    if hata:
+        raise click.ClickException(f'{hata} tenant seed basarisiz.')
+
+
 @tenant_cli.command('set-status')
 @click.argument('slug')
 @click.argument('durum', type=click.Choice(['aktif', 'askida', 'silindi']))

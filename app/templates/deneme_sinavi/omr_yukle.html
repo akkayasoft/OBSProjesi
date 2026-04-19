@@ -1,0 +1,96 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}Optik Form Yukle - {{ sinav.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.ad }}</a></li>
+<li class="breadcrumb-item active">Fotograf Yukle</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-upload me-2"></i>Optik Form Fotograflari</h4>
+        <div class="text-muted small">
+            Cevap kagidi fotograflarini yukleyin — sistem OMR ile cozup
+            dogru/yanlis hesabini otomatik yapar.
+        </div>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('deneme_sinavi.omr.anahtar', sinav_id=sinav.id) }}"
+           class="btn btn-outline-primary">
+            <i class="bi bi-key me-1"></i>Cevap Anahtari
+        </a>
+        <a href="{{ url_for('deneme_sinavi.omr.taramalar', sinav_id=sinav.id) }}"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-clock-history me-1"></i>Gecmis
+        </a>
+    </div>
+</div>
+
+{% if anahtar_eksik %}
+<div class="alert alert-warning">
+    <strong><i class="bi bi-exclamation-triangle me-1"></i>Cevap anahtari eksik:</strong>
+    <ul class="mb-0 mt-1">
+        {% for satir in anahtar_eksik %}
+        <li>{{ satir }}</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <a href="{{ url_for('deneme_sinavi.omr.anahtar', sinav_id=sinav.id) }}"
+       class="btn btn-sm btn-warning">Anahtari Tamamla</a>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Fotograflar (birden fazla secebilirsiniz)</label>
+                <input type="file" name="fotograflar" class="form-control"
+                       accept="image/png,image/jpeg,image/jpg,image/webp"
+                       multiple required>
+                <small class="text-muted d-block mt-1">
+                    Desteklenen formatlar: JPG, PNG, WEBP. Her fotograf yaklasik 1–5 MB olabilir.
+                </small>
+            </div>
+
+            <div class="row text-center g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="border rounded py-2">
+                        <small class="text-muted">Toplam Soru</small>
+                        <div class="fs-5 fw-bold">{{ toplam_soru }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded py-2">
+                        <small class="text-muted">Sinav Tipi</small>
+                        <div class="fs-5 fw-bold">{{ sinav.tip_str }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded py-2">
+                        <small class="text-muted">Tarih</small>
+                        <div class="fs-5 fw-bold">{{ sinav.tarih.strftime('%d.%m.%Y') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info small mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                OMR algoritmasi fotografin kosesindeki 4 siyah kareyi tespit edip
+                perspektif duzeltme uygular. En iyi sonuc icin: iyi aydinlatma,
+                kagit duz, telefon kagida paralel tutulmali. Tarayici ile cekilmis
+                PDF veya 300 DPI PNG en stabil sonucu verir.
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary"
+                        {% if anahtar_eksik %}disabled{% endif %}>
+                    <i class="bi bi-cpu me-1"></i>Yukle ve OMR Calistir
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

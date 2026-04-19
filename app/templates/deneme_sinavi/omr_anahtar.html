@@ -1,0 +1,85 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}Cevap Anahtari - {{ sinav.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.ad }}</a></li>
+<li class="breadcrumb-item active">Cevap Anahtari</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-key me-2"></i>Cevap Anahtari</h4>
+        <div class="text-muted small">{{ sinav.ad }} — her ders blogu icin dogru siklari girin.
+            {% if lgs %}<span class="badge bg-info ms-1">LGS: 4 sik (A/B/C/D)</span>{% endif %}
+        </div>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('deneme_sinavi.omr.sablon_pdf', sinav_id=sinav.id) }}"
+           class="btn btn-outline-primary" target="_blank">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Optik Form PDF
+        </a>
+        <a href="{{ url_for('deneme_sinavi.omr.yukle', sinav_id=sinav.id) }}"
+           class="btn btn-success"><i class="bi bi-upload me-1"></i>Fotograf Yukle</a>
+    </div>
+</div>
+
+<form method="post">
+    {% for ders in dersler %}
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+                <i class="bi bi-journal me-2"></i>{{ ders.ders_adi }}
+                <span class="badge bg-secondary ms-1">{{ ders.soru_sayisi }} soru</span>
+            </h6>
+            <small class="text-muted">
+                {{ (anahtar_map.get(ders.id) or {})|length }} / {{ ders.soru_sayisi }} girildi
+            </small>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-2">
+                {% for s in range(1, (ders.soru_sayisi or 0) + 1) %}
+                {% set mevcut = (anahtar_map.get(ders.id) or {}).get(s) %}
+                <div class="col">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" style="min-width:38px;">{{ '%02d'|format(s) }}</span>
+                        <select name="d{{ ders.id }}_s{{ s }}" class="form-select form-select-sm">
+                            <option value="">—</option>
+                            {% for opt in secenekler %}
+                            {% if not (lgs and opt == 'E') %}
+                            <option value="{{ opt }}"
+                                {% if mevcut and mevcut.dogru_cevap == opt %}selected{% endif %}>
+                                {{ opt }}
+                            </option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                        <div class="input-group-text">
+                            <input type="checkbox" name="d{{ ders.id }}_s{{ s }}_iptal"
+                                   class="form-check-input mt-0"
+                                   title="Iptal edilmis soru"
+                                   {% if mevcut and mevcut.iptal %}checked{% endif %}>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <small class="text-muted d-block mt-2">
+                <i class="bi bi-info-circle me-1"></i>Iptal kutusunu isaretlerseniz o soru her ogrenci icin dogru sayilir.
+            </small>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-between mt-3">
+        <a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Vazgec
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i>Anahtari Kaydet
+        </button>
+    </div>
+</form>
+{% endblock %}

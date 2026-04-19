@@ -29,6 +29,10 @@
     <div class="btn-group">
         <a href="{{ url_for('deneme_sinavi.cevap.giris', sinav_id=sinav.id) }}"
            class="btn btn-success"><i class="bi bi-input-cursor-text me-1"></i>Cevap Girisi</a>
+        <a href="{{ url_for('deneme_sinavi.omr.anahtar', sinav_id=sinav.id) }}"
+           class="btn btn-warning"><i class="bi bi-key me-1"></i>OMR Anahtari</a>
+        <a href="{{ url_for('deneme_sinavi.omr.yukle', sinav_id=sinav.id) }}"
+           class="btn btn-primary"><i class="bi bi-upload me-1"></i>Optik Form Yukle</a>
         <a href="{{ url_for('deneme_sinavi.rapor.sinav_raporu', sinav_id=sinav.id) }}"
            class="btn btn-info text-white"><i class="bi bi-bar-chart me-1"></i>Rapor</a>
         <a href="{{ url_for('deneme_sinavi.sinav.duzenle', sinav_id=sinav.id) }}"

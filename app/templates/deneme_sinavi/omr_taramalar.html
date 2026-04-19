@@ -1,0 +1,83 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}OMR Taramalari - {{ sinav.ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=sinav.id) }}">{{ sinav.ad }}</a></li>
+<li class="breadcrumb-item active">OMR Gecmisi</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-clock-history me-2"></i>OMR Tarama Gecmisi</h4>
+        <div class="text-muted small">
+            Yuklenen fotograf ve cozum sonuclari.
+        </div>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('deneme_sinavi.omr.yukle', sinav_id=sinav.id) }}"
+           class="btn btn-primary"><i class="bi bi-upload me-1"></i>Yeni Yukleme</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        {% if taramalar %}
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Dosya</th>
+                        <th>Ogrenci No</th>
+                        <th>Ogrenci</th>
+                        <th>Durum</th>
+                        <th class="text-end">D</th>
+                        <th class="text-end">Y</th>
+                        <th class="text-end">B</th>
+                        <th>Not</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in taramalar %}
+                    <tr>
+                        <td><small class="text-muted">{{ t.created_at.strftime('%d.%m %H:%M') }}</small></td>
+                        <td><code class="small">{{ t.dosya_adi or '—' }}</code></td>
+                        <td>{{ t.ogrenci_no or '—' }}</td>
+                        <td>
+                            {% if t.katilim and t.katilim.ogrenci %}
+                            {{ t.katilim.ogrenci.tam_ad }}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t.durum == 'basarili' %}
+                            <span class="badge bg-success">Basarili</span>
+                            {% elif t.durum == 'eslenemedi' %}
+                            <span class="badge bg-warning text-dark">Eslenemedi</span>
+                            {% elif t.durum == 'hata' %}
+                            <span class="badge bg-danger">Hata</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ t.durum }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{{ t.toplam_dogru if t.toplam_dogru is not none else '—' }}</td>
+                        <td class="text-end">{{ t.toplam_yanlis if t.toplam_yanlis is not none else '—' }}</td>
+                        <td class="text-end">{{ t.toplam_bos if t.toplam_bos is not none else '—' }}</td>
+                        <td><small class="text-muted">{{ t.hata_mesaji or '' }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block opacity-50 mb-2"></i>
+            Henuz yuklenmis fotograf yok.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

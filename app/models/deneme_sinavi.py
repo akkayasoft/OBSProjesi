@@ -197,3 +197,71 @@ class DenemeDersSonucu(db.Model):
     def __repr__(self):
         return (f'<DenemeDersSonucu d={self.dogru} y={self.yanlis} '
                 f'b={self.bos} net={self.net}>')
+
+
+# OMR (Optik Form Okuma) modelleri -------------------------------------------
+
+class CevapAnahtari(db.Model):
+    """Bir deneme dersinin resmi cevap anahtari (her soru icin dogru sik).
+
+    OMR pipeline'inda ogrencinin okunan cevaplarini bu anahtarla karsilastirip
+    D/Y/B uretiriz. Bir ders icin dersin soru_sayisi kadar satir bulunur.
+    """
+    __tablename__ = 'deneme_cevap_anahtari'
+    __table_args__ = (
+        db.UniqueConstraint('deneme_dersi_id', 'soru_no',
+                            name='uq_cevap_anahtari_ders_soru'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    deneme_dersi_id = db.Column(db.Integer, db.ForeignKey('deneme_dersleri.id'),
+                                nullable=False, index=True)
+    soru_no = db.Column(db.Integer, nullable=False)  # 1..N
+    # A/B/C/D/E (LGS'de 4 sik olur, TYT/AYT'de 5 sik)
+    dogru_cevap = db.Column(db.String(1), nullable=False)
+    # Iptal edilen sorular icin (dogru sayilir)
+    iptal = db.Column(db.Boolean, nullable=False, default=False)
+
+    ders = db.relationship('DenemeDersi',
+                           backref=db.backref('cevap_anahtari', lazy='dynamic',
+                                              cascade='all, delete-orphan',
+                                              order_by='CevapAnahtari.soru_no'))
+
+    def __repr__(self):
+        return f'<CevapAnahtari ders={self.deneme_dersi_id} s{self.soru_no}={self.dogru_cevap}>'
+
+
+class OmrTarama(db.Model):
+    """Bir deneme sinavi icin yuklenen OMR tarama/fotografi (audit + debug).
+
+    Admin 'Fotograflari yukle' akisindan her ogrencinin cevap kagidini OMR'la
+    okutur; bu tablo yuklenen dosya, sonuc ozeti ve hata mesajlarini tutar.
+    Uretilen `DenemeKatilim` ile eslesir.
+    """
+    __tablename__ = 'deneme_omr_taramalari'
+
+    id = db.Column(db.Integer, primary_key=True)
+    deneme_sinavi_id = db.Column(db.Integer, db.ForeignKey('deneme_sinavlari.id'),
+                                 nullable=False, index=True)
+    katilim_id = db.Column(db.Integer, db.ForeignKey('deneme_katilimlari.id'),
+                           nullable=True, index=True)
+    ogrenci_no = db.Column(db.String(40), nullable=True, index=True)  # OMR'dan okunan
+    dosya_adi = db.Column(db.String(255), nullable=True)
+    durum = db.Column(db.String(20), nullable=False, default='bekliyor')
+    # bekliyor / basarili / hata / eslenemedi
+    hata_mesaji = db.Column(db.Text, nullable=True)
+    # Ham okunmus cevaplar JSON: [{"soru": 1, "cevap": "B"}, ...]
+    ham_cevaplar_json = db.Column(db.Text, nullable=True)
+    toplam_dogru = db.Column(db.Integer, nullable=True)
+    toplam_yanlis = db.Column(db.Integer, nullable=True)
+    toplam_bos = db.Column(db.Integer, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sinav = db.relationship('DenemeSinavi',
+                            backref=db.backref('omr_taramalari', lazy='dynamic',
+                                               cascade='all, delete-orphan'))
+    katilim = db.relationship('DenemeKatilim',
+                              backref=db.backref('omr_taramalari', lazy='dynamic'))
+
+    def __repr__(self):
+        return f'<OmrTarama sinav={self.deneme_sinavi_id} dosya={self.dosya_adi} {self.durum}>'

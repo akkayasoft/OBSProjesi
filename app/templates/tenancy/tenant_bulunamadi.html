@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kurum bulunamadi</title>
+    <style>
+        body { font-family: -apple-system, Segoe UI, sans-serif; background: #f8f9fa;
+               display: flex; min-height: 100vh; align-items: center; justify-content: center; }
+        .card { background: white; padding: 40px 56px; border-radius: 12px;
+                box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center; max-width: 440px; }
+        h1 { margin: 0 0 12px; color: #dc3545; font-size: 24px; }
+        p { color: #6c757d; line-height: 1.6; }
+        code { background: #f1f3f5; padding: 2px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>🏫 Kurum bulunamadi</h1>
+    <p>
+        <code>{{ request.host }}</code> adresi icin kayitli bir kurum yok.
+    </p>
+    <p>
+        Dogru adresi kullandiginizdan emin olun veya kurumunuzun yoneticisiyle iletisime gecin.
+    </p>
+</div>
+</body>
+</html>

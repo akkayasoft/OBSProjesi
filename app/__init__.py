@@ -1,11 +1,17 @@
 from flask import Flask, render_template, request
 from config import Config
 from app.extensions import db, login_manager, migrate, csrf
+from app.tenancy import init_tenancy
 
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Multi-tenant altyapisi — master DB, CLI, middleware (flag aciksa).
+    # db.init_app'ten ONCE tanitiriz ki before_request middleware'lerinde
+    # sira dogru olsun (tenant cozumlemesi kullanici yukleyicisinden once).
+    init_tenancy(app)
 
     # Uzantıları başlat
     db.init_app(app)

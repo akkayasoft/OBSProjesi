@@ -17,7 +17,7 @@ from flask import (render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from sqlalchemy import or_
 
-from app.extensions import db
+from app.extensions import db, csrf
 from app.models.bildirim import (Bildirim, BildirimSablonu, BildirimGonderim,
                                  PushAbonelik)
 from app.models.muhasebe import Ogrenci
@@ -314,6 +314,7 @@ def sablon_json(id: int):
 # ---------------------------------------------------------------------------
 
 @bildirim_bp.route('/cron/dogumgunu', methods=['POST', 'GET'])
+@csrf.exempt
 def cron_dogum_gunu():
     """Bugun dogum gunu olan ogrencilere push + in-app bildirim.
 

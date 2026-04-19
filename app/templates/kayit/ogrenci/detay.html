@@ -204,7 +204,7 @@
     </div>
 </div>
 
-{% if current_user.rol == 'admin' %}
+{% if current_user.rol in ('admin', 'yonetici') %}
 <!-- Tehlikeli Bolge - Kalici Silme -->
 <div class="card border-danger mt-4">
     <div class="card-header bg-white text-danger">

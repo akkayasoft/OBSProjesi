@@ -785,7 +785,7 @@ def durum_degistir(ogrenci_id):
 
 @bp.route('/<int:ogrenci_id>/kalici-sil', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('admin', 'yonetici')
 def kalici_sil(ogrenci_id):
     """Ogrenciyi ve TUM bagli kayitlarini kalici olarak sil.
 

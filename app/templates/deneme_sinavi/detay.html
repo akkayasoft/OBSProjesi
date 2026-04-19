@@ -130,6 +130,7 @@
                                           action="{{ url_for('deneme_sinavi.ders.sil', sinav_id=sinav.id, ders_id=d.id) }}"
                                           class="d-inline"
                                           onsubmit="return confirm('Bu ders blogu silinsin mi? Girilmis sonuclar da silinecek.');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                                     </form>
                                 </td>
@@ -153,6 +154,7 @@
             <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-toggles me-2"></i>Durum</h6></div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('deneme_sinavi.sinav.durum_degistir', sinav_id=sinav.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <select name="durum" class="form-select form-select-sm mb-2">
                         <option value="hazirlaniyor" {% if sinav.durum=='hazirlaniyor' %}selected{% endif %}>Hazirlaniyor</option>
                         <option value="yayinlandi" {% if sinav.durum=='yayinlandi' %}selected{% endif %}>Yayinlandi</option>
@@ -174,6 +176,7 @@
                 <form method="POST"
                       action="{{ url_for('deneme_sinavi.cevap.excel_import', sinav_id=sinav.id) }}"
                       enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="file" name="dosya" accept=".xlsx" class="form-control form-control-sm mb-2" required>
                     <div class="form-check form-switch mb-2 small">
                         <input class="form-check-input" type="checkbox" id="importBildirim"
@@ -197,6 +200,7 @@
             <div class="card-body">
                 <form method="POST" action="{{ url_for('deneme_sinavi.sinav.sil', sinav_id=sinav.id) }}"
                       onsubmit="return confirm('Deneme sinavi ve tum katilim/sonuc kayitlari silinecek. Emin misiniz?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-danger w-100">
                         <i class="bi bi-trash me-1"></i>Sinavi Sil
                     </button>

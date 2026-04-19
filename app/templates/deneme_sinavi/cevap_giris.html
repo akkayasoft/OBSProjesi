@@ -69,6 +69,7 @@
 </div>
 {% else %}
 <form method="POST" action="{{ url_for('deneme_sinavi.cevap.giris', sinav_id=sinav.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="sube_id" value="{{ sube_id }}">
 
     <div class="card shadow-sm">

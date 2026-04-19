@@ -783,6 +783,192 @@ def durum_degistir(ogrenci_id):
                            form=form, ogrenci=ogrenci, aktif_kayit=aktif_kayit)
 
 
+@bp.route('/<int:ogrenci_id>/kalici-sil', methods=['POST'])
+@login_required
+@role_required('admin')
+def kalici_sil(ogrenci_id):
+    """Ogrenciyi ve TUM bagli kayitlarini kalici olarak sil.
+
+    Sadece admin yapabilir. Onay icin form'da type-to-confirm pattern kullanilir:
+    kullanici ogrencinin ogrenci_no'sunu dogru girmelidir.
+
+    Silinenler:
+     - FK'si ogrenciler.id'ye bagli tum satirlar (muhasebe, devamsizlik,
+       rehberlik, saglik, servis, kulup, sinav katilimlari, bildirim vs.)
+     - OgrenciBelge dosyalari (disk)
+     - Orphan kalan veli User'lari (sadece bu ogrenci icin olusturulmus ve
+       baska ogrencinin velisi olmayanlar)
+     - Ogrenci.user_id varsa o User hesabi
+     - Ogrenci satirinin kendisi
+    """
+    from sqlalchemy import inspect as sa_inspect, text
+    from app.models.denetim import DenetimLog
+
+    ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
+
+    # Onay: ogrenci_no eslesmesi
+    onay_no = (request.form.get('onay_no') or '').strip()
+    if onay_no != (ogrenci.ogrenci_no or '').strip():
+        flash('Onay için öğrenci numarasını doğru girmelisiniz. Silme iptal edildi.',
+              'danger')
+        return redirect(url_for('kayit.ogrenci.detay', ogrenci_id=ogrenci_id))
+
+    # Log icin detay metni hazirla (silmeden once)
+    ad_soyad = ogrenci.tam_ad
+    ogrenci_no = ogrenci.ogrenci_no
+    ogrenci_user_id = ogrenci.user_id
+
+    # 1) Belge dosyalarini disk'ten sil
+    belge_dosyalari = [b.dosya_yolu for b in
+                       OgrenciBelge.query.filter_by(ogrenci_id=ogrenci_id).all()
+                       if b.dosya_yolu]
+    silinen_dosya = 0
+    for yol in belge_dosyalari:
+        try:
+            tam_yol = os.path.join(current_app.config.get('UPLOAD_FOLDER', ''), yol) \
+                if not os.path.isabs(yol) else yol
+            if os.path.exists(tam_yol):
+                os.remove(tam_yol)
+                silinen_dosya += 1
+        except OSError:
+            pass  # sessiz gec, DB satiri zaten silinecek
+
+    # 2) Orphan-kontrolu icin veli user_id'lerini toplan (bu ogrenciye bagli)
+    veli_user_ids = [v.user_id for v in
+                     VeliBilgisi.query.filter_by(ogrenci_id=ogrenci_id).all()
+                     if v.user_id]
+
+    # 3) BFS: ogrenciler[oid] kokunden baslayarak tum downstream tablolari
+    #    tespit et. Her tablonun hangi PK'lerinin hedeflendigini topla, sonra
+    #    leaf'ten (derinlik buyuk) kok'e dogru sil.
+    bind = db.session.get_bind()
+    insp = sa_inspect(bind)
+
+    # Tum FK iliskilerini indeksle: child_table -> [(child_col, parent_table, parent_col), ...]
+    fk_index: dict[str, list[tuple[str, str, str]]] = {}
+    for t in insp.get_table_names():
+        for fk in insp.get_foreign_keys(t):
+            parent = fk.get('referred_table')
+            ccols = fk.get('constrained_columns') or []
+            pcols = fk.get('referred_columns') or []
+            if parent and ccols and pcols:
+                fk_index.setdefault(t, []).append((ccols[0], parent, pcols[0]))
+
+    # BFS: silinmesi gereken (tablo, ids) kumesini ve sira (derinlik) bilgisini tut
+    hedef: dict[str, set] = {'ogrenciler': {ogrenci_id}}
+    derinlik: dict[str, int] = {'ogrenciler': 0}
+    sira = [('ogrenciler', 0)]
+    i = 0
+    while i < len(sira):
+        parent_tablo, d = sira[i]
+        i += 1
+        parent_ids = list(hedef.get(parent_tablo, set()))
+        if not parent_ids:
+            continue
+        # Bu parent'a FK'si olan tum child tablolari bul
+        for child_table, fklar in fk_index.items():
+            for child_col, pt, pc in fklar:
+                if pt != parent_tablo or pc != 'id':
+                    continue
+                # IN (...) icin parametreleri explicit expand
+                placeholders = ','.join(f':p{k}' for k in range(len(parent_ids)))
+                params = {f'p{k}': v for k, v in enumerate(parent_ids)}
+                sql = (f'SELECT "id" FROM "{child_table}" '
+                       f'WHERE "{child_col}" IN ({placeholders})')
+                try:
+                    child_ids = [r[0] for r in db.session.execute(
+                        text(sql), params).all()]
+                except Exception:
+                    child_ids = []
+                if not child_ids:
+                    continue
+                onceki = hedef.setdefault(child_table, set())
+                yeni = set(child_ids) - onceki
+                if yeni:
+                    onceki |= yeni
+                    # Derinligi guncelle (max)
+                    derinlik[child_table] = max(derinlik.get(child_table, 0),
+                                                 d + 1)
+                    sira.append((child_table, d + 1))
+
+    # Silme: en buyuk derinlikten basla, koke dogru git. 'ogrenciler' kokunu
+    # bu asamada silme — daha sonra ORM ile silecegiz (6. adim).
+    silinen_tablolar: dict[str, int] = {}
+    tablo_sirasi = sorted(
+        [(t, derinlik.get(t, 0)) for t in hedef.keys() if t != 'ogrenciler'],
+        key=lambda x: -x[1],
+    )
+    for tablo, _d in tablo_sirasi:
+        ids = list(hedef[tablo])
+        if not ids:
+            continue
+        placeholders = ','.join(f':p{k}' for k in range(len(ids)))
+        params = {f'p{k}': v for k, v in enumerate(ids)}
+        res = db.session.execute(
+            text(f'DELETE FROM "{tablo}" WHERE "id" IN ({placeholders})'),
+            params,
+        )
+        if res.rowcount:
+            silinen_tablolar[tablo] = res.rowcount
+
+    # 4) Orphan veli User'larini sil (bu ogrenciye ozel acilmis, baska
+    #    ogrencinin velisi olmayan)
+    silinen_veli_user = 0
+    for vuid in veli_user_ids:
+        # VeliBilgisi adim 3'te silindigi icin baska bagli kayit varsa User
+        # hala referansli olur (COUNT 0 ise orphan):
+        kalan = db.session.execute(
+            text('SELECT COUNT(*) FROM veli_bilgileri WHERE user_id = :uid'),
+            {'uid': vuid},
+        ).scalar()
+        if kalan == 0:
+            # Opsiyonel: rol'u 'veli' degilse (ornegin yanlislikla atanmis
+            # admin), bu safety check koru. Biz sadece veli rolunde olanlari
+            # silelim.
+            u = User.query.get(vuid)
+            if u and u.rol == 'veli':
+                db.session.delete(u)
+                silinen_veli_user += 1
+
+    # 5) Ogrenci.user_id varsa o User'i da sil (cascade ile push_abonelik,
+    #    KullaniciModulIzin temizlenir; Bildirim cascade yoksa manuel)
+    silinen_ogrenci_user = 0
+    if ogrenci_user_id:
+        db.session.execute(
+            text('DELETE FROM bildirimler WHERE kullanici_id = :uid'),
+            {'uid': ogrenci_user_id},
+        )
+        u = User.query.get(ogrenci_user_id)
+        if u and u.rol == 'ogrenci':
+            db.session.delete(u)
+            silinen_ogrenci_user = 1
+
+    # 6) Ogrenci satirinin kendisini sil
+    db.session.delete(ogrenci)
+
+    # 7) Denetim log
+    detay_ozet = (
+        f'Ogrenci kalici silindi: {ad_soyad} (#{ogrenci_no}). '
+        f'Silinen: {silinen_dosya} belge dosyasi, '
+        f'{silinen_veli_user} veli hesabi, '
+        f'{silinen_ogrenci_user} ogrenci hesabi. '
+        f'Tablolar: ' + ', '.join(f'{k}={v}' for k, v in
+                                  sorted(silinen_tablolar.items()))
+    )
+    db.session.add(DenetimLog(
+        kullanici_id=current_user.id,
+        islem='silme',
+        modul='kayit.ogrenci',
+        detay=detay_ozet,
+        ip_adresi=request.remote_addr,
+    ))
+    db.session.commit()
+
+    flash(f'Öğrenci {ad_soyad} (#{ogrenci_no}) ve tüm kayıtları kalıcı olarak silindi.',
+          'success')
+    return redirect(url_for('kayit.ogrenci.liste'))
+
+
 @bp.route('/<int:ogrenci_id>/veli-ekle', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'muhasebeci', 'yonetici')

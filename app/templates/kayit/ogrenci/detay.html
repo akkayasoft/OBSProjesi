@@ -203,4 +203,68 @@
         </table>
     </div>
 </div>
+
+{% if current_user.rol == 'admin' %}
+<!-- Tehlikeli Bolge - Kalici Silme -->
+<div class="card border-danger mt-4">
+    <div class="card-header bg-white text-danger">
+        <h6 class="mb-0"><i class="bi bi-exclamation-octagon me-2"></i>Tehlikeli Bölge</h6>
+    </div>
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <p class="mb-1"><strong>Öğrenciyi Kalıcı Olarak Sil</strong></p>
+                <p class="text-muted small mb-0">
+                    Bu öğrenci ve kendisine bağlı <strong>tüm</strong> kayıtlar
+                    (muhasebe planları, taksitler, devamsızlık, not, sınav katılımları,
+                    rehberlik, sağlık, servis kayıtları, belgeler, kulüp üyelikleri,
+                    bildirimler) kalıcı olarak silinir. Bu işlem <u>geri alınamaz</u>.
+                    Sadece dershaneden ayrılmış ve kaydının tamamen temizlenmesi
+                    istenen öğrenciler için kullanın. Normal durumlarda
+                    <strong>Durum Değiştir → Kayıt Silindi</strong> tercih edilmelidir.
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <button type="button" class="btn btn-outline-danger"
+                        data-bs-toggle="modal" data-bs-target="#kaliciSilModal">
+                    <i class="bi bi-trash3 me-1"></i>Kalıcı Sil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Onay -->
+<div class="modal fade" id="kaliciSilModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST"
+              action="{{ url_for('kayit.ogrenci.kalici_sil', ogrenci_id=ogrenci.id) }}"
+              class="modal-content">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Kalıcı Silme Onayı</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <strong>{{ ogrenci.tam_ad }}</strong> adlı öğrenci ve tüm bağlı kayıtları
+                    kalıcı olarak silinecek. Bu işlem <u>geri alınamaz</u>.
+                </p>
+                <p class="mb-1">Onay için öğrenci numarasını aynen giriniz:</p>
+                <p class="mb-2">
+                    <code class="fs-5">{{ ogrenci.ogrenci_no }}</code>
+                </p>
+                <input type="text" name="onay_no" class="form-control" autocomplete="off"
+                       placeholder="{{ ogrenci.ogrenci_no }}" required>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash3 me-1"></i>Kalıcı Olarak Sil
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

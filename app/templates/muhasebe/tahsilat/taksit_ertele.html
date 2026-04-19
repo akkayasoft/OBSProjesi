@@ -60,6 +60,7 @@
                 </table>
 
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label class="form-label">Yeni Vade Tarihi <span class="text-danger">*</span></label>
                         <input type="date" name="yeni_vade" class="form-control" required

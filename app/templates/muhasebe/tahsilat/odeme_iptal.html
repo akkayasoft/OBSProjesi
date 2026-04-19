@@ -62,6 +62,7 @@
                 </table>
 
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label class="form-label">İptal Nedeni <span class="text-danger">*</span></label>
                         <textarea name="neden" class="form-control" rows="3" required

@@ -89,3 +89,93 @@ class PushAbonelik(db.Model):
 
     def __repr__(self):
         return f'<PushAbonelik {self.id} user={self.kullanici_id}>'
+
+
+class BildirimSablonu(db.Model):
+    """Bildirim (push + in-app) sablonlari.
+
+    Placeholder'lar: {ad}, {soyad}, {ogrenci_no}, {sinif}, {sube},
+                     {tutar}, {vade}, {veli_ad}, {veli_soyad}, {kurum}
+
+    kategori: genel, dogum_gunu, taksit_hatirlatma, veli_gorusme, toplanti,
+              tebrik, diger
+    """
+    __tablename__ = 'bildirim_sablonlari'
+
+    id = db.Column(db.Integer, primary_key=True)
+    ad = db.Column(db.String(100), nullable=False)  # kisa etiket
+    baslik = db.Column(db.String(200), nullable=False)
+    mesaj = db.Column(db.Text, nullable=False)
+    kategori = db.Column(db.String(30), nullable=False, default='genel')
+    link = db.Column(db.String(500), nullable=True)
+    sistem = db.Column(db.Boolean, default=False)  # seed edilmis sistem sablonu
+    aktif = db.Column(db.Boolean, default=True, nullable=False)
+    olusturan_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    olusturan = db.relationship('User',
+                                backref=db.backref('bildirim_sablonlari',
+                                                   lazy='dynamic'))
+
+    KATEGORILER = [
+        ('genel', 'Genel'),
+        ('dogum_gunu', 'Dogum Gunu'),
+        ('taksit_hatirlatma', 'Taksit Hatirlatma'),
+        ('veli_gorusme', 'Veli Gorusme'),
+        ('toplanti', 'Toplanti'),
+        ('tebrik', 'Tebrik'),
+        ('diger', 'Diger'),
+    ]
+
+    @property
+    def kategori_str(self):
+        return dict(self.KATEGORILER).get(self.kategori, self.kategori)
+
+    @property
+    def kategori_badge(self):
+        badge_map = {
+            'genel': 'secondary',
+            'dogum_gunu': 'warning',
+            'taksit_hatirlatma': 'info',
+            'veli_gorusme': 'primary',
+            'toplanti': 'success',
+            'tebrik': 'warning',
+            'diger': 'dark',
+        }
+        return badge_map.get(self.kategori, 'secondary')
+
+    def __repr__(self):
+        return f'<BildirimSablonu {self.ad}>'
+
+
+class BildirimGonderim(db.Model):
+    """Ozel bildirim gonderim gecmisi (log/audit).
+
+    Her 'gonder' islemi tek kayit. Alicilar sayilar halinde tutulur.
+    """
+    __tablename__ = 'bildirim_gonderimleri'
+
+    id = db.Column(db.Integer, primary_key=True)
+    gonderen_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    sablon_id = db.Column(db.Integer, db.ForeignKey('bildirim_sablonlari.id'),
+                          nullable=True)
+    baslik = db.Column(db.String(200), nullable=False)
+    mesaj = db.Column(db.Text, nullable=False)
+    kategori = db.Column(db.String(30), nullable=False, default='genel')
+    link = db.Column(db.String(500), nullable=True)
+    alici_sayisi = db.Column(db.Integer, default=0, nullable=False)
+    push_basarili = db.Column(db.Integer, default=0, nullable=False)
+    kaynak = db.Column(db.String(30), default='manuel', nullable=False)
+    # manuel, dogum_gunu_cron, muhasebe_hatirlat
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    gonderen = db.relationship('User',
+                               backref=db.backref('bildirim_gonderimleri',
+                                                  lazy='dynamic'))
+    sablon = db.relationship('BildirimSablonu',
+                             backref=db.backref('gonderimler', lazy='dynamic'))
+
+    def __repr__(self):
+        return f'<BildirimGonderim {self.id} ({self.alici_sayisi} alici)>'

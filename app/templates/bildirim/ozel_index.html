@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Ozel Bildirim Gonder{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-send-plus me-2"></i>Ozel Bildirim</h4>
+        <small class="text-muted">Secilen ogrenci ve/veya velilere push + in-app bildirim gonder.</small>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('bildirim.sablon_liste') }}"
+           class="btn btn-outline-primary">
+            <i class="bi bi-file-text me-1"></i>Sablonlar
+        </a>
+        <a href="{{ url_for('bildirim.ozel_gecmis') }}"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-clock-history me-1"></i>Gonderim Gecmisi
+        </a>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('bildirim.ozel_gonder') }}" id="ozelForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row g-3">
+        <!-- Sol: alici secimi -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-people me-2"></i>Alicilar</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">Sube filtresi</label>
+                            <select id="subeFilter" class="form-select form-select-sm">
+                                <option value="">— Tum aktif ogrenciler —</option>
+                                {% for sb in subeler %}
+                                <option value="{{ sb.id }}">{{ sb.tam_ad }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">Ad/No ara</label>
+                            <input type="search" id="qFilter" class="form-control form-control-sm"
+                                   placeholder="Ahmet, 2345...">
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mb-2 small">
+                        <div>
+                            <button type="button" class="btn btn-link btn-sm p-0" id="selAll">
+                                <i class="bi bi-check-square me-1"></i>Tumunu sec
+                            </button>
+                            <span class="mx-1 text-muted">|</span>
+                            <button type="button" class="btn btn-link btn-sm p-0" id="selNone">
+                                <i class="bi bi-square me-1"></i>Temizle
+                            </button>
+                        </div>
+                        <div class="text-muted">
+                            <span id="selCount">0</span> / <span id="totalCount">0</span> secildi
+                        </div>
+                    </div>
+
+                    <div id="ogrenciListesi" class="border rounded p-2"
+                         style="max-height: 420px; overflow-y: auto;">
+                        <div class="text-center text-muted py-3 small">
+                            <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                            Yukleniyor...
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label small text-muted mb-1">Kime gonderilsin?</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="kime" id="kime_o"
+                                   value="ogrenci">
+                            <label class="btn btn-outline-primary" for="kime_o">
+                                <i class="bi bi-mortarboard me-1"></i>Ogrenci
+                            </label>
+
+                            <input type="radio" class="btn-check" name="kime" id="kime_v"
+                                   value="veli">
+                            <label class="btn btn-outline-primary" for="kime_v">
+                                <i class="bi bi-people me-1"></i>Veli
+                            </label>
+
+                            <input type="radio" class="btn-check" name="kime" id="kime_i"
+                                   value="ikisi" checked>
+                            <label class="btn btn-outline-primary" for="kime_i">
+                                <i class="bi bi-person-check me-1"></i>Ogrenci + Veli
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            Sadece <code>User</code> hesabi olan aliciya push/in-app gider.
+                            Hesapsiz veliye SMS/e-posta ayri bir kanaldir.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sag: mesaj -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Mesaj</h6>
+                    {% if sablonlar %}
+                    <select id="sablonSec" class="form-select form-select-sm w-auto">
+                        <option value="">— Sablon sec —</option>
+                        {% for s in sablonlar %}
+                        <option value="{{ s.id }}">{{ s.ad }} ({{ s.kategori_str }})</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <input type="hidden" name="sablon_id" id="sablonIdInp" value="">
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">Kategori</label>
+                        <select name="kategori" class="form-select form-select-sm">
+                            <option value="genel">Genel</option>
+                            <option value="dogum_gunu">Dogum Gunu</option>
+                            <option value="taksit_hatirlatma">Taksit Hatirlatma</option>
+                            <option value="veli_gorusme">Veli Gorusme</option>
+                            <option value="toplanti">Toplanti</option>
+                            <option value="tebrik">Tebrik</option>
+                            <option value="diger">Diger</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">Baslik</label>
+                        <input type="text" name="baslik" id="baslikInp"
+                               class="form-control form-control-sm" maxlength="200" required
+                               placeholder="Ornek: Veli toplantisi yarin">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">Mesaj</label>
+                        <textarea name="mesaj" id="mesajInp" class="form-control form-control-sm"
+                                  rows="5" maxlength="1000" required
+                                  placeholder="Sevgili {ad} {soyad}, ..."></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">Link (opsiyonel)</label>
+                        <input type="text" name="link" id="linkInp"
+                               class="form-control form-control-sm"
+                               placeholder="/portal/veli/">
+                    </div>
+                    <div class="alert alert-light small mb-2 border">
+                        <i class="bi bi-braces me-1"></i>
+                        <strong>Placeholder'lar:</strong>
+                        <code>{ad}</code> <code>{soyad}</code> <code>{ogrenci_no}</code>
+                        <code>{sinif}</code> <code>{sube}</code>
+                        <code>{veli_ad}</code> <code>{veli_soyad}</code>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="gonderBtn" disabled>
+                        <i class="bi bi-send me-1"></i>Bildirim Gonder
+                    </button>
+                </div>
+            </div>
+
+            {% if son_gonderimler %}
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Son Gonderimler</h6>
+                </div>
+                <ul class="list-group list-group-flush small">
+                    {% for g in son_gonderimler %}
+                    <li class="list-group-item py-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-semibold">{{ g.baslik|truncate(40) }}</span>
+                            <span class="text-muted">{{ g.created_at.strftime('%d.%m %H:%M') }}</span>
+                        </div>
+                        <div class="text-muted">
+                            {{ g.alici_sayisi }} alici · {{ g.push_basarili }} push · {{ g.kaynak }}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+<script>
+(function() {
+    const listDiv = document.getElementById('ogrenciListesi');
+    const subeSel = document.getElementById('subeFilter');
+    const qInp = document.getElementById('qFilter');
+    const selCount = document.getElementById('selCount');
+    const totalCount = document.getElementById('totalCount');
+    const gonderBtn = document.getElementById('gonderBtn');
+    let timer;
+
+    function yukle() {
+        const params = new URLSearchParams();
+        if (subeSel.value) params.set('sube_id', subeSel.value);
+        if (qInp.value.trim()) params.set('q', qInp.value.trim());
+        listDiv.innerHTML = '<div class="text-center text-muted py-3 small">Yukleniyor...</div>';
+        fetch('{{ url_for("bildirim.ozel_api_ogrenciler") }}?' + params.toString())
+            .then(r => r.json())
+            .then(data => render(data.ogrenciler));
+    }
+
+    function render(ogrenciler) {
+        totalCount.textContent = ogrenciler.length;
+        if (!ogrenciler.length) {
+            listDiv.innerHTML = '<div class="text-center text-muted py-3 small">Kayit yok</div>';
+            guncelleSec();
+            return;
+        }
+        const html = ogrenciler.map(o => {
+            const badges = [];
+            if (o.sinif_sube) badges.push('<span class="badge bg-light text-dark border">' + o.sinif_sube + '</span>');
+            if (o.has_user) badges.push('<span class="badge bg-success-subtle text-success" title="Ogrenci hesabi var"><i class="bi bi-mortarboard"></i></span>');
+            if (o.veli_user_count) badges.push('<span class="badge bg-info-subtle text-info" title="'+o.veli_user_count+' veli hesabi"><i class="bi bi-people"></i> '+o.veli_user_count+'</span>');
+            return `
+            <div class="form-check d-flex align-items-center py-1 border-bottom">
+                <input class="form-check-input ogrenci-cb me-2" type="checkbox"
+                       name="ogrenci_ids" value="${o.id}" id="ocb${o.id}">
+                <label class="form-check-label flex-grow-1 small" for="ocb${o.id}">
+                    <span class="fw-semibold">${o.ad} ${o.soyad}</span>
+                    <span class="text-muted ms-1">#${o.ogrenci_no || '—'}</span>
+                </label>
+                <span class="d-flex gap-1">${badges.join(' ')}</span>
+            </div>`;
+        }).join('');
+        listDiv.innerHTML = html;
+        listDiv.querySelectorAll('.ogrenci-cb').forEach(cb => {
+            cb.addEventListener('change', guncelleSec);
+        });
+        guncelleSec();
+    }
+
+    function guncelleSec() {
+        const n = listDiv.querySelectorAll('.ogrenci-cb:checked').length;
+        selCount.textContent = n;
+        gonderBtn.disabled = n === 0;
+    }
+
+    document.getElementById('selAll').addEventListener('click', () => {
+        listDiv.querySelectorAll('.ogrenci-cb').forEach(cb => cb.checked = true);
+        guncelleSec();
+    });
+    document.getElementById('selNone').addEventListener('click', () => {
+        listDiv.querySelectorAll('.ogrenci-cb').forEach(cb => cb.checked = false);
+        guncelleSec();
+    });
+
+    subeSel.addEventListener('change', yukle);
+    qInp.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(yukle, 250);
+    });
+
+    // Sablon secimi
+    const sablonSel = document.getElementById('sablonSec');
+    if (sablonSel) {
+        sablonSel.addEventListener('change', function() {
+            if (!this.value) {
+                document.getElementById('sablonIdInp').value = '';
+                return;
+            }
+            fetch('/bildirim/sablon/' + this.value + '/json')
+                .then(r => r.json())
+                .then(s => {
+                    document.getElementById('sablonIdInp').value = s.id;
+                    document.getElementById('baslikInp').value = s.baslik;
+                    document.getElementById('mesajInp').value = s.mesaj;
+                    document.getElementById('linkInp').value = s.link || '';
+                    const katSel = document.querySelector('[name=kategori]');
+                    if (katSel) katSel.value = s.kategori;
+                });
+        });
+    }
+
+    yukle();
+})();
+</script>
+{% endblock %}

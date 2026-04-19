@@ -168,6 +168,16 @@
                                class="btn btn-outline-warning" title="Ertele">
                                 <i class="bi bi-calendar-plus"></i>
                             </a>
+                            <form method="POST"
+                                  action="{{ url_for('bildirim.taksit_hatirlat', taksit_id=taksit.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Veliye taksit hatirlatma bildirimi gonderilsin mi?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-info"
+                                        title="Veliye Hatirlat (push + in-app)">
+                                    <i class="bi bi-bell"></i>
+                                </button>
+                            </form>
                         </div>
                         {% endif %}
                     </td>

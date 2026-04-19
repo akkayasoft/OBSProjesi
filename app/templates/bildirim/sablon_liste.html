@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Bildirim Sablonlari{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-file-text me-2"></i>Bildirim Sablonlari</h4>
+        <small class="text-muted">Placeholder destekli sablonlar — gonderim ekraninda secilir.</small>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('bildirim.ozel_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Bildirim Gonder
+        </a>
+        <a href="{{ url_for('bildirim.sablon_form') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Sablon
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        {% if sablonlar %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ad</th>
+                        <th>Kategori</th>
+                        <th>Baslik</th>
+                        <th class="text-center">Aktif</th>
+                        <th class="text-end">Islem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sablonlar %}
+                    <tr>
+                        <td class="fw-semibold">
+                            {{ s.ad }}
+                            {% if s.sistem %}
+                            <span class="badge bg-secondary ms-1" title="Sistem sablonu">sistem</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-{{ s.kategori_badge }}">{{ s.kategori_str }}</span></td>
+                        <td class="text-muted small">{{ s.baslik|truncate(60) }}</td>
+                        <td class="text-center">
+                            {% if s.aktif %}<i class="bi bi-check-circle-fill text-success"></i>
+                            {% else %}<i class="bi bi-x-circle text-muted"></i>{% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('bildirim.sablon_form', id=s.id) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST"
+                                  action="{{ url_for('bildirim.sablon_sil', id=s.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Bu sablon silinsin mi?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        {% if s.sistem and current_user.rol != 'admin' %}disabled{% endif %}>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-file-text fs-1 d-block mb-2 opacity-50"></i>
+            Henuz sablon eklenmemis.
+            <div class="mt-2">
+                <a href="{{ url_for('bildirim.sablon_form') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Ilk Sablonu Ekle
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -246,6 +246,12 @@ def create_app(config_class=Config):
                 {'label': 'Etkinlik Takvimi', 'icon': 'bi-calendar-event', 'url': '/duyurular/etkinlik/'},
                 {'label': 'Hatırlatmalar', 'icon': 'bi-bell', 'url': '/duyurular/hatirlatma/'},
             ]},
+            {'label': 'Bildirim', 'icon': 'bi-bell-fill', 'url': '/bildirim/', 'modul_key': 'bildirim', 'children': [
+                {'label': 'Gelen Bildirimler', 'icon': 'bi-inbox', 'url': '/bildirim/'},
+                {'label': 'Özel Bildirim Gönder', 'icon': 'bi-send-plus', 'url': '/bildirim/ozel/'},
+                {'label': 'Bildirim Şablonları', 'icon': 'bi-file-text', 'url': '/bildirim/sablon/'},
+                {'label': 'Gönderim Geçmişi', 'icon': 'bi-clock-history', 'url': '/bildirim/ozel/gecmis'},
+            ]},
             {'label': 'Rehberlik', 'icon': 'bi-heart-pulse', 'url': '/rehberlik/', 'modul_key': 'rehberlik', 'children': [
                 {'label': 'Görüşmeler', 'icon': 'bi-chat-dots', 'url': '/rehberlik/gorusme/'},
                 {'label': 'Öğrenci Profilleri', 'icon': 'bi-person-lines-fill', 'url': '/rehberlik/profil/'},
@@ -462,6 +468,38 @@ def create_app(config_class=Config):
                 ))
             db.session.commit()
 
+
+        # === Bildirim sistem sablonlari ===
+        from app.models.bildirim import BildirimSablonu
+        sistem_sablonlar = [
+            ('Dogum Gunu Kutlamasi', 'Dogum Gunun Kutlu Olsun {ad}!',
+             'Sevgili {ad} {soyad}, dogum gununu tum kalbimizle kutlariz. '
+             'Saglik, basari ve mutluluk dolu bir yas dilriz.',
+             'dogum_gunu', '/bildirim/'),
+            ('Taksit Hatirlatma',
+             '{ad} {soyad} - Yaklasan Taksit',
+             'Sayin veli, {ad} {soyad} icin {vade} tarihinde {tutar} TL '
+             'taksit odemesi bulunmaktadir. Odeme icin muhasebeye '
+             'ulasabilirsiniz.',
+             'taksit_hatirlatma', '/portal/veli/muhasebe/'),
+            ('Veli Gorusme Daveti',
+             'Veli Gorusmesi Daveti - {ad} {soyad}',
+             'Sayin {veli_ad} {veli_soyad}, {ad} {soyad} hakkinda '
+             'gorusmek uzere okulumuza davet ediyoruz. Randevu icin '
+             'rehberlik servisiyle iletisime gecebilirsiniz.',
+             'veli_gorusme', '/portal/veli/'),
+            ('Genel Duyuru',
+             'Onemli Duyuru',
+             'Sayin ilgili, onemli bir duyurumuz bulunmaktadir. '
+             'Detaylar icin lutfen okul sistemine giris yapiniz.',
+             'genel', '/duyurular/'),
+        ]
+        for ad, baslik, mesaj, kat, link in sistem_sablonlar:
+            if not BildirimSablonu.query.filter_by(ad=ad, sistem=True).first():
+                db.session.add(BildirimSablonu(
+                    ad=ad, baslik=baslik, mesaj=mesaj,
+                    kategori=kat, link=link, sistem=True, aktif=True,
+                ))
 
         db.session.commit()
         print('Başlangıç verisi başarıyla eklendi!')

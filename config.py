@@ -31,6 +31,11 @@ class Config:
     VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
     VAPID_CLAIM_EMAIL = os.environ.get('VAPID_CLAIM_EMAIL', 'mailto:admin@obs.local')
 
+    # === Cron Token ===
+    # Ic endpoint'ler (dogum gunu bildirimi vb.) icin guvenlik tokeni.
+    # Sunucu crontab'i bu tokeni X-Cron-Token header olarak gonderir.
+    CRON_TOKEN = os.environ.get('CRON_TOKEN', '')
+
     # === Multi-tenant (SaaS) ayarlari ===
     # Flag kapaliysa tek-kiracili klasik mod. Aciksa master DB + subdomain
     # cozumlemesi aktif olur, istegi dogru tenant DB'sine yonlendirir.

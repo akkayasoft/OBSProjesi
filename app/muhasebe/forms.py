@@ -59,6 +59,21 @@ class OdemePlaniForm(FlaskForm):
     submit = SubmitField('Ödeme Planı Oluştur')
 
 
+class TaksitDuzenleForm(FlaskForm):
+    """Tek bir taksitin tutar ve vade tarihini duzenleme."""
+    tutar = DecimalField('Taksit Tutari (₺)', places=2, validators=[
+        DataRequired(message='Tutar gereklidir.'),
+        NumberRange(min=0.01, message='Tutar 0\'dan buyuk olmalidir.')
+    ])
+    vade_tarihi = DateField('Vade Tarihi', validators=[
+        DataRequired(message='Vade tarihi gereklidir.')
+    ])
+    erteleme_notu = StringField('Not / Aciklama', validators=[
+        Optional(), Length(max=200)
+    ], render_kw={'placeholder': 'Opsiyonel: degisiklik nedeni'})
+    submit = SubmitField('Taksiti Guncelle')
+
+
 class OdemeForm(FlaskForm):
     tutar = DecimalField('Ödenen Tutar (₺)', places=2, validators=[
         DataRequired(), NumberRange(min=0.01)

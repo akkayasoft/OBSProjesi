@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models.muhasebe import (
     Ogrenci, OdemePlani, Taksit, Odeme, BankaHesabi
 )
-from app.muhasebe.forms import OdemePlaniForm, OdemeForm
+from app.muhasebe.forms import OdemePlaniForm, OdemeForm, TaksitDuzenleForm
 from app.muhasebe.utils import makbuz_no_uret, banka_hareketi_olustur
 from app.toplu_yukleme import (
     excel_sablonu_olustur, excel_oku,
@@ -185,6 +185,82 @@ def odeme_yap(taksit_id):
 
     return render_template('muhasebe/ogrenci_odeme/odeme_yap.html',
                            form=form, taksit=taksit, ogrenci=ogrenci)
+
+
+@bp.route('/taksit/<int:taksit_id>/duzenle', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'muhasebeci')
+def taksit_duzenle(taksit_id):
+    """Tek bir taksitin tutar ve vade tarihini guncelle.
+
+    Kurallar:
+    - Odenmis taksit (durum='odendi') duzenlenemez
+    - Kismi odenmis taksit: yeni tutar >= odenen_tutar olmali
+    - Plan iptal/kapali ise duzenlenemez
+    - Tutar degisince plan.toplam_tutar otomatik guncellenir
+      (indirim korunur, net_tutar property uzerinden turetilir)
+    """
+    taksit = Taksit.query.get_or_404(taksit_id)
+    plan = taksit.odeme_plani
+    ogrenci = plan.ogrenci
+
+    if plan.durum != 'aktif':
+        flash('Pasif / iptal edilmis planin taksitleri duzenlenemez.', 'danger')
+        return redirect(url_for('muhasebe.ogrenci_odeme.detay',
+                                ogrenci_id=ogrenci.id))
+
+    if taksit.durum == 'odendi':
+        flash('Odenmis taksit duzenlenemez. Once odemeyi iptal edin.', 'danger')
+        return redirect(url_for('muhasebe.ogrenci_odeme.detay',
+                                ogrenci_id=ogrenci.id))
+
+    form = TaksitDuzenleForm(obj=taksit)
+
+    if form.validate_on_submit():
+        yeni_tutar = Decimal(str(form.tutar.data))
+        odenen = Decimal(str(taksit.odenen_tutar or 0))
+
+        if yeni_tutar < odenen:
+            flash(f'Yeni tutar ({yeni_tutar:.2f} ₺) odenen tutardan '
+                  f'({odenen:.2f} ₺) kucuk olamaz.', 'danger')
+            return render_template('muhasebe/ogrenci_odeme/taksit_duzenle.html',
+                                   form=form, taksit=taksit, ogrenci=ogrenci,
+                                   plan=plan)
+
+        eski_tutar = Decimal(str(taksit.tutar))
+        eski_vade = taksit.vade_tarihi
+        yeni_vade = form.vade_tarihi.data
+
+        # Vade degistiyse orjinal_vade_tarihi'ni koru (ilk set)
+        if yeni_vade != eski_vade and not taksit.orjinal_vade_tarihi:
+            taksit.orjinal_vade_tarihi = eski_vade
+
+        taksit.tutar = yeni_tutar
+        taksit.vade_tarihi = yeni_vade
+        if form.erteleme_notu.data:
+            taksit.erteleme_notu = form.erteleme_notu.data
+
+        # Durum yeniden hesapla (gecikti/beklemede/kismi)
+        taksit.durum_guncelle()
+
+        # Plan toplam_tutar = tum taksit tutarlari + indirim
+        # (net_tutar property toplam - indirim, bu yuzden toplam = net + indirim)
+        tum_taksit_toplam = sum(Decimal(str(t.tutar)) for t in plan.taksitler)
+        indirim = Decimal(str(plan.indirim_tutar or 0))
+        plan.toplam_tutar = tum_taksit_toplam + indirim
+
+        db.session.commit()
+
+        fark = yeni_tutar - eski_tutar
+        fark_str = f'{fark:+.2f} ₺'
+        flash(f'{taksit.taksit_no}. taksit guncellendi. '
+              f'(Tutar: {eski_tutar:.2f} → {yeni_tutar:.2f} ₺, fark: {fark_str})',
+              'success')
+        return redirect(url_for('muhasebe.ogrenci_odeme.detay',
+                                ogrenci_id=ogrenci.id))
+
+    return render_template('muhasebe/ogrenci_odeme/taksit_duzenle.html',
+                           form=form, taksit=taksit, ogrenci=ogrenci, plan=plan)
 
 
 @bp.route('/odeme/<int:odeme_id>/makbuz')

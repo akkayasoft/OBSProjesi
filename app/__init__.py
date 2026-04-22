@@ -248,9 +248,12 @@ def create_app(config_class=Config):
             ]},
             {'label': 'Bildirim', 'icon': 'bi-bell-fill', 'url': '/bildirim/', 'modul_key': 'bildirim', 'children': [
                 {'label': 'Gelen Bildirimler', 'icon': 'bi-inbox', 'url': '/bildirim/'},
-                {'label': 'Özel Bildirim Gönder', 'icon': 'bi-send-plus', 'url': '/bildirim/ozel/'},
-                {'label': 'Bildirim Şablonları', 'icon': 'bi-file-text', 'url': '/bildirim/sablon/'},
-                {'label': 'Gönderim Geçmişi', 'icon': 'bi-clock-history', 'url': '/bildirim/ozel/gecmis'},
+                {'label': 'Özel Bildirim Gönder', 'icon': 'bi-send-plus', 'url': '/bildirim/ozel/',
+                 'roller': ['admin', 'yonetici', 'muhasebeci', 'ogretmen']},
+                {'label': 'Bildirim Şablonları', 'icon': 'bi-file-text', 'url': '/bildirim/sablon/',
+                 'roller': ['admin', 'yonetici', 'muhasebeci', 'ogretmen']},
+                {'label': 'Gönderim Geçmişi', 'icon': 'bi-clock-history', 'url': '/bildirim/ozel/gecmis',
+                 'roller': ['admin', 'yonetici', 'muhasebeci', 'ogretmen']},
             ]},
             {'label': 'Rehberlik', 'icon': 'bi-heart-pulse', 'url': '/rehberlik/', 'modul_key': 'rehberlik', 'children': [
                 {'label': 'Görüşmeler', 'icon': 'bi-chat-dots', 'url': '/rehberlik/gorusme/'},
@@ -360,6 +363,7 @@ def create_app(config_class=Config):
             # Kullanicinin erisebildigi modulleri
             izinli_moduller = current_user.erisebildigi_moduller()
 
+            kullanici_rolu = getattr(current_user, 'rol', None)
             menu_items = []
             for item in all_menu_items:
                 modul_key = item.get('modul_key')
@@ -368,6 +372,14 @@ def create_app(config_class=Config):
                 elif modul_key in izinli_moduller:
                     # Renk kategorisi ekle
                     item['renk_kat'] = modul_renk_kategorisi(modul_key)
+                    # Cocuklari role gore filtrele (opsiyonel 'roller' alani)
+                    cocuklar = item.get('children') or []
+                    if cocuklar and kullanici_rolu:
+                        filtrelenmis = [
+                            c for c in cocuklar
+                            if 'roller' not in c or kullanici_rolu in c['roller']
+                        ]
+                        item['children'] = filtrelenmis
                     menu_items.append(item)
 
             # Aktif sayfanin modul rengini hesapla (sidebar + page header icin)

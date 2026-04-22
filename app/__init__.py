@@ -355,10 +355,14 @@ def create_app(config_class=Config):
                  'roller': ['admin', 'yonetici']},
             ]},
             {'label': 'Sistem Ayarları', 'icon': 'bi-gear', 'url': '/ayarlar/', 'modul_key': 'ayarlar', 'children': [
-                {'label': 'Genel Ayarlar', 'icon': 'bi-sliders', 'url': '/ayarlar/genel'},
-                {'label': 'Akademik', 'icon': 'bi-mortarboard', 'url': '/ayarlar/akademik'},
-                {'label': 'Yedekleme', 'icon': 'bi-download', 'url': '/ayarlar/yedekleme'},
-                {'label': 'Rol Yetkilendirme', 'icon': 'bi-shield-lock', 'url': '/ayarlar/yetkilendirme/'},
+                {'label': 'Genel Ayarlar', 'icon': 'bi-sliders', 'url': '/ayarlar/genel',
+                 'roller': ['admin']},
+                {'label': 'Akademik', 'icon': 'bi-mortarboard', 'url': '/ayarlar/akademik',
+                 'roller': ['admin']},
+                {'label': 'Yedekleme', 'icon': 'bi-download', 'url': '/ayarlar/yedekleme',
+                 'roller': ['admin', 'yonetici']},
+                {'label': 'Rol Yetkilendirme', 'icon': 'bi-shield-lock', 'url': '/ayarlar/yetkilendirme/',
+                 'roller': ['admin']},
             ]},
         ]
 

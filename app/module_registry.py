@@ -110,6 +110,7 @@ PRESETLER = {
             'odev_takip',
             'davranis',
             'raporlama',
+            'ayarlar',
         ],
     },
     'kurumsal': {

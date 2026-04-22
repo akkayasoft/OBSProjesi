@@ -183,8 +183,10 @@ def create_app(config_class=Config):
             {'label': 'Kayıt Yönetimi', 'icon': 'bi-journal-check', 'url': '/kayit/', 'modul_key': 'kayit', 'children': [
                 {'label': 'Öğrenci Listesi', 'icon': 'bi-people', 'url': '/kayit/ogrenci/'},
                 {'label': 'Yeni Kayıt', 'icon': 'bi-person-plus', 'url': '/kayit/ogrenci/yeni'},
-                {'label': 'Sınıf / Şube', 'icon': 'bi-building', 'url': '/kayit/sinif/'},
-                {'label': 'Dönemler', 'icon': 'bi-calendar-range', 'url': '/kayit/donem/'},
+                {'label': 'Sınıf / Şube', 'icon': 'bi-building', 'url': '/kayit/sinif/',
+                 'roller': ['admin', 'yonetici']},
+                {'label': 'Dönemler', 'icon': 'bi-calendar-range', 'url': '/kayit/donem/',
+                 'roller': ['admin', 'yonetici']},
             ]},
             {'label': 'Muhasebe', 'icon': 'bi-cash-stack', 'url': '/muhasebe/', 'modul_key': 'muhasebe', 'children': [
                 {'label': 'Gelir / Gider', 'icon': 'bi-arrow-left-right', 'url': '/muhasebe/gelir-gider/'},
@@ -195,7 +197,8 @@ def create_app(config_class=Config):
                 {'label': 'Raporlar', 'icon': 'bi-bar-chart-line', 'url': '/muhasebe/raporlar/'},
             ]},
             {'label': 'Devamsızlık', 'icon': 'bi-check2-square', 'url': '/devamsizlik/', 'modul_key': 'devamsizlik', 'children': [
-                {'label': 'Yoklama Al', 'icon': 'bi-clipboard-check', 'url': '/devamsizlik/yoklama/'},
+                {'label': 'Yoklama Al', 'icon': 'bi-clipboard-check', 'url': '/devamsizlik/yoklama/',
+                 'roller': ['admin', 'yonetici', 'ogretmen']},
                 {'label': 'Devamsızlık Raporları', 'icon': 'bi-graph-up', 'url': '/devamsizlik/rapor/'},
             ]},
             {'label': 'Personel Yönetimi', 'icon': 'bi-person-badge', 'url': '/personel/', 'modul_key': 'personel', 'children': [
@@ -205,9 +208,11 @@ def create_app(config_class=Config):
                 {'label': 'Raporlar', 'icon': 'bi-bar-chart-line', 'url': '/personel/rapor/'},
             ]},
             {'label': 'Ders Dağıtımı', 'icon': 'bi-book', 'url': '/ders-dagitimi/', 'modul_key': 'ders_dagitimi', 'children': [
-                {'label': 'Dersler', 'icon': 'bi-journal-text', 'url': '/ders-dagitimi/ders/'},
+                {'label': 'Dersler', 'icon': 'bi-journal-text', 'url': '/ders-dagitimi/ders/',
+                 'roller': ['admin', 'yonetici']},
                 {'label': 'Ders Programı', 'icon': 'bi-calendar-week', 'url': '/ders-dagitimi/program/'},
-                {'label': 'Öğretmen Ataması', 'icon': 'bi-person-workspace', 'url': '/ders-dagitimi/atama/'},
+                {'label': 'Öğretmen Ataması', 'icon': 'bi-person-workspace', 'url': '/ders-dagitimi/atama/',
+                 'roller': ['admin', 'yonetici']},
             ]},
             {'label': 'Not Defteri', 'icon': 'bi-journal-bookmark', 'url': '/not-defteri/', 'modul_key': 'not_defteri', 'children': [
                 {'label': 'Sınavlar', 'icon': 'bi-pencil-square', 'url': '/not-defteri/sinav/'},
@@ -242,7 +247,8 @@ def create_app(config_class=Config):
             ]},
             {'label': 'Duyurular', 'icon': 'bi-megaphone', 'url': '/duyurular/', 'modul_key': 'duyurular', 'children': [
                 {'label': 'Duyuru Listesi', 'icon': 'bi-card-text', 'url': '/duyurular/duyuru/'},
-                {'label': 'Yeni Duyuru', 'icon': 'bi-plus-circle', 'url': '/duyurular/duyuru/yeni'},
+                {'label': 'Yeni Duyuru', 'icon': 'bi-plus-circle', 'url': '/duyurular/duyuru/yeni',
+                 'roller': ['admin', 'yonetici', 'ogretmen', 'muhasebeci']},
                 {'label': 'Etkinlik Takvimi', 'icon': 'bi-calendar-event', 'url': '/duyurular/etkinlik/'},
                 {'label': 'Hatırlatmalar', 'icon': 'bi-bell', 'url': '/duyurular/hatirlatma/'},
             ]},
@@ -271,13 +277,17 @@ def create_app(config_class=Config):
             {'label': 'İletişim', 'icon': 'bi-chat-left-text', 'url': '/iletisim/', 'modul_key': 'iletisim', 'children': [
                 {'label': 'Gelen Kutusu', 'icon': 'bi-inbox', 'url': '/iletisim/mesaj/'},
                 {'label': 'Mesaj Yaz', 'icon': 'bi-pencil-square', 'url': '/iletisim/mesaj/yeni'},
-                {'label': 'Toplu Mesaj', 'icon': 'bi-send', 'url': '/iletisim/toplu/'},
-                {'label': 'Şablonlar', 'icon': 'bi-file-text', 'url': '/iletisim/sablon/'},
-                {'label': 'Rehber', 'icon': 'bi-person-rolodex', 'url': '/iletisim/rehber/'},
+                {'label': 'Toplu Mesaj', 'icon': 'bi-send', 'url': '/iletisim/toplu/',
+                 'roller': ['admin', 'yonetici', 'ogretmen', 'muhasebeci']},
+                {'label': 'Şablonlar', 'icon': 'bi-file-text', 'url': '/iletisim/sablon/',
+                 'roller': ['admin', 'yonetici']},
+                {'label': 'Rehber', 'icon': 'bi-person-rolodex', 'url': '/iletisim/rehber/',
+                 'roller': ['admin', 'yonetici', 'ogretmen', 'muhasebeci']},
             ]},
             {'label': 'Online Sınav', 'icon': 'bi-laptop', 'url': '/online-sinav/', 'modul_key': 'online_sinav', 'children': [
                 {'label': 'Sınav Listesi', 'icon': 'bi-list-check', 'url': '/online-sinav/sinav/'},
-                {'label': 'Yeni Sınav', 'icon': 'bi-plus-circle', 'url': '/online-sinav/sinav/yeni'},
+                {'label': 'Yeni Sınav', 'icon': 'bi-plus-circle', 'url': '/online-sinav/sinav/yeni',
+                 'roller': ['admin', 'yonetici', 'ogretmen']},
                 {'label': 'Sonuçlar', 'icon': 'bi-bar-chart', 'url': '/online-sinav/sonuc/'},
             ]},
             {'label': 'Kulüpler', 'icon': 'bi-people-fill', 'url': '/kulupler/', 'modul_key': 'kulupler', 'children': [
@@ -295,8 +305,10 @@ def create_app(config_class=Config):
                 {'label': 'Yeni Deneme', 'icon': 'bi-plus-circle', 'url': '/deneme-sinavi/sinav/yeni'},
             ]},
             {'label': 'Online Anket', 'icon': 'bi-ui-checks-grid', 'url': '/anket/yonetim/', 'modul_key': 'anket', 'children': [
-                {'label': 'Anket Listesi', 'icon': 'bi-list-ul', 'url': '/anket/yonetim/'},
-                {'label': 'Yeni Anket', 'icon': 'bi-plus-circle', 'url': '/anket/yonetim/yeni'},
+                {'label': 'Anket Listesi', 'icon': 'bi-list-ul', 'url': '/anket/yonetim/',
+                 'roller': ['admin', 'yonetici', 'ogretmen', 'muhasebeci']},
+                {'label': 'Yeni Anket', 'icon': 'bi-plus-circle', 'url': '/anket/yonetim/yeni',
+                 'roller': ['admin', 'yonetici', 'ogretmen']},
                 {'label': 'Aktif Anketler', 'icon': 'bi-check-circle', 'url': '/anket/katilim/'},
             ]},
             {'label': 'Öğrenci Servisi', 'icon': 'bi-bus-front', 'url': '/servis/', 'modul_key': 'servis', 'children': [
@@ -339,7 +351,8 @@ def create_app(config_class=Config):
             ]},
             {'label': 'Belge Yönetimi', 'icon': 'bi-file-earmark', 'url': '/belge/', 'modul_key': 'belge', 'children': [
                 {'label': 'Belgeler', 'icon': 'bi-files', 'url': '/belge/'},
-                {'label': 'Yeni Belge', 'icon': 'bi-plus-circle', 'url': '/belge/yeni'},
+                {'label': 'Yeni Belge', 'icon': 'bi-plus-circle', 'url': '/belge/yeni',
+                 'roller': ['admin', 'yonetici']},
             ]},
             {'label': 'Sistem Ayarları', 'icon': 'bi-gear', 'url': '/ayarlar/', 'modul_key': 'ayarlar', 'children': [
                 {'label': 'Genel Ayarlar', 'icon': 'bi-sliders', 'url': '/ayarlar/genel'},

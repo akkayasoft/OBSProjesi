@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import StringField, SelectField, IntegerField, FloatField, TextAreaField, DateField, SubmitField
 from wtforms.validators import DataRequired, NumberRange, Optional, Length
 
@@ -43,3 +44,30 @@ class DenemeDersiForm(FlaskForm):
                        description='tyt/say/soz/ea/dil/sozel/sayisal vb.')
     sira = IntegerField('Sira', default=0, validators=[Optional(), NumberRange(min=0, max=100)])
     submit = SubmitField('Kaydet')
+
+
+class PdfIthalatYukleForm(FlaskForm):
+    """Yayinci deneme sonuc PDF'ini yukleme formu."""
+    yayinci = SelectField(
+        'Yayinci / Format',
+        choices=[('x_yayinlari', 'X Yayinlari (LGS Okul Net Listesi)')],
+        default='x_yayinlari',
+        validators=[DataRequired()],
+    )
+    pdf = FileField(
+        'PDF Dosyasi',
+        validators=[
+            FileRequired('PDF dosyasi seciniz.'),
+            FileAllowed(['pdf'], 'Sadece PDF dosyasi yuklenebilir.'),
+        ],
+    )
+    submit = SubmitField('Yukle ve Onizleme')
+
+
+class PdfIthalatOnaylaForm(FlaskForm):
+    """Onizleme sonrasi sinav bilgilerini toplayan form."""
+    sinav_adi = StringField('Sinav Adi', validators=[DataRequired(), Length(max=200)])
+    donem = StringField('Donem', default='2025-2026',
+                        validators=[DataRequired(), Length(max=20)])
+    tarih = DateField('Sinav Tarihi', validators=[DataRequired()])
+    submit = SubmitField('Onayla ve Kaydet')

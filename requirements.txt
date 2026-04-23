@@ -16,3 +16,5 @@ opencv-python-headless==4.10.0.84
 numpy>=1.26.0,<2.3
 reportlab==4.2.5
 Pillow>=10.3.0
+# Yayinci deneme sonuc PDF'lerinin metinsel parse'i icin
+pdfplumber==0.11.9

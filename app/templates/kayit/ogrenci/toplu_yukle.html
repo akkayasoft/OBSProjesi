@@ -97,6 +97,37 @@
 </div>
 {% endif %}
 
+{% if hatalar_ozet and hatalar_ozet.hatali > 0 %}
+<div class="alert alert-warning small mb-3">
+    <div class="d-flex align-items-start">
+        <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-2"></i>
+        <div class="flex-grow-1">
+            <strong>{{ hatalar_ozet.hatali }} satır hatalı.</strong> Tablodaki kırmızı satırları düzeltip dosyayı yeniden yükleyin.
+            {% set ortak_hatalar = {} %}
+            {% for s in onizleme %}
+                {% for h in s._hatalar %}
+                    {% set _anahtar = h.split('.')[0] %}
+                    {% if ortak_hatalar.update({_anahtar: ortak_hatalar.get(_anahtar, 0) + 1}) %}{% endif %}
+                {% endfor %}
+            {% endfor %}
+            {% if ortak_hatalar %}
+            <ul class="mb-0 mt-2 ps-3">
+                {% for msg, adet in ortak_hatalar.items() %}
+                <li><strong>{{ adet }}</strong> satırda: {{ msg }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <div class="mt-2">
+                <i class="bi bi-lightbulb me-1"></i>
+                <strong>İpuçları:</strong>
+                Dönem/Şube sütunları boşsa, yukarıdaki <em>Varsayılan Dönem / Şube</em> dropdown'larından seçin.
+                Sınıf sütununa <code>7-A</code> gibi birleşik yazarsanız otomatik ayrıştırılır.
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Onizleme tablosu -->
 <div class="card shadow-sm">
     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">

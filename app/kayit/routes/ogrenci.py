@@ -304,6 +304,21 @@ def _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube):
         if err:
             s['_hatalar'].append(err)
 
+        # Kullanici "7-A", "7/A", "7 A", "7A" gibi SINIF+SUBE'yi birlesik yazmis olabilir.
+        # Sube bos ise ve sinif bu paterni iceriyorsa otomatik ayir.
+        if sinif_ad and not sube_ad:
+            m = re.match(r'^\s*(\d{1,2})\s*[-/\.\s]+\s*([A-Za-zÇĞİÖŞÜçğıöşü]{1,5})\s*$',
+                         sinif_ad)
+            if not m:
+                # "7A", "12B" bitişik formu
+                m = re.match(r'^\s*(\d{1,2})([A-Za-zÇĞİÖŞÜçğıöşü]{1,5})\s*$',
+                             sinif_ad)
+            if m:
+                n = m.group(1)
+                sb = m.group(2).upper()
+                sinif_ad = f'{n}. Sınıf'
+                sube_ad = sb
+
         # Etkin donem: satirdaki ad varsa o, yoksa formdaki varsayilan
         if donem_ad:
             s['_donem_ad'] = donem_ad
@@ -311,7 +326,8 @@ def _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube):
             s['_donem_ad'] = varsayilan_donem.ad
         else:
             s['_hatalar'].append(
-                'Eğitim-Öğretim Yılı boş (ne satırda ne de formda seçili).'
+                'Eğitim-Öğretim Yılı boş. Üstteki "Varsayılan Kayıt Dönemi" '
+                'dropdown\'undan seçim yapın ya da Excel\'de ilgili sütunu doldurun.'
             )
 
         # Etkin sinif: satirda varsa o, yoksa varsayilan_sube.sinif.ad
@@ -320,7 +336,10 @@ def _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube):
         elif varsayilan_sube:
             s['_sinif_ad'] = varsayilan_sube.sinif.ad
         else:
-            s['_hatalar'].append('Sınıf boş (ne satırda ne de formda seçili).')
+            s['_hatalar'].append(
+                'Sınıf boş. Üstteki "Varsayılan Şube" dropdown\'undan seçim yapın '
+                'ya da Excel\'de Sınıf sütununu doldurun (ör. "7. Sınıf" veya "7-A").'
+            )
 
         # Etkin sube: satirda sube_ad varsa o, yoksa varsayilan
         if sube_ad:
@@ -328,7 +347,10 @@ def _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube):
         elif varsayilan_sube:
             s['_sube_ad'] = varsayilan_sube.ad
         else:
-            s['_hatalar'].append('Şube boş (ne satırda ne de formda seçili).')
+            s['_hatalar'].append(
+                'Şube boş. Excel\'de "Şube" sütununa A/B/C yazın veya Sınıf sütununda '
+                '"7-A" gibi birleşik yazın; ya da üstten varsayılan Şube seçin.'
+            )
 
         # Ogrenci.sinif string alani icin
         if s.get('_sinif_ad'):
@@ -424,6 +446,12 @@ def toplu_yukle():
 
         varsayilan_donem = KayitDonemi.query.get(secili_donem_id) if secili_donem_id else None
         varsayilan_sube = Sube.query.get(secili_sube_id) if secili_sube_id else None
+
+        # Kullanici donemi hic secmediyse: yalnizca 1 aktif donem varsa onu
+        # varsayilan kabul et (yaygın durum — kullanici sıkışmasın).
+        if not varsayilan_donem and len(donemler) == 1:
+            varsayilan_donem = donemler[0]
+            secili_donem_id = varsayilan_donem.id
 
         if islem == 'onizle':
             # Excel dosyasini parse et

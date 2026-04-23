@@ -134,8 +134,17 @@
                             {{ ayar.aciklama or ayar.anahtar }}
                         </label>
                         <div class="col-sm-6">
+                            {% if ayar.tur == 'boolean' %}
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="{{ ayar.anahtar }}"
+                                       name="{{ ayar.anahtar }}" value="true"
+                                       {% if ayar.deger == 'true' %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ ayar.anahtar }}">Aktif</label>
+                            </div>
+                            {% else %}
                             <input type="{{ 'number' if ayar.tur == 'number' else 'text' }}" class="form-control"
                                    id="{{ ayar.anahtar }}" name="{{ ayar.anahtar }}" value="{{ ayar.deger or '' }}">
+                            {% endif %}
                             <small class="text-muted">Varsayilan: {{ ayar.varsayilan or '-' }}</small>
                         </div>
                     </div>

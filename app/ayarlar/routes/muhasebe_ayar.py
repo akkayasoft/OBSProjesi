@@ -12,10 +12,17 @@ bp = Blueprint('muhasebe_ayar', __name__)
 @role_required('admin')
 def index():
     if request.method == 'POST':
-        anahtarlar = ['para_birimi', 'kdv_orani', 'gecikme_faizi', 'odeme_hatirlatma_gun']
-        for anahtar in anahtarlar:
-            deger = request.form.get(anahtar, '')
-            SistemAyar.set(anahtar, deger, user_id=current_user.id)
+        # Muhasebe kategorisindeki tum anahtarlari DB'den cek — sabit liste
+        # yerine dinamik: yeni anahtar eklendikce UI'dan kaydedilebilir kalsin.
+        muhasebe_ayarlari = SistemAyar.query.filter_by(kategori='muhasebe').all()
+        for ayar in muhasebe_ayarlari:
+            if ayar.tur == 'boolean':
+                # Checkbox: form'da varsa 'true', yoksa 'false'
+                deger = 'true' if request.form.get(ayar.anahtar) in (
+                    'true', '1', 'on') else 'false'
+            else:
+                deger = request.form.get(ayar.anahtar, '')
+            SistemAyar.set(ayar.anahtar, deger, user_id=current_user.id)
         flash('Muhasebe ayarlari basariyla kaydedildi.', 'success')
         return redirect(url_for('ayarlar.muhasebe_ayar.index'))
 

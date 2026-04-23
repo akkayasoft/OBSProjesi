@@ -407,6 +407,173 @@ def cron_dogum_gunu():
 # Gecmis / log
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Geciken taksit otomatik cron
+# ---------------------------------------------------------------------------
+
+@bildirim_bp.route('/cron/geciken-taksit', methods=['POST', 'GET'])
+@csrf.exempt
+def cron_geciken_taksit():
+    """Vadesi gecmis, kalani olan aktif taksitler icin velilere
+    'taksit_hatirlatma' bildirimi gonderir.
+
+    Ayarlar (SistemAyar):
+      - taksit_otomatik_hatirlatma_aktif (boolean, varsayilan 'false')
+          -> Kapaliysa hicbir sey yapmaz.
+      - taksit_hatirlatma_periyot_gun (number, varsayilan '7')
+          -> Son N gun icinde ayni taksit icin bildirim atildiysa atla.
+      - taksit_hatirlatma_ilk_gun (number, varsayilan '0')
+          -> Vadeden N gun sonra ilk hatirlatma basasin (0 = vade gunu).
+
+    Guvenlik: CRON_TOKEN (X-Cron-Token header / ?token=) veya admin/yonetici
+    login'i ile cagrilabilir.
+    """
+    # Auth
+    token_gecerli = False
+    beklenen = current_app.config.get('CRON_TOKEN')
+    if beklenen:
+        gelen = (request.headers.get('X-Cron-Token')
+                 or request.args.get('token'))
+        token_gecerli = bool(gelen) and gelen == beklenen
+
+    if not token_gecerli:
+        if not current_user.is_authenticated:
+            return jsonify({'error': 'auth required'}), 401
+        if current_user.rol not in ('admin', 'yonetici'):
+            return jsonify({'error': 'forbidden'}), 403
+
+    from app.models.ayarlar import SistemAyar
+    from app.models.muhasebe import Taksit, OdemePlani
+
+    def _ayar(anahtar, varsayilan):
+        val = SistemAyar.get(anahtar, None)
+        return varsayilan if val in (None, '') else val
+
+    aktif_str = str(_ayar('taksit_otomatik_hatirlatma_aktif', 'false')).lower()
+    if aktif_str not in ('1', 'true', 'evet', 'on'):
+        return jsonify({'success': True, 'skipped': 'ayar_kapali'})
+
+    try:
+        periyot_gun = int(_ayar('taksit_hatirlatma_periyot_gun', '7'))
+    except (TypeError, ValueError):
+        periyot_gun = 7
+    try:
+        ilk_gun = int(_ayar('taksit_hatirlatma_ilk_gun', '0'))
+    except (TypeError, ValueError):
+        ilk_gun = 0
+
+    bugun = date.today()
+    vade_esigi = bugun - timedelta(days=ilk_gun)
+
+    # Aktif plana bagli, odenmemis ve vadesi gecmis taksitler
+    taksitler = db.session.query(Taksit).join(
+        OdemePlani, Taksit.odeme_plani_id == OdemePlani.id
+    ).filter(
+        OdemePlani.durum == 'aktif',
+        Taksit.durum.notin_(['odendi', 'iptal']),
+        Taksit.vade_tarihi <= vade_esigi,
+    ).all()
+    geciken = [t for t in taksitler
+               if float(t.tutar) > float(t.odenen_tutar or 0)]
+
+    # Son N gunde ayni taksit icin bildirim atildiysa atla.
+    # Iz: BildirimGonderim.kaynak = 'gec_taksit:{taksit_id}'
+    esik_zaman = datetime.utcnow() - timedelta(days=periyot_gun)
+    son_loglar = BildirimGonderim.query.filter(
+        BildirimGonderim.kaynak.like('gec_taksit:%'),
+        BildirimGonderim.created_at >= esik_zaman,
+    ).all()
+    atildi_idler = set()
+    for log in son_loglar:
+        try:
+            atildi_idler.add(int(log.kaynak.split(':', 1)[1]))
+        except (ValueError, IndexError):
+            continue
+
+    # Sablon
+    sablon = BildirimSablonu.query.filter_by(
+        kategori='taksit_hatirlatma', aktif=True
+    ).order_by(BildirimSablonu.sistem.desc()).first()
+    varsayilan_baslik = '{ad} {soyad} - Geciken Taksit'
+    varsayilan_mesaj = ('Sayin veli, {ad} {soyad} icin {vade} tarihli '
+                        '{tutar} TL taksit odemesi gecikmistir. Lutfen '
+                        'muhasebeye ulasin.')
+    baslik_sbl = sablon.baslik if sablon else varsayilan_baslik
+    mesaj_sbl = sablon.mesaj if sablon else varsayilan_mesaj
+    link_sbl = (sablon.link if sablon else None) or '/portal/veli/muhasebe/'
+
+    toplam_taksit = 0
+    toplam_alici = 0
+    toplam_push = 0
+
+    for t in geciken:
+        if t.id in atildi_idler:
+            continue
+        plan = t.odeme_plani
+        ogrenci = plan.ogrenci if plan else None
+        if not ogrenci:
+            continue
+
+        hedefler = _veli_user_idleri(ogrenci)
+        if not hedefler:
+            oid = _ogrenci_user_id(ogrenci)
+            if oid:
+                hedefler = [oid]
+        hedefler = list(dict.fromkeys(hedefler))
+        if not hedefler:
+            continue
+
+        baglam = _ogrenci_baglamı(ogrenci)
+        kalan = float(t.tutar) - float(t.odenen_tutar or 0)
+        baglam['tutar'] = f'{kalan:,.2f}'
+        baglam['vade'] = (t.vade_tarihi.strftime('%d.%m.%Y')
+                          if t.vade_tarihi else '')
+
+        baslik = _placeholder_replace(baslik_sbl, baglam)
+        mesaj = _placeholder_replace(mesaj_sbl, baglam)
+
+        Bildirim.toplu_olustur(hedefler, baslik=baslik, mesaj=mesaj,
+                               tur='uyari', kategori='odeme', link=link_sbl)
+        basarili = push_gonder_kullanicilar(
+            hedefler, title=baslik, body=mesaj,
+            url=link_sbl, tag=f'taksit-{t.id}')
+
+        # Gonderen_id: oturum varsa kullanici, yoksa herhangi bir admin
+        if current_user.is_authenticated:
+            gonderen_id = current_user.id
+        else:
+            _admin = User.query.filter_by(rol='admin').first()
+            gonderen_id = _admin.id if _admin else 1
+
+        log = BildirimGonderim(
+            gonderen_id=gonderen_id,
+            sablon_id=sablon.id if sablon else None,
+            baslik=baslik_sbl,
+            mesaj=mesaj_sbl,
+            kategori='taksit_hatirlatma',
+            link=link_sbl,
+            alici_sayisi=len(hedefler),
+            push_basarili=basarili,
+            kaynak=f'gec_taksit:{t.id}',
+        )
+        db.session.add(log)
+        toplam_taksit += 1
+        toplam_alici += len(hedefler)
+        toplam_push += basarili
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'tarih': bugun.isoformat(),
+        'geciken_taksit_sayisi': len(geciken),
+        'hatirlatma_atilan': toplam_taksit,
+        'atlanan_periyot': len(geciken) - toplam_taksit,
+        'alici': toplam_alici,
+        'push_basarili': toplam_push,
+    })
+
+
 @bildirim_bp.route('/hatirlat/taksit/<int:taksit_id>', methods=['POST'])
 @login_required
 @role_required('admin', 'yonetici', 'muhasebeci')
@@ -468,7 +635,7 @@ def taksit_hatirlat(taksit_id: int):
         link=link_sbl,
         alici_sayisi=len(hedefler),
         push_basarili=basarili,
-        kaynak='muhasebe_hatirlat',
+        kaynak=f'gec_taksit:{taksit.id}',
     )
     db.session.add(log)
     db.session.commit()

@@ -477,6 +477,12 @@ def create_app(config_class=Config):
                 ('kdv_orani', '0', 'KDV Orani (%)', 'muhasebe', 'number', '0'),
                 ('gecikme_faizi', '0', 'Gecikme Faizi (%)', 'muhasebe', 'number', '0'),
                 ('odeme_hatirlatma_gun', '7', 'Odeme Hatirlatma (Gun)', 'muhasebe', 'number', '7'),
+                ('taksit_otomatik_hatirlatma_aktif', 'false',
+                 'Geciken Taksit Otomatik Hatirlatma', 'muhasebe', 'boolean', 'false'),
+                ('taksit_hatirlatma_periyot_gun', '7',
+                 'Geciken Taksit Hatirlatma Periyodu (Gun)', 'muhasebe', 'number', '7'),
+                ('taksit_hatirlatma_ilk_gun', '0',
+                 'Vade Gecince Ilk Hatirlatma (Gun)', 'muhasebe', 'number', '0'),
                 # Iletisim
                 ('sms_saglayici', 'yok', 'SMS Saglayici', 'iletisim', 'text', 'yok'),
                 ('bildirim_email', 'info@obs.local', 'Bildirim E-posta Adresi', 'iletisim', 'email', 'info@obs.local'),
@@ -495,6 +501,27 @@ def create_app(config_class=Config):
                     tur=tur,
                     varsayilan=varsayilan,
                 ))
+            db.session.commit()
+
+        # === Yeni eklenen SistemAyar anahtarlari (eski tenantlar icin backfill) ===
+        # Idempotent: sadece eksik olanlari ekler, mevcut degerleri bozmaz.
+        yeni_anahtarlar = [
+            ('taksit_otomatik_hatirlatma_aktif', 'false',
+             'Geciken Taksit Otomatik Hatirlatma', 'muhasebe', 'boolean', 'false'),
+            ('taksit_hatirlatma_periyot_gun', '7',
+             'Geciken Taksit Hatirlatma Periyodu (Gun)', 'muhasebe', 'number', '7'),
+            ('taksit_hatirlatma_ilk_gun', '0',
+             'Vade Gecince Ilk Hatirlatma (Gun)', 'muhasebe', 'number', '0'),
+        ]
+        eklendi = False
+        for anahtar, deger, aciklama, kategori, tur, varsayilan in yeni_anahtarlar:
+            if not SistemAyar.query.filter_by(anahtar=anahtar).first():
+                db.session.add(SistemAyar(
+                    anahtar=anahtar, deger=deger, aciklama=aciklama,
+                    kategori=kategori, tur=tur, varsayilan=varsayilan,
+                ))
+                eklendi = True
+        if eklendi:
             db.session.commit()
 
 

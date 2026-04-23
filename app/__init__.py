@@ -169,6 +169,7 @@ def create_app(config_class=Config):
                 {'label': 'Ders Programı', 'icon': 'bi-calendar-week', 'url': '/portal/program/'},
                 {'label': 'Sınavlar', 'icon': 'bi-pencil-square', 'url': '/portal/sinavlar/'},
                 {'label': 'Duyurular', 'icon': 'bi-megaphone', 'url': '/portal/duyurular/'},
+                {'label': 'Ödeme Durumu', 'icon': 'bi-cash-stack', 'url': '/portal/muhasebe/'},
             ]},
             {'label': 'Kullanıcı Yönetimi', 'icon': 'bi-shield-lock', 'url': '/kullanici/', 'modul_key': 'kullanici', 'children': [
                 {'label': 'Kullanıcı Listesi', 'icon': 'bi-people', 'url': '/kullanici/liste'},
@@ -537,7 +538,7 @@ def create_app(config_class=Config):
              'Sayin veli, {ad} {soyad} icin {vade} tarihinde {tutar} TL '
              'taksit odemesi bulunmaktadir. Odeme icin muhasebeye '
              'ulasabilirsiniz.',
-             'taksit_hatirlatma', '/portal/veli/muhasebe/'),
+             'taksit_hatirlatma', '/portal/muhasebe/'),
             ('Veli Gorusme Daveti',
              'Veli Gorusmesi Daveti - {ad} {soyad}',
              'Sayin {veli_ad} {veli_soyad}, {ad} {soyad} hakkinda '

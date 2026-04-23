@@ -500,7 +500,7 @@ def cron_geciken_taksit():
                         'muhasebeye ulasin.')
     baslik_sbl = sablon.baslik if sablon else varsayilan_baslik
     mesaj_sbl = sablon.mesaj if sablon else varsayilan_mesaj
-    link_sbl = (sablon.link if sablon else None) or '/portal/veli/muhasebe/'
+    link_sbl = (sablon.link if sablon else None) or '/portal/muhasebe/'
 
     toplam_taksit = 0
     toplam_alici = 0
@@ -596,7 +596,7 @@ def taksit_hatirlat(taksit_id: int):
                         '{tutar} TL taksit odemesi bulunmaktadir.')
     baslik_sbl = sablon.baslik if sablon else varsayilan_baslik
     mesaj_sbl = sablon.mesaj if sablon else varsayilan_mesaj
-    link_sbl = (sablon.link if sablon else None) or '/portal/veli/muhasebe/'
+    link_sbl = (sablon.link if sablon else None) or '/portal/muhasebe/'
 
     baglam = _ogrenci_baglamı(ogrenci)
     kalan = float(taksit.tutar) - float(taksit.odenen_tutar)

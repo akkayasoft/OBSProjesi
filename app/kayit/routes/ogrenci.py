@@ -1,7 +1,9 @@
+import base64
+import json
 import os
 import re
 import uuid
-from datetime import date
+from datetime import date, datetime
 from flask import (Blueprint, render_template, redirect, url_for, flash,
                    request, current_app, session, send_from_directory, abort,
                    send_file)
@@ -224,188 +226,279 @@ def toplu_yukle_sablon():
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
+def _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube):
+    """Excel'den okunan ham satirlari dogrular, '_hatalar' listesini doldurur.
+
+    satirlar listesini yerinde modifiye eder. Geri donerken ayni listeyi verir.
+    """
+    mevcut_numaralar = set(n for (n,) in db.session.query(Ogrenci.ogrenci_no).all())
+    dosya_numaralar = set()
+
+    for s in satirlar:
+        ogr_no, err = dogrula_str(s.get('ogrenci_no'), zorunlu=True, max_len=20, label='Öğrenci No')
+        if err:
+            s['_hatalar'].append(err)
+        else:
+            s['ogrenci_no'] = ogr_no
+            if ogr_no in mevcut_numaralar:
+                s['_hatalar'].append(f'Öğrenci No "{ogr_no}" zaten kayıtlı.')
+            if ogr_no in dosya_numaralar:
+                s['_hatalar'].append(f'Öğrenci No "{ogr_no}" dosyada mükerrer.')
+            dosya_numaralar.add(ogr_no)
+
+        ad, err = dogrula_str(s.get('ad'), zorunlu=True, max_len=100, label='Ad')
+        if err:
+            s['_hatalar'].append(err)
+        else:
+            s['ad'] = ad
+
+        soyad, err = dogrula_str(s.get('soyad'), zorunlu=True, max_len=100, label='Soyad')
+        if err:
+            s['_hatalar'].append(err)
+        else:
+            s['soyad'] = soyad
+
+        tc, err = dogrula_str(s.get('tc_kimlik'), max_len=11, label='TC Kimlik')
+        if err:
+            s['_hatalar'].append(err)
+        else:
+            s['tc_kimlik'] = tc
+
+        cins, err = dogrula_str(s.get('cinsiyet'), max_len=10, label='Cinsiyet')
+        if err:
+            s['_hatalar'].append(err)
+        elif cins and cins.lower() not in ('erkek', 'kadin'):
+            s['_hatalar'].append('Cinsiyet "erkek" veya "kadin" olmalı.')
+        else:
+            s['cinsiyet'] = cins.lower() if cins else None
+
+        dt, err = dogrula_tarih(s.get('dogum_tarihi'), label='Doğum Tarihi')
+        if err:
+            s['_hatalar'].append(err)
+        else:
+            s['dogum_tarihi'] = dt
+
+        for key, lbl, mx in [('telefon', 'Telefon', 20),
+                             ('email', 'E-posta', 120), ('veli_ad', 'Veli Ad', 100),
+                             ('veli_telefon', 'Veli Telefon', 20)]:
+            val, err = dogrula_str(s.get(key), max_len=mx, label=lbl)
+            if err:
+                s['_hatalar'].append(err)
+            else:
+                s[key] = val
+
+        adres, err = dogrula_str(s.get('adres'), max_len=1000, label='Adres')
+        if err:
+            s['_hatalar'].append(err)
+        else:
+            s['adres'] = adres
+
+        # --- Donem / Sinif / Sube cozumleme ---
+        donem_ad, err = dogrula_str(s.get('donem_ad'), max_len=20, label='Eğitim-Öğretim Yılı')
+        if err:
+            s['_hatalar'].append(err)
+        sinif_ad, err = dogrula_str(s.get('sinif_ad'), max_len=50, label='Sınıf')
+        if err:
+            s['_hatalar'].append(err)
+        sube_ad, err = dogrula_str(s.get('sube_ad'), max_len=10, label='Şube')
+        if err:
+            s['_hatalar'].append(err)
+
+        # Etkin donem: satirdaki ad varsa o, yoksa formdaki varsayilan
+        if donem_ad:
+            s['_donem_ad'] = donem_ad
+        elif varsayilan_donem:
+            s['_donem_ad'] = varsayilan_donem.ad
+        else:
+            s['_hatalar'].append(
+                'Eğitim-Öğretim Yılı boş (ne satırda ne de formda seçili).'
+            )
+
+        # Etkin sinif: satirda varsa o, yoksa varsayilan_sube.sinif.ad
+        if sinif_ad:
+            s['_sinif_ad'] = sinif_ad
+        elif varsayilan_sube:
+            s['_sinif_ad'] = varsayilan_sube.sinif.ad
+        else:
+            s['_hatalar'].append('Sınıf boş (ne satırda ne de formda seçili).')
+
+        # Etkin sube: satirda sube_ad varsa o, yoksa varsayilan
+        if sube_ad:
+            s['_sube_ad'] = sube_ad
+        elif varsayilan_sube:
+            s['_sube_ad'] = varsayilan_sube.ad
+        else:
+            s['_hatalar'].append('Şube boş (ne satırda ne de formda seçili).')
+
+        # Ogrenci.sinif string alani icin
+        if s.get('_sinif_ad'):
+            s['sinif'] = s['_sinif_ad']
+
+    return satirlar
+
+
+def _satir_to_jsonable(satirlar):
+    """Dogrulanmis satirlari JSON'a cevrilebilir hale getirir.
+    date/datetime -> ISO string, Decimal -> str, set -> list.
+    """
+    out = []
+    for s in satirlar:
+        d = {}
+        for k, v in s.items():
+            if isinstance(v, (date, datetime)):
+                d[k] = v.isoformat()
+            elif v is None:
+                d[k] = None
+            else:
+                d[k] = v if isinstance(v, (str, int, float, bool, list, dict)) else str(v)
+        out.append(d)
+    return out
+
+
+def _jsonable_to_satir(satirlar):
+    """_satir_to_jsonable'in tersi: ISO tarih stringlerini date'e cevir."""
+    out = []
+    for s in satirlar:
+        d = dict(s)
+        # dogum_tarihi string geldiyse date'e cevir
+        dt_str = d.get('dogum_tarihi')
+        if isinstance(dt_str, str) and dt_str:
+            try:
+                d['dogum_tarihi'] = datetime.fromisoformat(dt_str).date()
+            except ValueError:
+                d['dogum_tarihi'] = None
+        # _hatalar listesinin var oldugundan emin ol
+        d.setdefault('_hatalar', [])
+        out.append(d)
+    return out
+
+
+def _encode_payload(satirlar):
+    """Satir listesini base64 encoded JSON string'e cevir (hidden input icin)."""
+    raw = json.dumps(_satir_to_jsonable(satirlar), ensure_ascii=False).encode('utf-8')
+    return base64.b64encode(raw).decode('ascii')
+
+
+def _decode_payload(s):
+    """base64 encoded JSON'i satir listesine cevir."""
+    if not s:
+        return []
+    try:
+        raw = base64.b64decode(s.encode('ascii'))
+        data = json.loads(raw.decode('utf-8'))
+        return _jsonable_to_satir(data)
+    except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+        return []
+
+
 @bp.route('/toplu-yukle', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'muhasebeci', 'yonetici')
 def toplu_yukle():
-    """Excel dosyasi uzerinden ogrencileri toplu olusturur."""
-    onizleme = None
-    hatalar_ozet = None
+    """Toplu ogrenci yukleme — iki fazli: 'onizle' ve 'kaydet'.
 
-    # Donem + sube secenekleri (her zaman hazirla - GET + POST)
+    onizle: Excel yuklenir, parse + dogrula, satirlar hidden JSON alanda geri gonderilir.
+    kaydet: Hidden JSON'daki gecerli satirlar DB'ye yazilir (dosya tekrar yuklenmez).
+    """
     donemler = KayitDonemi.query.filter_by(aktif=True).order_by(KayitDonemi.ad.desc()).all()
     subeler = Sube.query.filter_by(aktif=True).join(Sinif).order_by(Sinif.seviye, Sube.ad).all()
 
-    # Secili degerler
-    secili_donem_id = request.values.get('donem_id', type=int)
-    secili_sube_id = request.values.get('sube_id', type=int)
+    onizleme = None
+    hatalar_ozet = None
+    payload_encoded = None
+    secili_donem_id = None
+    secili_sube_id = None
 
     if request.method == 'POST':
-        dosya = request.files.get('excel')
-        islem = request.form.get('islem', 'onizle')
+        islem = (request.form.get('islem') or 'onizle').strip()
 
-        if not dosya or not dosya.filename:
-            flash('Lütfen bir Excel dosyası seçin.', 'danger')
-            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None,
-                                   donemler=donemler, subeler=subeler,
-                                   secili_donem_id=secili_donem_id,
-                                   secili_sube_id=secili_sube_id)
+        # Varsayilan donem/sube secimi (her iki faz icin ayni)
+        try:
+            secili_donem_id = int(request.form.get('donem_id') or 0) or None
+        except (TypeError, ValueError):
+            secili_donem_id = None
+        try:
+            secili_sube_id = int(request.form.get('sube_id') or 0) or None
+        except (TypeError, ValueError):
+            secili_sube_id = None
 
-        if not dosya.filename.lower().endswith(('.xlsx', '.xlsm')):
-            flash('Sadece .xlsx formatında dosya yükleyebilirsiniz.', 'danger')
-            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None,
-                                   donemler=donemler, subeler=subeler,
-                                   secili_donem_id=secili_donem_id,
-                                   secili_sube_id=secili_sube_id)
-
-        # Varsayilan donem/sube (form'dan secilenler fallback olarak kullanilacak)
         varsayilan_donem = KayitDonemi.query.get(secili_donem_id) if secili_donem_id else None
         varsayilan_sube = Sube.query.get(secili_sube_id) if secili_sube_id else None
 
-        try:
-            satirlar = excel_oku(dosya, OGRENCI_BASLIKLAR)
-        except Exception as exc:
-            flash(f'Dosya okunamadı: {exc}', 'danger')
-            return render_template('kayit/ogrenci/toplu_yukle.html', onizleme=None,
-                                   donemler=donemler, subeler=subeler,
-                                   secili_donem_id=secili_donem_id,
-                                   secili_sube_id=secili_sube_id)
+        if islem == 'onizle':
+            # Excel dosyasini parse et
+            dosya = request.files.get('excel')
+            if not dosya or not dosya.filename:
+                flash('Lütfen bir Excel (.xlsx) dosyası seçin.', 'danger')
+                return render_template('kayit/ogrenci/toplu_yukle.html',
+                                       onizleme=None, hatalar_ozet=None,
+                                       basliklar=OGRENCI_BASLIKLAR,
+                                       donemler=donemler, subeler=subeler,
+                                       secili_donem_id=secili_donem_id,
+                                       secili_sube_id=secili_sube_id,
+                                       payload=None)
+            try:
+                satirlar = excel_oku(dosya, OGRENCI_BASLIKLAR)
+            except ValueError as exc:
+                flash(str(exc), 'danger')
+                return render_template('kayit/ogrenci/toplu_yukle.html',
+                                       onizleme=None, hatalar_ozet=None,
+                                       basliklar=OGRENCI_BASLIKLAR,
+                                       donemler=donemler, subeler=subeler,
+                                       secili_donem_id=secili_donem_id,
+                                       secili_sube_id=secili_sube_id,
+                                       payload=None)
+            except Exception as exc:
+                flash(f'Excel okunamadi: {exc}', 'danger')
+                return render_template('kayit/ogrenci/toplu_yukle.html',
+                                       onizleme=None, hatalar_ozet=None,
+                                       basliklar=OGRENCI_BASLIKLAR,
+                                       donemler=donemler, subeler=subeler,
+                                       secili_donem_id=secili_donem_id,
+                                       secili_sube_id=secili_sube_id,
+                                       payload=None)
 
-        # Dogrulama
-        mevcut_numaralar = set(n for (n,) in db.session.query(Ogrenci.ogrenci_no).all())
-        dosya_numaralar = set()
+            _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube)
+            gecerli = [s for s in satirlar if not s['_hatalar']]
+            hatali = [s for s in satirlar if s['_hatalar']]
+            hatalar_ozet = {
+                'toplam': len(satirlar),
+                'gecerli': len(gecerli),
+                'hatali': len(hatali),
+            }
+            onizleme = satirlar
+            # Yalnizca gecerli satirlari payload'a koy — kaydet adiminda onlar islenir.
+            payload_encoded = _encode_payload(gecerli) if gecerli else None
 
-        for s in satirlar:
-            ogr_no, err = dogrula_str(s.get('ogrenci_no'), zorunlu=True, max_len=20, label='Öğrenci No')
-            if err:
-                s['_hatalar'].append(err)
-            else:
-                s['ogrenci_no'] = ogr_no
-                if ogr_no in mevcut_numaralar:
-                    s['_hatalar'].append(f'Öğrenci No "{ogr_no}" zaten kayıtlı.')
-                if ogr_no in dosya_numaralar:
-                    s['_hatalar'].append(f'Öğrenci No "{ogr_no}" dosyada mükerrer.')
-                dosya_numaralar.add(ogr_no)
+        elif islem == 'kaydet':
+            payload_raw = request.form.get('payload') or ''
+            gecerli_satirlar = _decode_payload(payload_raw)
 
-            ad, err = dogrula_str(s.get('ad'), zorunlu=True, max_len=100, label='Ad')
-            if err:
-                s['_hatalar'].append(err)
-            else:
-                s['ad'] = ad
+            if not gecerli_satirlar:
+                flash('Kaydedilecek satır bulunamadı. Lütfen önce dosyayı yükleyip önizleyin.', 'warning')
+                return redirect(url_for('kayit.ogrenci.toplu_yukle'))
 
-            soyad, err = dogrula_str(s.get('soyad'), zorunlu=True, max_len=100, label='Soyad')
-            if err:
-                s['_hatalar'].append(err)
-            else:
-                s['soyad'] = soyad
-
-            tc, err = dogrula_str(s.get('tc_kimlik'), max_len=11, label='TC Kimlik')
-            if err:
-                s['_hatalar'].append(err)
-            else:
-                s['tc_kimlik'] = tc
-
-            cins, err = dogrula_str(s.get('cinsiyet'), max_len=10, label='Cinsiyet')
-            if err:
-                s['_hatalar'].append(err)
-            elif cins and cins.lower() not in ('erkek', 'kadin'):
-                s['_hatalar'].append('Cinsiyet "erkek" veya "kadin" olmalı.')
-            else:
-                s['cinsiyet'] = cins.lower() if cins else None
-
-            dt, err = dogrula_tarih(s.get('dogum_tarihi'), label='Doğum Tarihi')
-            if err:
-                s['_hatalar'].append(err)
-            else:
-                s['dogum_tarihi'] = dt
-
-            for key, lbl, mx in [('telefon', 'Telefon', 20),
-                                 ('email', 'E-posta', 120), ('veli_ad', 'Veli Ad', 100),
-                                 ('veli_telefon', 'Veli Telefon', 20)]:
-                val, err = dogrula_str(s.get(key), max_len=mx, label=lbl)
-                if err:
-                    s['_hatalar'].append(err)
-                else:
-                    s[key] = val
-
-            adres, err = dogrula_str(s.get('adres'), max_len=1000, label='Adres')
-            if err:
-                s['_hatalar'].append(err)
-            else:
-                s['adres'] = adres
-
-            # --- Donem / Sinif / Sube cozumleme ---
-            donem_ad, err = dogrula_str(s.get('donem_ad'), max_len=20, label='Eğitim-Öğretim Yılı')
-            if err:
-                s['_hatalar'].append(err)
-            sinif_ad, err = dogrula_str(s.get('sinif_ad'), max_len=50, label='Sınıf')
-            if err:
-                s['_hatalar'].append(err)
-            sube_ad, err = dogrula_str(s.get('sube_ad'), max_len=10, label='Şube')
-            if err:
-                s['_hatalar'].append(err)
-
-            # Etkin donem: satirdaki ad varsa o, yoksa formdaki varsayilan
-            if donem_ad:
-                s['_donem_ad'] = donem_ad
-            elif varsayilan_donem:
-                s['_donem_ad'] = varsayilan_donem.ad
-            else:
-                s['_hatalar'].append(
-                    'Eğitim-Öğretim Yılı boş (ne satırda ne de formda seçili).'
-                )
-
-            # Etkin sinif: satirda varsa o, yoksa varsayilan_sube.sinif.ad
-            if sinif_ad:
-                s['_sinif_ad'] = sinif_ad
-            elif varsayilan_sube:
-                s['_sinif_ad'] = varsayilan_sube.sinif.ad
-            else:
-                s['_hatalar'].append('Sınıf boş (ne satırda ne de formda seçili).')
-
-            # Etkin sube: satirda sube_ad varsa o, yoksa varsayilan
-            if sube_ad:
-                s['_sube_ad'] = sube_ad
-            elif varsayilan_sube:
-                s['_sube_ad'] = varsayilan_sube.ad
-                # Sinif da verilmediyse varsayilandan al (zaten yukarida atanmis)
-            else:
-                s['_hatalar'].append('Şube boş (ne satırda ne de formda seçili).')
-
-            # Ogrenci.sinif string alani icin
-            if s.get('_sinif_ad'):
-                s['sinif'] = s['_sinif_ad']
-
-        gecerli = [s for s in satirlar if not s['_hatalar']]
-        hatali = [s for s in satirlar if s['_hatalar']]
-
-        hatalar_ozet = {
-            'toplam': len(satirlar),
-            'gecerli': len(gecerli),
-            'hatali': len(hatali),
-        }
-
-        if islem == 'kaydet' and gecerli:
             eklenen = 0
-            for s in gecerli:
+            hata_satirlari = []
+            for s in gecerli_satirlar:
                 try:
                     username = s['ogrenci_no']
                     varsayilan_sifre = s.get('tc_kimlik') or s['ogrenci_no']
 
-                    # Username mukerrer kontrolu
+                    # Mukerrer kontroller (payload olusturulduktan sonra DB degismis olabilir)
                     if User.query.filter_by(username=username).first():
-                        s['_hatalar'].append(f'Kullanıcı adı "{username}" zaten var.')
+                        hata_satirlari.append(f"#{s.get('_satir_no', '?')} — Kullanıcı adı '{username}' zaten var.")
+                        continue
+                    if Ogrenci.query.filter_by(ogrenci_no=s['ogrenci_no']).first():
+                        hata_satirlari.append(f"#{s.get('_satir_no', '?')} — Öğrenci No '{s['ogrenci_no']}' zaten kayıtlı.")
                         continue
 
-                    # Donem / Sinif / Sube cozumle (yoksa olustur)
                     donem = resolve_or_create_donem(s.get('_donem_ad'))
                     sinif = resolve_or_create_sinif(s.get('_sinif_ad'))
                     sube = resolve_or_create_sube(sinif, s.get('_sube_ad'))
 
                     if not donem or not sube:
-                        s['_hatalar'].append(
-                            'Dönem / Sınıf / Şube çözümlenemedi.'
-                        )
+                        hata_satirlari.append(f"#{s.get('_satir_no', '?')} — Dönem/Sınıf/Şube çözümlenemedi.")
                         continue
 
                     user = User(
@@ -414,7 +507,7 @@ def toplu_yukle():
                         ad=s['ad'],
                         soyad=s['soyad'],
                         rol='ogrenci',
-                        aktif=True
+                        aktif=True,
                     )
                     user.set_password(varsayilan_sifre)
                     db.session.add(user)
@@ -439,7 +532,6 @@ def toplu_yukle():
                     db.session.add(ogrenci)
                     db.session.flush()
 
-                    # OgrenciKayit olustur (donem + sube baglantisi)
                     kayit = OgrenciKayit(
                         ogrenci_id=ogrenci.id,
                         donem_id=donem.id,
@@ -449,26 +541,29 @@ def toplu_yukle():
                         olusturan_id=current_user.id,
                     )
                     db.session.add(kayit)
+                    db.session.commit()
                     eklenen += 1
                 except Exception as exc:
                     db.session.rollback()
-                    s['_hatalar'].append(f'Kayıt hatası: {exc}')
+                    hata_satirlari.append(f"#{s.get('_satir_no', '?')} — Kayıt hatası: {exc}")
 
-            db.session.commit()
-            flash(f'{eklenen} öğrenci başarıyla eklendi.' +
-                  (f' {len(hatali)} satır hata nedeniyle atlandı.' if hatali else ''),
-                  'success' if eklenen else 'warning')
-            if not hatali:
-                return redirect(url_for('kayit.ogrenci.liste'))
-
-        onizleme = satirlar
+            if eklenen:
+                flash(f'{eklenen} öğrenci başarıyla eklendi.' +
+                      (f' {len(hata_satirlari)} satır atlandı.' if hata_satirlari else ''),
+                      'success')
+            else:
+                flash('Hiç öğrenci eklenemedi.', 'warning')
+            for h in hata_satirlari[:10]:
+                flash(h, 'warning')
+            return redirect(url_for('kayit.ogrenci.liste'))
 
     return render_template('kayit/ogrenci/toplu_yukle.html',
                            onizleme=onizleme, hatalar_ozet=hatalar_ozet,
                            basliklar=OGRENCI_BASLIKLAR,
                            donemler=donemler, subeler=subeler,
                            secili_donem_id=secili_donem_id,
-                           secili_sube_id=secili_sube_id)
+                           secili_sube_id=secili_sube_id,
+                           payload=payload_encoded)
 
 
 @bp.route('/karteks-yukle', methods=['GET', 'POST'])

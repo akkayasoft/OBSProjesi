@@ -101,13 +101,15 @@
 <div class="card shadow-sm">
     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h6 class="mb-0"><i class="bi bi-table me-2"></i>Önizleme</h6>
-        {% if hatalar_ozet and hatalar_ozet.gecerli > 0 %}
-        <form method="POST" enctype="multipart/form-data" id="kaydetForm">
+        {% if hatalar_ozet and hatalar_ozet.gecerli > 0 and payload %}
+        <form method="POST" id="kaydetForm"
+              onsubmit="return confirm('Geçerli {{ hatalar_ozet.gecerli }} satırı kaydetmek istediğinizden emin misiniz?');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="islem" value="kaydet">
             <input type="hidden" name="donem_id" value="{{ secili_donem_id or '' }}">
             <input type="hidden" name="sube_id" value="{{ secili_sube_id or '' }}">
-            <input type="file" name="excel" id="kaydetExcel" class="d-none" accept=".xlsx,.xlsm">
-            <button type="button" class="btn btn-success" onclick="tekrarYukleVeKaydet()">
+            <input type="hidden" name="payload" value="{{ payload }}">
+            <button type="submit" class="btn btn-success">
                 <i class="bi bi-check-circle me-1"></i>Geçerli {{ hatalar_ozet.gecerli }} Satırı Kaydet
             </button>
         </form>
@@ -176,31 +178,5 @@
     Kullanıcı adı öğrenci numarası, varsayılan şifre TC kimlik numarasıdır (TC yoksa öğrenci numarası).
 </div>
 
-<script>
-// Kaydet butonu icin: Onizleme adimi disinda bir POST yapabilmek icin dosyayi yeniden yuklemek gerekir.
-// Bunun yerine pratik olarak kullanici "Kaydet"i tiklayinca ayni dosyayi tekrar secip gondermesi gerektigini soyluyoruz.
-// Alternatif: submit'de islem=kaydet olacak sekilde ayni dosyayi ekle.
-function tekrarYukleVeKaydet() {
-    const orjinalInput = document.querySelector('input[name="excel"][type="file"]:not(#kaydetExcel)');
-    if (!orjinalInput || !orjinalInput.files || orjinalInput.files.length === 0) {
-        alert('Lütfen yukarıdaki alandan Excel dosyasını tekrar seçin ve ardından Kaydet butonuna basın.');
-        return;
-    }
-    if (!confirm('Geçerli satırları veritabanına kaydetmek istediğinizden emin misiniz?')) return;
-
-    const form = document.getElementById('kaydetForm');
-    const dt = new DataTransfer();
-    dt.items.add(orjinalInput.files[0]);
-    document.getElementById('kaydetExcel').files = dt.files;
-
-    // islem=kaydet gizli alanini ekle
-    const hidden = document.createElement('input');
-    hidden.type = 'hidden';
-    hidden.name = 'islem';
-    hidden.value = 'kaydet';
-    form.appendChild(hidden);
-    form.submit();
-}
-</script>
 {% endif %}
 {% endblock %}

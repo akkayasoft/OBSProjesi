@@ -61,47 +61,107 @@ def excel_sablonu_olustur(basliklar, ornek_satirlar=None, aciklama_satiri=None, 
     return output
 
 
-def excel_oku(dosya, basliklar, baslangic_satir=2):
+def _normalize_header(s):
+    """Baslik karsilastirmasi icin normalize et: kucuk harf, bosluksuz,
+    '*' ve parantezli notlari at. 'Öğrenci No *' == 'ogrenci no'."""
+    import re as _re
+    s = str(s or '').strip()
+    # '(erkek/kadin)', '(YYYY-MM-DD)' gibi aciklamalari kaldir
+    s = _re.sub(r'\([^)]*\)', '', s)
+    s = s.replace('*', '').strip().lower()
+    # Turkce harf normalize
+    tr_map = {'ı': 'i', 'ş': 's', 'ğ': 'g', 'ü': 'u', 'ö': 'o', 'ç': 'c'}
+    for a, b in tr_map.items():
+        s = s.replace(a, b)
+    # Bosluklari ve noktalama kaldir
+    s = _re.sub(r'[\s\-_.]+', '', s)
+    return s
+
+
+def excel_oku(dosya, basliklar, max_header_satir=5):
     """Yuklenen Excel dosyasini parse eder.
 
     basliklar: excel_sablonu_olustur ile ayni format
-    baslangic_satir: veri satirlarinin basladigi satir (aciklama varsa 3, yoksa 2)
+                (list[dict] -- {'key','label','zorunlu'})
+    max_header_satir: basligin aranacagi ilk N satir (aciklama satiri, bos
+                satir vs. dusunulerek biraz esnek).
 
-    Donus: list[dict] — her biri key -> deger map'i, ek olarak '_satir_no' ve '_hatalar' alanlari
+    Veriyi kolonun POZISYONU yerine BASLIK ADIYLA eslestirir — yani
+    kullanici Excel'de kolon sirasini degistirse ya da araya kolon eklese
+    bile dogru degerler ilgili alanlara gider. Bilinmeyen kolonlar atlanir,
+    bulunamayan ZORUNLU basliklar icin net bir hata firlatilir.
+
+    Donus: list[dict] — her biri key -> deger map'i, ek olarak
+           '_satir_no' ve '_hatalar' alanlari.
     """
     from openpyxl import load_workbook
 
     wb = load_workbook(dosya, data_only=True)
     ws = wb.active
 
-    # Baslik satirini bul (aciklama satiri var mi?)
-    baslik_satir_no = None
-    for r in range(1, 4):
-        row_vals = [str(ws.cell(row=r, column=c).value or '').replace(' *', '').strip()
-                    for c in range(1, len(basliklar) + 1)]
-        expected = [b['label'] for b in basliklar]
-        # En az ilk 3 basligin eslesmesi yeterli
-        match = sum(1 for a, e in zip(row_vals, expected) if a == e)
-        if match >= min(3, len(basliklar)):
-            baslik_satir_no = r
-            break
+    # Beklenen basliklari normalize et (label VE key ikisine de bakacagiz)
+    beklenen = {}
+    for b in basliklar:
+        beklenen[_normalize_header(b['label'])] = b['key']
+        beklenen[_normalize_header(b['key'])] = b['key']
 
-    if baslik_satir_no is None:
+    # Baslik satirini ara: en cok eslesme veren satir. Tum kolonlari tarariz
+    # (100 kolona kadar yeter).
+    max_col = min(ws.max_column or len(basliklar) * 2, 100)
+    baslik_satir_no = None
+    col_map = {}  # key -> excel col idx
+    en_iyi_eslesme = 0
+
+    for r in range(1, max_header_satir + 1):
+        guncel_map = {}
+        for c in range(1, max_col + 1):
+            raw = ws.cell(row=r, column=c).value
+            if raw is None:
+                continue
+            norm = _normalize_header(raw)
+            if norm in beklenen:
+                key = beklenen[norm]
+                # Ayni anahtarin iki kolonu varsa ilk bulunan kullanilir
+                if key not in guncel_map:
+                    guncel_map[key] = c
+        if len(guncel_map) > en_iyi_eslesme:
+            en_iyi_eslesme = len(guncel_map)
+            baslik_satir_no = r
+            col_map = guncel_map
+
+    # En az zorunlu basliklarin tamami bulunmali
+    zorunlu_keys = [b['key'] for b in basliklar if b.get('zorunlu')]
+    eksik_zorunlu = [b['label'] for b in basliklar
+                     if b.get('zorunlu') and b['key'] not in col_map]
+
+    if baslik_satir_no is None or en_iyi_eslesme < min(3, len(basliklar)):
         raise ValueError(
-            'Şablon başlıkları bulunamadı. Lütfen indirilen şablonu kullanın ve '
-            'başlık satırını değiştirmeyin.'
+            'Şablon başlıkları bulunamadı. Lütfen indirilen şablonu kullanın '
+            've başlık satırını değiştirmeyin.'
+        )
+
+    if eksik_zorunlu:
+        raise ValueError(
+            'Excel\'de şu zorunlu sütun(lar) bulunamadı: '
+            + ', '.join(eksik_zorunlu)
+            + '. Şablonu yeniden indirip başlıkları değiştirmeden doldurun.'
         )
 
     satirlar = []
-    for r in range(baslik_satir_no + 1, ws.max_row + 1):
+    for r in range(baslik_satir_no + 1, (ws.max_row or baslik_satir_no) + 1):
         satir = {'_satir_no': r, '_hatalar': []}
         hepsi_bos = True
 
-        for idx, b in enumerate(basliklar, start=1):
-            val = ws.cell(row=r, column=idx).value
+        # Kolon-eslemesi uzerinden oku (pozisyon degil, baslik-esli)
+        for key, col_idx in col_map.items():
+            val = ws.cell(row=r, column=col_idx).value
             if val is not None and str(val).strip() != '':
                 hepsi_bos = False
-            satir[b['key']] = val
+            satir[key] = val
+
+        # Bilinmeyen / bulunmayan basliklari None yap
+        for b in basliklar:
+            satir.setdefault(b['key'], None)
 
         if hepsi_bos:
             continue

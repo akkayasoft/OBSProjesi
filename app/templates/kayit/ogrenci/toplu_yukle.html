@@ -102,7 +102,8 @@
     <div class="d-flex align-items-start">
         <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-2"></i>
         <div class="flex-grow-1">
-            <strong>{{ hatalar_ozet.hatali }} satır hatalı.</strong> Tablodaki kırmızı satırları düzeltip dosyayı yeniden yükleyin.
+            <strong>{{ hatalar_ozet.hatali }} satır hatalı.</strong>
+            Aşağıdaki kırmızı satırlarda <strong>doğrudan hücreleri düzenleyip</strong> tekrar <em>Kaydet</em>'e basabilirsiniz. Excel'e dönmenize gerek yok.
             {% set ortak_hatalar = {} %}
             {% for s in onizleme %}
                 {% for h in s._hatalar %}
@@ -120,91 +121,118 @@
             <div class="mt-2">
                 <i class="bi bi-lightbulb me-1"></i>
                 <strong>İpuçları:</strong>
-                Dönem/Şube sütunları boşsa, yukarıdaki <em>Varsayılan Dönem / Şube</em> dropdown'larından seçin.
-                Sınıf sütununa <code>7-A</code> gibi birleşik yazarsanız otomatik ayrıştırılır.
+                Dönem/Şube boşsa, yukarıdaki <em>Varsayılan Dönem / Şube</em> dropdown'larını kullanın ya da bu tablodaki hücreleri doldurun.
+                Sınıf hücresine <code>7-A</code> gibi birleşik yazarsanız otomatik ayrıştırılır.
             </div>
         </div>
     </div>
 </div>
 {% endif %}
 
-<!-- Onizleme tablosu -->
-<div class="card shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h6 class="mb-0"><i class="bi bi-table me-2"></i>Önizleme</h6>
-        {% if hatalar_ozet and hatalar_ozet.gecerli > 0 and payload %}
-        <form method="POST" id="kaydetForm"
-              onsubmit="return confirm('Geçerli {{ hatalar_ozet.gecerli }} satırı kaydetmek istediğinizden emin misiniz?');">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="islem" value="kaydet">
-            <input type="hidden" name="donem_id" value="{{ secili_donem_id or '' }}">
-            <input type="hidden" name="sube_id" value="{{ secili_sube_id or '' }}">
-            <input type="hidden" name="payload" value="{{ payload }}">
+<!-- Onizleme tablosu (duzenlenebilir) -->
+<form method="POST" id="kaydetForm"
+      onsubmit="return confirm('Satırlar kaydedilsin mi? Geçerli olanlar DB\'ye yazılır, hatalı kalanlar düzeltilmek üzere listede kalır.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="islem" value="kaydet">
+    <input type="hidden" name="donem_id" value="{{ secili_donem_id or '' }}">
+    <input type="hidden" name="sube_id" value="{{ secili_sube_id or '' }}">
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h6 class="mb-0"><i class="bi bi-table me-2"></i>Önizleme — <small class="text-muted fw-normal">hücreleri düzenleyebilirsiniz</small></h6>
+            {% if onizleme|length > 0 %}
             <button type="submit" class="btn btn-success">
-                <i class="bi bi-check-circle me-1"></i>Geçerli {{ hatalar_ozet.gecerli }} Satırı Kaydet
+                <i class="bi bi-check-circle me-1"></i>
+                {% if hatalar_ozet and hatalar_ozet.gecerli > 0 %}
+                    {{ hatalar_ozet.gecerli }} Geçerli Satırı Kaydet
+                {% else %}
+                    Düzelt ve Kaydet
+                {% endif %}
             </button>
-        </form>
+            {% endif %}
+        </div>
+
+        {% if onizleme|length == 0 %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+            <p class="mt-2 mb-0">Dosyada veri satırı bulunamadı.</p>
+        </div>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle" style="min-width: 1800px;">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th style="width: 90px;">Durum</th>
+                        {% for b in basliklar %}
+                        <th style="min-width: 130px;">{{ b.label }}{% if b.zorunlu %}<span class="text-danger">*</span>{% endif %}</th>
+                        {% endfor %}
+                        <th style="min-width: 200px;">Hatalar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in onizleme %}
+                    <tr class="{% if s._hatalar %}table-danger{% else %}table-success{% endif %}">
+                        <td><strong>{{ s._satir_no }}</strong></td>
+                        <td>
+                            {% if s._hatalar %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Hatalı</span>
+                            {% else %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Geçerli</span>
+                            {% endif %}
+                        </td>
+                        {% for b in basliklar %}
+                        {% set val = s.get(b.key) %}
+                        <td class="p-1">
+                            {% if b.key == 'cinsiyet' %}
+                            <select name="row_{{ s._satir_no }}_{{ b.key }}" class="form-select form-select-sm">
+                                <option value="" {% if not val %}selected{% endif %}>—</option>
+                                <option value="erkek" {% if val == 'erkek' %}selected{% endif %}>erkek</option>
+                                <option value="kadin" {% if val == 'kadin' %}selected{% endif %}>kadın</option>
+                            </select>
+                            {% elif b.key == 'dogum_tarihi' %}
+                            <input type="date" name="row_{{ s._satir_no }}_{{ b.key }}"
+                                   value="{{ val or '' }}"
+                                   class="form-control form-control-sm">
+                            {% else %}
+                            <input type="text" name="row_{{ s._satir_no }}_{{ b.key }}"
+                                   value="{{ val if val is not none else '' }}"
+                                   class="form-control form-control-sm"
+                                   {% if b.zorunlu %}placeholder="zorunlu"{% endif %}>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="small text-danger">
+                            {% if s._hatalar %}
+                            <ul class="mb-0 ps-3">
+                                {% for h in s._hatalar %}
+                                <li>{{ h }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if onizleme|length > 0 %}
+        <div class="card-footer bg-light">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle me-1"></i> Kaydet
+            </button>
+            <small class="text-muted ms-2">
+                Geçerli satırlar DB'ye yazılır; hatalı kalan satırlar tekrar düzeltilmek üzere burada listelenir.
+            </small>
+        </div>
         {% endif %}
     </div>
+</form>
 
-    {% if onizleme|length == 0 %}
-    <div class="text-center text-muted py-5">
-        <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
-        <p class="mt-2 mb-0">Dosyada veri satırı bulunamadı.</p>
-    </div>
-    {% else %}
-    <div class="table-responsive">
-        <table class="table table-sm table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 60px;">Satır</th>
-                    <th style="width: 100px;">Durum</th>
-                    {% for b in basliklar %}
-                    <th>{{ b.label }}{% if b.zorunlu %}<span class="text-danger">*</span>{% endif %}</th>
-                    {% endfor %}
-                    <th>Hatalar</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in onizleme %}
-                <tr class="{% if s._hatalar %}table-danger{% else %}table-success{% endif %}">
-                    <td><strong>{{ s._satir_no }}</strong></td>
-                    <td>
-                        {% if s._hatalar %}
-                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Hatalı</span>
-                        {% else %}
-                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Geçerli</span>
-                        {% endif %}
-                    </td>
-                    {% for b in basliklar %}
-                    <td class="small">
-                        {% set val = s.get(b.key) %}
-                        {% if val is none or val == '' %}
-                        <span class="text-muted">—</span>
-                        {% else %}
-                        {{ val }}
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                    <td class="small text-danger">
-                        {% if s._hatalar %}
-                        <ul class="mb-0 ps-3">
-                            {% for h in s._hatalar %}
-                            <li>{{ h }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-</div>
-
-<div class="alert alert-warning small mt-3">
-    <i class="bi bi-exclamation-triangle me-1"></i>
+<div class="alert alert-info small mt-3">
+    <i class="bi bi-info-circle me-1"></i>
     <strong>Not:</strong> Kaydet butonuna bastığınızda öğrenciler için otomatik kullanıcı hesabı oluşturulur.
     Kullanıcı adı öğrenci numarası, varsayılan şifre TC kimlik numarasıdır (TC yoksa öğrenci numarası).
 </div>

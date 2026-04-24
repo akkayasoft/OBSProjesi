@@ -413,6 +413,105 @@ def _decode_payload(s):
         return []
 
 
+def _satir_to_display(satirlar):
+    """Template'e gondermeden once date/datetime degerlerini ISO string'e cevir.
+    Inputlarda `value="2010-03-14"` gibi yazilabilsin diye.
+    """
+    for s in satirlar:
+        for k, v in list(s.items()):
+            if isinstance(v, (date, datetime)):
+                s[k] = v.isoformat()
+    return satirlar
+
+
+def _form_alanlarindan_satirlar(form):
+    """request.form'dan 'row_<satir_no>_<key>' alanlarini toplar.
+
+    Kullanicinin inline duzenlediği preview tablosundan gelen satirlari
+    reconstruct eder. Key'ler underscore icerebilir (ogrenci_no, veli_ad...)
+    oldugu icin once '<sayilar>_' onekini cikarip geri kalani key kabul eder.
+    """
+    satirlar_map = {}
+    for field_name, value in form.items():
+        m = re.match(r'^row_(\d+)_(.+)$', field_name)
+        if not m:
+            continue
+        satir_no = int(m.group(1))
+        key = m.group(2)
+        if isinstance(value, str):
+            value = value.strip()
+        d = satirlar_map.setdefault(
+            satir_no, {'_satir_no': satir_no, '_hatalar': []})
+        d[key] = value if value else None
+    return [satirlar_map[k] for k in sorted(satirlar_map.keys())]
+
+
+def _ogrenci_kaydet_bir(s):
+    """Tek bir gecerli satiri DB'ye yazar. Basarili ise (True, None),
+    aksi halde (False, 'hata mesaji') doner. Basarisizlikta rollback yapar."""
+    try:
+        username = s['ogrenci_no']
+        varsayilan_sifre = s.get('tc_kimlik') or s['ogrenci_no']
+
+        if User.query.filter_by(username=username).first():
+            return False, f"Kullanıcı adı '{username}' zaten var."
+        if Ogrenci.query.filter_by(ogrenci_no=s['ogrenci_no']).first():
+            return False, f"Öğrenci No '{s['ogrenci_no']}' zaten kayıtlı."
+
+        donem = resolve_or_create_donem(s.get('_donem_ad'))
+        sinif = resolve_or_create_sinif(s.get('_sinif_ad'))
+        sube = resolve_or_create_sube(sinif, s.get('_sube_ad'))
+
+        if not donem or not sube:
+            return False, 'Dönem/Sınıf/Şube çözümlenemedi.'
+
+        user = User(
+            username=username,
+            email=s.get('email') or f"{username}@ogrenci.obs",
+            ad=s['ad'],
+            soyad=s['soyad'],
+            rol='ogrenci',
+            aktif=True,
+        )
+        user.set_password(varsayilan_sifre)
+        db.session.add(user)
+        db.session.flush()
+
+        ogrenci = Ogrenci(
+            user_id=user.id,
+            ogrenci_no=s['ogrenci_no'],
+            tc_kimlik=s.get('tc_kimlik'),
+            ad=s['ad'],
+            soyad=s['soyad'],
+            cinsiyet=s.get('cinsiyet'),
+            dogum_tarihi=s.get('dogum_tarihi'),
+            sinif=s.get('sinif') or sube.sinif.ad,
+            telefon=s.get('telefon'),
+            email=s.get('email'),
+            adres=s.get('adres'),
+            veli_ad=s.get('veli_ad'),
+            veli_telefon=s.get('veli_telefon'),
+            aktif=True,
+        )
+        db.session.add(ogrenci)
+        db.session.flush()
+
+        kayit = OgrenciKayit(
+            ogrenci_id=ogrenci.id,
+            donem_id=donem.id,
+            sube_id=sube.id,
+            kayit_tarihi=date.today(),
+            durum='aktif',
+            olusturan_id=current_user.id,
+        )
+        db.session.add(kayit)
+        db.session.commit()
+        return True, None
+    except Exception as exc:
+        db.session.rollback()
+        return False, f'Kayıt hatası: {exc}'
+
+
 @bp.route('/toplu-yukle', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'muhasebeci', 'yonetici')
@@ -499,92 +598,59 @@ def toplu_yukle():
             payload_encoded = _encode_payload(gecerli) if gecerli else None
 
         elif islem == 'kaydet':
-            payload_raw = request.form.get('payload') or ''
-            gecerli_satirlar = _decode_payload(payload_raw)
+            # Satirlari once duzenlenebilir form alanlarindan oku; bos ise
+            # geriye uyumluluk icin base64 payload'a bak.
+            satirlar = _form_alanlarindan_satirlar(request.form)
+            if not satirlar:
+                payload_raw = request.form.get('payload') or ''
+                satirlar = _decode_payload(payload_raw)
 
-            if not gecerli_satirlar:
+            if not satirlar:
                 flash('Kaydedilecek satır bulunamadı. Lütfen önce dosyayı yükleyip önizleyin.', 'warning')
                 return redirect(url_for('kayit.ogrenci.toplu_yukle'))
 
+            # Tamamen bos satirlari at
+            satirlar = [s for s in satirlar if any(
+                s.get(b['key']) for b in OGRENCI_BASLIKLAR)]
+
+            # Kullanici inline duzenleme sonrasi yeniden dogrulama yap
+            _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube)
+
             eklenen = 0
-            hata_satirlari = []
-            for s in gecerli_satirlar:
-                try:
-                    username = s['ogrenci_no']
-                    varsayilan_sifre = s.get('tc_kimlik') or s['ogrenci_no']
-
-                    # Mukerrer kontroller (payload olusturulduktan sonra DB degismis olabilir)
-                    if User.query.filter_by(username=username).first():
-                        hata_satirlari.append(f"#{s.get('_satir_no', '?')} — Kullanıcı adı '{username}' zaten var.")
-                        continue
-                    if Ogrenci.query.filter_by(ogrenci_no=s['ogrenci_no']).first():
-                        hata_satirlari.append(f"#{s.get('_satir_no', '?')} — Öğrenci No '{s['ogrenci_no']}' zaten kayıtlı.")
-                        continue
-
-                    donem = resolve_or_create_donem(s.get('_donem_ad'))
-                    sinif = resolve_or_create_sinif(s.get('_sinif_ad'))
-                    sube = resolve_or_create_sube(sinif, s.get('_sube_ad'))
-
-                    if not donem or not sube:
-                        hata_satirlari.append(f"#{s.get('_satir_no', '?')} — Dönem/Sınıf/Şube çözümlenemedi.")
-                        continue
-
-                    user = User(
-                        username=username,
-                        email=s.get('email') or f"{username}@ogrenci.obs",
-                        ad=s['ad'],
-                        soyad=s['soyad'],
-                        rol='ogrenci',
-                        aktif=True,
-                    )
-                    user.set_password(varsayilan_sifre)
-                    db.session.add(user)
-                    db.session.flush()
-
-                    ogrenci = Ogrenci(
-                        user_id=user.id,
-                        ogrenci_no=s['ogrenci_no'],
-                        tc_kimlik=s.get('tc_kimlik'),
-                        ad=s['ad'],
-                        soyad=s['soyad'],
-                        cinsiyet=s.get('cinsiyet'),
-                        dogum_tarihi=s.get('dogum_tarihi'),
-                        sinif=s.get('sinif') or sube.sinif.ad,
-                        telefon=s.get('telefon'),
-                        email=s.get('email'),
-                        adres=s.get('adres'),
-                        veli_ad=s.get('veli_ad'),
-                        veli_telefon=s.get('veli_telefon'),
-                        aktif=True,
-                    )
-                    db.session.add(ogrenci)
-                    db.session.flush()
-
-                    kayit = OgrenciKayit(
-                        ogrenci_id=ogrenci.id,
-                        donem_id=donem.id,
-                        sube_id=sube.id,
-                        kayit_tarihi=date.today(),
-                        durum='aktif',
-                        olusturan_id=current_user.id,
-                    )
-                    db.session.add(kayit)
-                    db.session.commit()
+            kalan_satirlar = []  # Kaydedilemeyen + hatali olan
+            for s in satirlar:
+                if s['_hatalar']:
+                    kalan_satirlar.append(s)
+                    continue
+                ok, hata = _ogrenci_kaydet_bir(s)
+                if ok:
                     eklenen += 1
-                except Exception as exc:
-                    db.session.rollback()
-                    hata_satirlari.append(f"#{s.get('_satir_no', '?')} — Kayıt hatası: {exc}")
+                else:
+                    s['_hatalar'].append(hata or 'Bilinmeyen hata.')
+                    kalan_satirlar.append(s)
 
             if eklenen:
-                flash(f'{eklenen} öğrenci başarıyla eklendi.' +
-                      (f' {len(hata_satirlari)} satır atlandı.' if hata_satirlari else ''),
-                      'success')
-            else:
-                flash('Hiç öğrenci eklenemedi.', 'warning')
-            for h in hata_satirlari[:10]:
-                flash(h, 'warning')
-            return redirect(url_for('kayit.ogrenci.liste'))
+                flash(
+                    f'{eklenen} öğrenci başarıyla eklendi.' +
+                    (f' {len(kalan_satirlar)} satır hâlâ düzeltilmesi gerekiyor.'
+                     if kalan_satirlar else ''),
+                    'success')
 
+            if not kalan_satirlar:
+                return redirect(url_for('kayit.ogrenci.liste'))
+
+            # Hatali/kaydedilemeyen satirlari tekrar onizlemeye koy —
+            # kullanici inline duzeltip tekrar Kaydet'e bassin.
+            onizleme = kalan_satirlar
+            hatalar_ozet = {
+                'toplam': len(kalan_satirlar),
+                'gecerli': 0,
+                'hatali': len(kalan_satirlar),
+            }
+            if not eklenen:
+                flash('Hiç öğrenci eklenemedi. Aşağıdaki hataları düzeltin ve tekrar kaydedin.', 'warning')
+
+    _satir_to_display(onizleme or [])
     return render_template('kayit/ogrenci/toplu_yukle.html',
                            onizleme=onizleme, hatalar_ozet=hatalar_ozet,
                            basliklar=OGRENCI_BASLIKLAR,

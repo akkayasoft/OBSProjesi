@@ -202,11 +202,11 @@
                             {% endif %}
                         </td>
                         {% endfor %}
-                        <td class="small text-danger">
+                        <td class="small text-danger" style="max-width: 320px; word-break: break-word;">
                             {% if s._hatalar %}
                             <ul class="mb-0 ps-3">
                                 {% for h in s._hatalar %}
-                                <li>{{ h }}</li>
+                                <li>{{ h[:200] }}{% if h|length > 200 %}…{% endif %}</li>
                                 {% endfor %}
                             </ul>
                             {% endif %}

@@ -232,7 +232,11 @@ def _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube):
     satirlar listesini yerinde modifiye eder. Geri donerken ayni listeyi verir.
     """
     mevcut_numaralar = set(n for (n,) in db.session.query(Ogrenci.ogrenci_no).all())
+    # User.email UNIQUE oldugu icin email catismalarini validation fazinda yakala.
+    mevcut_emailler = set(e.lower() for (e,) in db.session.query(User.email).all() if e)
+    mevcut_usernames = set(u.lower() for (u,) in db.session.query(User.username).all() if u)
     dosya_numaralar = set()
+    dosya_emailler = set()
 
     for s in satirlar:
         ogr_no, err = dogrula_str(s.get('ogrenci_no'), zorunlu=True, max_len=20, label='Öğrenci No')
@@ -244,6 +248,10 @@ def _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube):
                 s['_hatalar'].append(f'Öğrenci No "{ogr_no}" zaten kayıtlı.')
             if ogr_no in dosya_numaralar:
                 s['_hatalar'].append(f'Öğrenci No "{ogr_no}" dosyada mükerrer.')
+            # Ogrenci no ayni zamanda username olacak — User.username UNIQUE
+            if ogr_no.lower() in mevcut_usernames:
+                s['_hatalar'].append(
+                    f'Öğrenci No "{ogr_no}" başka bir kullanıcı adıyla çakışıyor.')
             dosya_numaralar.add(ogr_no)
 
         ad, err = dogrula_str(s.get('ad'), zorunlu=True, max_len=100, label='Ad')
@@ -286,6 +294,19 @@ def _toplu_dogrula(satirlar, varsayilan_donem, varsayilan_sube):
                 s['_hatalar'].append(err)
             else:
                 s[key] = val
+
+        # E-posta mukerrer kontrolu: hem DB'de hem dosyada. Otomatik atanacak
+        # "{ogrenci_no}@ogrenci.obs" email'ini atla (zaten ogrenci_no unique).
+        eposta = s.get('email')
+        if eposta:
+            e_low = eposta.lower()
+            if e_low in mevcut_emailler:
+                s['_hatalar'].append(
+                    f'E-posta "{eposta}" zaten başka bir kullanıcıda kayıtlı.')
+            if e_low in dosya_emailler:
+                s['_hatalar'].append(
+                    f'E-posta "{eposta}" dosyada mükerrer.')
+            dosya_emailler.add(e_low)
 
         adres, err = dogrula_str(s.get('adres'), max_len=1000, label='Adres')
         if err:
@@ -449,14 +470,20 @@ def _form_alanlarindan_satirlar(form):
 def _ogrenci_kaydet_bir(s):
     """Tek bir gecerli satiri DB'ye yazar. Basarili ise (True, None),
     aksi halde (False, 'hata mesaji') doner. Basarisizlikta rollback yapar."""
+    from sqlalchemy.exc import IntegrityError
     try:
         username = s['ogrenci_no']
         varsayilan_sifre = s.get('tc_kimlik') or s['ogrenci_no']
+        email = s.get('email') or f"{username}@ogrenci.obs"
 
+        # DB seviyesindeki UNIQUE constraint'leri onceden kontrol et — boylece
+        # psycopg2.errors.UniqueViolation ham SQL hatasi kullaniciya yansimaz.
         if User.query.filter_by(username=username).first():
             return False, f"Kullanıcı adı '{username}' zaten var."
         if Ogrenci.query.filter_by(ogrenci_no=s['ogrenci_no']).first():
             return False, f"Öğrenci No '{s['ogrenci_no']}' zaten kayıtlı."
+        if User.query.filter(db.func.lower(User.email) == email.lower()).first():
+            return False, f"E-posta '{email}' zaten başka bir kullanıcıda kayıtlı."
 
         donem = resolve_or_create_donem(s.get('_donem_ad'))
         sinif = resolve_or_create_sinif(s.get('_sinif_ad'))
@@ -467,7 +494,7 @@ def _ogrenci_kaydet_bir(s):
 
         user = User(
             username=username,
-            email=s.get('email') or f"{username}@ogrenci.obs",
+            email=email,
             ad=s['ad'],
             soyad=s['soyad'],
             rol='ogrenci',
@@ -507,9 +534,26 @@ def _ogrenci_kaydet_bir(s):
         db.session.add(kayit)
         db.session.commit()
         return True, None
+    except IntegrityError as exc:
+        db.session.rollback()
+        # Postgres UNIQUE violation hatalarini okunabilir mesaja cevir.
+        detay = str(getattr(exc, 'orig', exc) or exc).lower()
+        if 'users_email_key' in detay or 'email' in detay:
+            return False, f"E-posta '{s.get('email') or '-'}' zaten kayıtlı."
+        if 'users_username_key' in detay or 'username' in detay:
+            return False, f"Kullanıcı adı '{s.get('ogrenci_no')}' zaten kayıtlı."
+        if 'ogrenciler_ogrenci_no_key' in detay or 'ogrenci_no' in detay:
+            return False, f"Öğrenci No '{s.get('ogrenci_no')}' zaten kayıtlı."
+        if 'tc_kimlik' in detay:
+            return False, f"TC Kimlik '{s.get('tc_kimlik') or '-'}' zaten kayıtlı."
+        # Bilinmeyen unique violation — kisa ozet
+        return False, 'Bu kayıt DB\'de çakıştı (mükerrer bir alan var).'
     except Exception as exc:
         db.session.rollback()
-        return False, f'Kayıt hatası: {exc}'
+        msg = str(exc)
+        # SQL detayini kirp — kullanici icin ilk satir yeterli
+        msg = msg.split('\n')[0][:200]
+        return False, f'Kayıt hatası: {msg}'
 
 
 @bp.route('/toplu-yukle', methods=['GET', 'POST'])

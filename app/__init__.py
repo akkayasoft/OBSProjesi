@@ -731,6 +731,32 @@ def create_app(config_class=Config):
                 print(f'    - {h}')
         print('=' * 60)
 
+    @app.cli.command('deneme-puan-yenile')
+    @click.option('--sinav-id', type=int, default=None,
+                  help='Sadece bu sinav icin yeniden hesapla (varsayilan: tumu)')
+    def deneme_puan_yenile_command(sinav_id):
+        """Tum DenemeKatilim kayitlari icin toplam_net ve toplam_puan'i yeniden hesaplar.
+
+        alan/tipi uyumsuzlugu nedeniyle puani 100 sabit kalan kayitlari
+        duzeltir (fallback formul devreye girer).
+        """
+        from app.models.deneme_sinavi import DenemeKatilim, DenemeSinavi
+        from app.deneme_sinavi.hesaplar import guncelle_katilim_toplamlari
+
+        q = DenemeKatilim.query.filter_by(katildi=True)
+        if sinav_id:
+            q = q.filter_by(deneme_sinavi_id=sinav_id)
+        katilimlar = q.all()
+        click.echo(f'{len(katilimlar)} katilim yeniden hesaplanacak...')
+        degisen = 0
+        for k in katilimlar:
+            eski = k.toplam_puan
+            guncelle_katilim_toplamlari(k)
+            if eski != k.toplam_puan:
+                degisen += 1
+        db.session.commit()
+        click.echo(f'  Tamam: {degisen} katilimin puani guncellendi.')
+
     @app.cli.command('risk-snapshot')
     @click.option('--force', is_flag=True, default=False,
                   help='Bugun mevcut snapshot varsa uzerine yaz')

@@ -24,45 +24,83 @@ def katilim_toplam_neti(katilim):
     return round(sum((s.net or 0) for s in sonuclar), 2)
 
 
+def _puan_alan_filtreli(katilim, hedef_alanlar, alt_kirilim_dis=None):
+    """Belirli alanlardaki derslerin net*katsayi toplamini doner.
+
+    Eger hedef alan filtresine giren ders yoksa (0 ders eslesti), None doner;
+    cagiran fonksiyon fallback uygulayabilir.
+
+    hedef_alanlar: tek string ya da set/list.
+    alt_kirilim_dis: bu ders_kodu set'inde olanlari haric tutar.
+    """
+    if isinstance(hedef_alanlar, str):
+        hedef_alanlar = {hedef_alanlar}
+    else:
+        hedef_alanlar = set(hedef_alanlar)
+    alt_kirilim_dis = alt_kirilim_dis or set()
+
+    eslesen = 0
+    katki = 0.0
+    for sonuc in katilim.ders_sonuclari.all():
+        ders = sonuc.ders
+        if not ders or ders.alan not in hedef_alanlar:
+            continue
+        if ders.ders_kodu in alt_kirilim_dis:
+            continue
+        eslesen += 1
+        kat = ders.katsayi or 0
+        katki += (sonuc.net or 0) * kat
+    if eslesen == 0:
+        return None
+    return katki
+
+
+def _puan_tum_dersler(katilim):
+    """Sinav tipinden bagimsiz, tum derslerin net*katsayi toplami.
+
+    Fallback amaciyla: sinav tipi ile ders.alan uyumsuz oldugunda
+    (ornek: tipi 'ayt_say' ama dersler 'tyt') yine de manali bir puan
+    uretmek icin kullanilir.
+    """
+    katki = 0.0
+    for sonuc in katilim.ders_sonuclari.all():
+        ders = sonuc.ders
+        if not ders:
+            continue
+        kat = ders.katsayi or 0
+        katki += (sonuc.net or 0) * kat
+    return katki
+
+
 def hesapla_tyt_puani(katilim, alt_kirilimsiz=True):
     """TYT yaklasik puani: 100 + sum(net × katsayi).
 
-    alt_kirilimsiz=True iken sadece ana ders bloklarini (alan='tyt' ve
-    ders_kodu sosyal alt-kirilimlari icermeyen) hesaba katar. Bu degismis
-    kod lar listesi sablonlar.py 'varsayilan' secimi ile uyumludur.
+    Once 'tyt' alanli dersleri kullanir; alt_kirilimsiz=True ile alt-kirilimi
+    haric tutar. Eger 'tyt' alanli ders bulunamazsa (yanlis konfigurasyon),
+    tum dersler uzerinden katsayili toplam alinir.
     """
     ALT_KIRILIM = {'tarih', 'cografya', 'felsefe', 'din',
-                   'fizik', 'kimya', 'biyoloji'}
-    toplam = SABIT_TABAN
-    for sonuc in katilim.ders_sonuclari.all():
-        ders = sonuc.ders
-        if not ders or ders.alan != 'tyt':
-            continue
-        if alt_kirilimsiz and ders.ders_kodu in ALT_KIRILIM:
-            continue
-        kat = ders.katsayi or 0
-        toplam += (sonuc.net or 0) * kat
-    return round(toplam, 2)
+                   'fizik', 'kimya', 'biyoloji'} if alt_kirilimsiz else set()
+    katki = _puan_alan_filtreli(katilim, 'tyt', alt_kirilim_dis=ALT_KIRILIM)
+    if katki is None:
+        # Fallback: tum dersleri kullan
+        katki = _puan_tum_dersler(katilim)
+    return round(SABIT_TABAN + katki, 2)
 
 
 def hesapla_ayt_puani(katilim, hedef_alan):
     """AYT icin SAY/SOZ/EA/DIL puani.
 
     hedef_alan: 'say' | 'soz' | 'ea' | 'dil'
-    Formul: 100 + TYT × 0.4 + sum(AYT_ders_net × katsayi)
+    Formul: 100 + sum(AYT_ders_net × katsayi)
 
-    Burada TYT puani sifir varsayiyor — asil senaryoda kurum TYT denemesi
-    ayri yapilacak. Bu yuzden AYT denemesinde su an TYT katki 0 kabul
-    ediliyor; sadece AYT alan derslerinin katsayi toplami donuyor.
+    Eger hedef_alan'a uyan ders yoksa (yanlis konfigurasyon), tum
+    dersler uzerinden katsayili toplam alinir (fallback).
     """
-    toplam = SABIT_TABAN
-    for sonuc in katilim.ders_sonuclari.all():
-        ders = sonuc.ders
-        if not ders or ders.alan != hedef_alan:
-            continue
-        kat = ders.katsayi or 0
-        toplam += (sonuc.net or 0) * kat
-    return round(toplam, 2)
+    katki = _puan_alan_filtreli(katilim, hedef_alan)
+    if katki is None:
+        katki = _puan_tum_dersler(katilim)
+    return round(SABIT_TABAN + katki, 2)
 
 
 def hesapla_lgs_puani(katilim):

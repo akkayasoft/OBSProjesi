@@ -121,9 +121,9 @@
                             {{ "{:.2f}".format(s.ortalama_puan) if s.ortalama_puan else '—' }}
                         </td>
                         <td><span class="badge bg-{{ s.durum_badge }}">{{ s.durum_str }}</span></td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
                             <a href="{{ url_for('deneme_sinavi.sinav.detay', sinav_id=s.id) }}"
-                               class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                               class="btn btn-sm btn-outline-primary" title="Detay"><i class="bi bi-eye"></i></a>
                             <a href="{{ url_for('deneme_sinavi.cevap.giris', sinav_id=s.id) }}"
                                class="btn btn-sm btn-outline-success" title="Cevap Girişi">
                                 <i class="bi bi-input-cursor-text"></i>
@@ -132,6 +132,17 @@
                                class="btn btn-sm btn-outline-info" title="Rapor">
                                 <i class="bi bi-bar-chart"></i>
                             </a>
+                            {% if current_user.rol == 'admin' %}
+                            <form method="POST"
+                                  action="{{ url_for('deneme_sinavi.sinav.sil', sinav_id=s.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('&quot;{{ s.ad }}&quot; silinecek. Tüm katılım, sonuç ve cevap anahtarı kayıtları da silinecek. Emin misiniz?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Sınavı sil">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

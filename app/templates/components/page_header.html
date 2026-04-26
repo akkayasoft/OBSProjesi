@@ -1,0 +1,57 @@
+{#
+    Standart sayfa basligi komponenti.
+
+    Kullanim ornegi (kucuk):
+        {% set ph = {'title': 'Deneme Sınavları', 'icon': 'bi-bar-chart-line'} %}
+        {% include "components/page_header.html" %}
+
+    Genis ornek:
+        {% set ph = {
+            'title': 'Deneme Sınavları',
+            'subtitle': '2025-2026 dönemi',
+            'icon': 'bi-bar-chart-line',
+            'badge': {'text': 'YKS', 'color': 'primary'},
+            'actions_caller': 'page_actions',  # icerigi caller() ile cek
+        } %}
+        {% include "components/page_header.html" %}
+
+    Aksiyonlari macroyla cagirmak yerine 'actions' parametresine direkt
+    HTML string de verilebilir:
+        {% set ph = {
+            'title': '...',
+            'icon': '...',
+            'actions': '<a href="..." class="btn btn-primary">Yeni</a>'
+        } %}
+
+    Parametreler (ph dict icinde):
+        title       (zorunlu) — string
+        subtitle    string|None
+        icon        bi-* class adi (opsiyonel)
+        badge       {'text': str, 'color': 'primary'|'success'|...} | None
+        actions     onceden render edilmis HTML string (opsiyonel)
+        compact     True ise mb-3, default mb-4
+#}
+{% set _ph = ph or {} %}
+<div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-3 {% if _ph.compact %}mb-3{% else %}mb-4{% endif %}">
+    <div class="page-header-title">
+        <h4 class="mb-0 d-flex align-items-center gap-2">
+            {% if _ph.icon %}
+            <i class="bi {{ _ph.icon }} text-primary"></i>
+            {% endif %}
+            <span>{{ _ph.title }}</span>
+            {% if _ph.badge %}
+            <span class="badge bg-{{ _ph.badge.color or 'secondary' }} ms-1 fs-6 fw-medium">
+                {{ _ph.badge.text }}
+            </span>
+            {% endif %}
+        </h4>
+        {% if _ph.subtitle %}
+        <small class="text-muted d-block mt-1 ms-1">{{ _ph.subtitle }}</small>
+        {% endif %}
+    </div>
+    {% if _ph.actions %}
+    <div class="page-header-actions d-flex gap-2 flex-wrap">
+        {{ _ph.actions|safe }}
+    </div>
+    {% endif %}
+</div>

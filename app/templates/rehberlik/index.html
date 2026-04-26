@@ -7,7 +7,12 @@
 {% endblock %}
 
 {% block rehberlik_content %}
-<h4 class="mb-4"><i class="bi bi-heart-pulse me-2"></i>Rehberlik Servisi</h4>
+{% set ph = {
+    'title': 'Rehberlik Servisi',
+    'subtitle': 'Görüşme, profil, davranış ve plan takibi',
+    'icon': 'bi-heart-pulse'
+} %}
+{% include "components/page_header.html" %}
 
 <!-- Istatistik Kartlari -->
 <div class="row g-4 mb-4">

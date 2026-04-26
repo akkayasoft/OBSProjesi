@@ -3,8 +3,7 @@
    Profesyonel UI Tema
    =================================================================== */
 
-/* --- Google Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Inter font HTML <link> ile yukleniyor (base.html) — render-blocking azalir */
 
 /* --- CSS Variables --- */
 :root {
@@ -393,6 +392,90 @@ a {
     padding: 0.5rem 0 2rem 0;
 }
 
+/* === Sidebar arama === */
+.sidebar-search {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 0.75rem 0.85rem 0.6rem;
+    background: linear-gradient(180deg, var(--sidebar-bg) 70%, transparent);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.sidebar-search-icon {
+    position: absolute;
+    left: 1.5rem;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+.sidebar-search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+    padding: 0.5rem 2rem 0.5rem 2.1rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    outline: none;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.sidebar-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+.sidebar-search-input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(129, 140, 248, 0.5);
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.18);
+}
+/* Clear butonu */
+.sidebar-search-clear {
+    position: absolute;
+    right: 1.5rem;
+    background: transparent;
+    border: none;
+    padding: 0.15rem 0.3rem;
+    color: rgba(255, 255, 255, 0.55);
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1;
+}
+.sidebar-search-clear:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+.sidebar-search-clear i {
+    font-size: 1rem;
+}
+
+/* "Sonuç yok" durumu */
+.sidebar-empty {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.82rem;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sidebar-empty i {
+    font-size: 1.5rem;
+}
+
+/* Filter eslesmeyen item gizli */
+.sidebar-section.is-hidden {
+    display: none !important;
+}
+/* Search highlight (mark) */
+.sidebar-link mark {
+    background: rgba(129, 140, 248, 0.35);
+    color: inherit;
+    padding: 0;
+    border-radius: 2px;
+}
+
 .sidebar-section {
     margin-bottom: 1px;
 }
@@ -777,6 +860,29 @@ h4.mb-0 {
         margin-left: 0 !important;
         width: 100% !important;
     }
+}
+
+/* === Page Header (components/page_header.html) === */
+.page-header {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.page-header h4 {
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--text-primary);
+}
+.page-header h4 .bi {
+    font-size: 1.1em;
+    line-height: 1;
+    /* aktif modul rengi varsa onu kullan, yoksa primary */
+    color: var(--module-color, var(--primary));
+}
+.page-header-title small {
+    font-size: 0.78rem;
+}
+.page-header-actions .btn {
+    white-space: nowrap;
 }
 
 /* === Footer === */

@@ -27,11 +27,11 @@
     </div>
 </div>
 
-<!-- Sube secimi -->
+<!-- Sube + kategori filtre secimi -->
 <div class="card shadow-sm mb-3">
     <div class="card-body py-2">
         <form method="get" class="row g-2 align-items-center">
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <label class="form-label mb-0 small text-muted">Sube Sec:</label>
                 <select name="sube_id" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="">— Sube seciniz —</option>
@@ -40,14 +40,49 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-6 text-md-end">
+            <div class="col-md-4">
+                {% if sinav_kategorisi in ('yks', 'lgs') %}
+                <label class="form-label mb-0 small text-muted d-block">Ogrenci Filtresi:</label>
+                <div class="form-check form-switch d-inline-block">
+                    <input class="form-check-input" type="checkbox" id="tumOgr"
+                           name="tum_ogrenciler" value="1"
+                           {% if tum_ogrenciler %}checked{% endif %}
+                           onchange="this.form.submit()">
+                    <label class="form-check-label small" for="tumOgr">
+                        {% if sinav_kategorisi == 'lgs' %}
+                            LGS disindaki ogrencileri de goster
+                        {% else %}
+                            YKS disindaki ogrencileri de goster
+                        {% endif %}
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-3 text-md-end">
                 {% if sube_id %}
                 <span class="badge bg-info text-white">{{ ogrenci_satirlari|length }} ogrenci</span>
+                {% if filtrelenen_sayisi > 0 %}
+                <span class="badge bg-warning text-dark" title="Sinav kategorisine uymadigi icin gizlenen ogrenci sayisi">
+                    +{{ filtrelenen_sayisi }} gizli
+                </span>
+                {% endif %}
                 {% endif %}
             </div>
         </form>
     </div>
 </div>
+
+{% if sube_id and filtrelenen_sayisi > 0 and not tum_ogrenciler %}
+<div class="alert alert-info small d-flex align-items-center py-2 mb-3">
+    <i class="bi bi-funnel me-2"></i>
+    <div class="flex-grow-1">
+        Bu sube icindeki <strong>{{ filtrelenen_sayisi }} ogrenci</strong>
+        <strong>{{ 'LGS' if sinav_kategorisi == 'lgs' else 'YKS' }}</strong> kategorisine
+        uymadigi icin listeden cikarildi (orn. farkli kademede).
+        Tumunu gormek icin yukaridaki anahtari acin.
+    </div>
+</div>
+{% endif %}
 
 {% if not dersler %}
 <div class="alert alert-warning">

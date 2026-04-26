@@ -16,20 +16,41 @@ bp = Blueprint('sinav', __name__, url_prefix='/sinav')
 @login_required
 @role_required('admin', 'ogretmen')
 def liste():
+    from app.deneme_sinavi.kategori import (TIP_KATEGORI_HARITA, KATEGORILER,
+                                             sinav_tipi_kategorisi)
     tip_filtre = request.args.get('tip', '')
     durum_filtre = request.args.get('durum', '')
+    kategori_filtre = request.args.get('kategori', '')
 
     q = DenemeSinavi.query
     if tip_filtre:
         q = q.filter_by(sinav_tipi=tip_filtre)
     if durum_filtre:
         q = q.filter_by(durum=durum_filtre)
+    if kategori_filtre:
+        # Kategoriye uyan tum tipleri liste haline getirip IN ile filtrele
+        uygun_tipler = [t for t, k in TIP_KATEGORI_HARITA.items()
+                        if k == kategori_filtre]
+        if uygun_tipler:
+            q = q.filter(DenemeSinavi.sinav_tipi.in_(uygun_tipler))
 
     sinavlar = q.order_by(DenemeSinavi.tarih.desc(), DenemeSinavi.id.desc()).all()
+
+    # Kategori bazli sayilar (sekme rozetleri icin) — durum/tip filtresinden
+    # bagimsiz olarak tum sinavlar uzerinde sayim yapilir.
+    kategori_sayilari = {kod: 0 for kod in KATEGORILER.keys()}
+    kategori_sayilari['_toplam'] = 0
+    for s in DenemeSinavi.query.all():
+        kategori_sayilari['_toplam'] += 1
+        kategori_sayilari[sinav_tipi_kategorisi(s.sinav_tipi)] += 1
+
     return render_template('deneme_sinavi/liste.html',
                            sinavlar=sinavlar,
                            tip_filtre=tip_filtre,
-                           durum_filtre=durum_filtre)
+                           durum_filtre=durum_filtre,
+                           kategori_filtre=kategori_filtre,
+                           kategori_sayilari=kategori_sayilari,
+                           kategoriler=KATEGORILER)
 
 
 @bp.route('/yeni', methods=['GET', 'POST'])

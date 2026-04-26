@@ -314,8 +314,12 @@ def ogrenci_paneli(ogrenci_id):
                       .limit(5).all())
     toplam_gorusme_sayisi = Gorusme.query.filter_by(ogrenci_id=ogrenci_id).count()
 
+    from app.deneme_sinavi.kategori import ogrenci_kategorisi
+    og_kategori = ogrenci_kategorisi(ogrenci)
+
     return render_template('deneme_sinavi/ogrenci_paneli.html',
                            ogrenci=ogrenci,
+                           og_kategori=og_kategori,
                            ozet=ozet,
                            sinav_listesi=sinav_listesi,
                            ders_performans=ders_performans,

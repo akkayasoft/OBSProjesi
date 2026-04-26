@@ -19,21 +19,52 @@
     </div>
 </div>
 
-<!-- Filtre -->
+<!-- Kategori sekmeleri (YKS / LGS / MSU / Özel) -->
+<ul class="nav nav-pills mb-3 flex-wrap gap-1">
+    <li class="nav-item">
+        <a class="nav-link {% if not kategori_filtre %}active{% endif %}"
+           href="{{ url_for('deneme_sinavi.sinav.liste', durum=durum_filtre or none, tip=tip_filtre or none) }}">
+            <i class="bi bi-collection me-1"></i>Tümü
+            <span class="badge bg-light text-dark ms-1">{{ kategori_sayilari['_toplam'] }}</span>
+        </a>
+    </li>
+    {% for kod, k in kategoriler.items() %}
+    <li class="nav-item">
+        <a class="nav-link {% if kategori_filtre == kod %}active{% endif %}"
+           href="{{ url_for('deneme_sinavi.sinav.liste', kategori=kod, durum=durum_filtre or none, tip=tip_filtre or none) }}"
+           title="{{ k.aciklama }}">
+            <i class="bi bi-{% if kod == 'yks' %}mortarboard{% elif kod == 'lgs' %}backpack{% elif kod == 'msu' %}shield{% else %}grid{% endif %} me-1"></i>
+            {{ k.ad }}
+            <span class="badge bg-light text-dark ms-1">{{ kategori_sayilari[kod] }}</span>
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+
+<!-- Detay filtreler -->
 <div class="card shadow-sm mb-3">
     <div class="card-body py-2">
         <form method="get" class="row g-2 align-items-center">
+            <input type="hidden" name="kategori" value="{{ kategori_filtre }}">
             <div class="col-md-4">
                 <select name="tip" class="form-select form-select-sm">
                     <option value="">Tüm Tipler</option>
+                    {% if not kategori_filtre or kategori_filtre == 'yks' %}
                     <option value="tyt" {% if tip_filtre=='tyt' %}selected{% endif %}>YKS - TYT</option>
                     <option value="ayt_say" {% if tip_filtre=='ayt_say' %}selected{% endif %}>YKS - AYT SAY</option>
                     <option value="ayt_soz" {% if tip_filtre=='ayt_soz' %}selected{% endif %}>YKS - AYT SÖZ</option>
                     <option value="ayt_ea" {% if tip_filtre=='ayt_ea' %}selected{% endif %}>YKS - AYT EA</option>
                     <option value="ayt_dil" {% if tip_filtre=='ayt_dil' %}selected{% endif %}>YKS - YDT</option>
+                    {% endif %}
+                    {% if not kategori_filtre or kategori_filtre == 'lgs' %}
                     <option value="lgs" {% if tip_filtre=='lgs' %}selected{% endif %}>LGS</option>
+                    {% endif %}
+                    {% if not kategori_filtre or kategori_filtre == 'msu' %}
                     <option value="msu" {% if tip_filtre=='msu' %}selected{% endif %}>MSÜ</option>
+                    {% endif %}
+                    {% if not kategori_filtre or kategori_filtre == 'ozel' %}
                     <option value="ozel" {% if tip_filtre=='ozel' %}selected{% endif %}>Özel</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="col-md-4">
@@ -78,7 +109,10 @@
                                class="fw-semibold text-decoration-none">{{ s.ad }}</a>
                             {% if s.hedef_seviye %}<br><small class="text-muted">{{ s.hedef_seviye }}</small>{% endif %}
                         </td>
-                        <td><span class="badge bg-secondary">{{ s.tip_str }}</span></td>
+                        <td>
+                            <span class="badge bg-{{ s.kategori_bilgi.badge }}">{{ s.kategori_bilgi.ad }}</span>
+                            <small class="text-muted d-block mt-1">{{ s.tip_str }}</small>
+                        </td>
                         <td>{{ s.donem }}</td>
                         <td>{{ s.tarih.strftime('%d.%m.%Y') }}</td>
                         <td class="text-center">{{ s.toplam_soru }}</td>

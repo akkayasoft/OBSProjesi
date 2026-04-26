@@ -56,6 +56,17 @@ class DenemeSinavi(db.Model):
         return dict(SINAV_TIPLERI).get(self.sinav_tipi, self.sinav_tipi)
 
     @property
+    def kategori(self):
+        """'yks' / 'lgs' / 'msu' / 'ozel' (sinav_tipi'nden turetilir)."""
+        from app.deneme_sinavi.kategori import sinav_tipi_kategorisi
+        return sinav_tipi_kategorisi(self.sinav_tipi)
+
+    @property
+    def kategori_bilgi(self):
+        from app.deneme_sinavi.kategori import kategori_bilgi
+        return kategori_bilgi(self.kategori)
+
+    @property
     def durum_str(self):
         return dict(DURUM_TIPLERI).get(self.durum, self.durum)
 

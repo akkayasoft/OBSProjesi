@@ -68,16 +68,30 @@ def _get_or_create_ders_sonucu(katilim_id, ders_id):
 @role_required('admin', 'ogretmen')
 def giris(sinav_id):
     """Sube sec + grid'e cevap gir."""
+    from app.deneme_sinavi.kategori import (sinav_tipi_kategorisi,
+                                             ogrenci_uygun_mu,
+                                             ogrenci_kategorisi)
     sinav = DenemeSinavi.query.get_or_404(sinav_id)
     dersler = sinav.dersler.all()
     subeler = Sube.query.filter_by(aktif=True).order_by(Sube.ad).all()
 
     sube_id = request.args.get('sube_id', type=int) or request.form.get('sube_id', type=int)
+    # Kategori filtresi gevsetme bayragi: tum_ogrenciler=1 → kategori dışındakileri de göster
+    tum_ogrenciler = (request.args.get('tum_ogrenciler') == '1') or \
+                     (request.form.get('tum_ogrenciler') == '1')
+    sinav_kategorisi = sinav_tipi_kategorisi(sinav.sinav_tipi)
 
     ogrenci_satirlari = []
+    filtrelenen_sayisi = 0  # Kategori uymadigi icin gizlenen ogrenci adedi
     if sube_id:
         ogrenciler = _sube_ogrencileri(sube_id)
         for o in ogrenciler:
+            # Kategori filtresi: LGS sınavda LGS-uygun (6-8) öğrenciler,
+            # YKS sınavda YKS-uygun (9-12, TYT/AYT/Mezun) öğrenciler.
+            if not tum_ogrenciler:
+                if not ogrenci_uygun_mu(o, sinav_kategorisi, kategorisiz_dahil=True):
+                    filtrelenen_sayisi += 1
+                    continue
             katilim = DenemeKatilim.query.filter_by(
                 deneme_sinavi_id=sinav.id, ogrenci_id=o.id
             ).first()
@@ -90,6 +104,7 @@ def giris(sinav_id):
                 'ogrenci': o,
                 'katilim': katilim,
                 'sonuclar': mevcut,
+                'og_kategori': ogrenci_kategorisi(o),
             })
 
     if request.method == 'POST' and sube_id:
@@ -163,7 +178,10 @@ def giris(sinav_id):
                            dersler=dersler,
                            subeler=subeler,
                            sube_id=sube_id,
-                           ogrenci_satirlari=ogrenci_satirlari)
+                           ogrenci_satirlari=ogrenci_satirlari,
+                           sinav_kategorisi=sinav_kategorisi,
+                           tum_ogrenciler=tum_ogrenciler,
+                           filtrelenen_sayisi=filtrelenen_sayisi)
 
 
 # === Excel Import/Export ===

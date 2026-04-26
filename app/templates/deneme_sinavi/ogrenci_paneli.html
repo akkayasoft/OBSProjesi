@@ -17,6 +17,11 @@
             {% if ogrenci.aktif_sinif_sube %}
             <span class="badge bg-info text-white ms-1">{{ ogrenci.aktif_sinif_sube }}</span>
             {% endif %}
+            {% if og_kategori %}
+            <span class="badge bg-{{ 'primary' if og_kategori == 'yks' else 'success' }} ms-1">
+                {{ og_kategori|upper }}
+            </span>
+            {% endif %}
         </h4>
         <small class="text-muted">
             <i class="bi bi-clipboard-data me-1"></i>Deneme Sinavi Performans Paneli

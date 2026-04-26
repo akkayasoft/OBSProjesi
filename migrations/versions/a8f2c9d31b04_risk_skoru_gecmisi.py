@@ -1,7 +1,7 @@
-"""risk skoru gecmisi (haftalik snapshot)
+"""risk skoru gecmisi (haftalik snapshot) + branch merge
 
 Revision ID: a8f2c9d31b04
-Revises: 21026d8e7508
+Revises: 21026d8e7508, b82e4f1c5a90
 Create Date: 2026-04-26 12:00:00.000000
 
 """
@@ -11,7 +11,8 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'a8f2c9d31b04'
-down_revision = '21026d8e7508'
+# Iki paralel head'i birlestir (duyurular_modulu + ozel_bildirim_sablon)
+down_revision = ('21026d8e7508', 'b82e4f1c5a90')
 branch_labels = None
 depends_on = None
 

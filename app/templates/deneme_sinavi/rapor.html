@@ -113,10 +113,17 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <span class="fw-semibold">{{ k.ogrenci.tam_ad if k.ogrenci else '—' }}</span>
-                                    {% if k.ogrenci and k.ogrenci.ogrenci_no %}
+                                    {% if k.ogrenci %}
+                                    <a href="{{ url_for('deneme_sinavi.rapor.ogrenci_paneli', ogrenci_id=k.ogrenci.id) }}"
+                                       class="fw-semibold text-decoration-none"
+                                       title="Bu ogrencinin tum deneme analiz panelini ac">
+                                        {{ k.ogrenci.tam_ad }}
+                                        <i class="bi bi-box-arrow-up-right small ms-1 text-muted"></i>
+                                    </a>
+                                    {% if k.ogrenci.ogrenci_no %}
                                     <br><small class="text-muted">{{ k.ogrenci.ogrenci_no }}</small>
                                     {% endif %}
+                                    {% else %}—{% endif %}
                                 </td>
                                 <td>
                                     {% if k.sube %}

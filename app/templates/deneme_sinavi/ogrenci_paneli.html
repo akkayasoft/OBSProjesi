@@ -1,0 +1,376 @@
+{% extends "deneme_sinavi/_layout.html" %}
+
+{% block title %}{{ ogrenci.tam_ad }} - Deneme Paneli{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ ogrenci.tam_ad }} — Deneme Paneli</li>
+{% endblock %}
+
+{% block deneme_content %}
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-person-vcard me-2"></i>{{ ogrenci.tam_ad }}
+            {% if ogrenci.ogrenci_no %}
+            <span class="badge bg-secondary ms-2">No: {{ ogrenci.ogrenci_no }}</span>
+            {% endif %}
+            {% if ogrenci.aktif_sinif_sube %}
+            <span class="badge bg-info text-white ms-1">{{ ogrenci.aktif_sinif_sube }}</span>
+            {% endif %}
+        </h4>
+        <small class="text-muted">
+            <i class="bi bi-clipboard-data me-1"></i>Deneme Sinavi Performans Paneli
+            <span class="mx-2">|</span>
+            Toplam {{ ozet.sinav_sayisi }} deneme
+        </small>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('rehberlik.profil.ogrenci_profil', ogrenci_id=ogrenci.id) }}"
+           class="btn btn-outline-info btn-sm">
+            <i class="bi bi-heart-pulse me-1"></i>Rehberlik Profili
+        </a>
+        <a href="{{ url_for('rehberlik.gorusme.yeni') }}?ogrenci_id={{ ogrenci.id }}"
+           class="btn btn-outline-success btn-sm">
+            <i class="bi bi-chat-dots me-1"></i>Yeni Gorusme
+        </a>
+    </div>
+</div>
+
+{% if ozet.sinav_sayisi == 0 %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-clipboard-x fs-1 d-block mb-2 opacity-50"></i>
+        Bu ogrenci henuz hicbir deneme sinavina katilmamis.
+    </div>
+</div>
+{% else %}
+
+<!-- Ozet kartlari -->
+<div class="row g-3 mb-3">
+    <div class="col-md-3 col-6">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <div class="text-muted small">Son Toplam Net</div>
+                <div class="fs-4 fw-bold text-primary">
+                    {{ "{:.2f}".format(ozet.son_net) if ozet.son_net is not none else '—' }}
+                </div>
+                {% if ozet.ortalama_net is not none %}
+                <small class="text-muted">Ort: {{ "{:.2f}".format(ozet.ortalama_net) }}</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <div class="text-muted small">Son Puan</div>
+                <div class="fs-4 fw-bold text-success">
+                    {{ "{:.2f}".format(ozet.son_puan) if ozet.son_puan is not none else '—' }}
+                </div>
+                {% if ozet.ortalama_puan is not none %}
+                <small class="text-muted">Ort: {{ "{:.2f}".format(ozet.ortalama_puan) }}</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <div class="text-muted small">En Yuksek / En Dusuk Puan</div>
+                <div class="fs-5 fw-bold">
+                    <span class="text-success">{{ "{:.1f}".format(ozet.en_yuksek_puan) if ozet.en_yuksek_puan is not none else '—' }}</span>
+                    <span class="text-muted"> / </span>
+                    <span class="text-danger">{{ "{:.1f}".format(ozet.en_dusuk_puan) if ozet.en_dusuk_puan is not none else '—' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <div class="text-muted small">Gelisim (Ilk → Son)</div>
+                <div class="fs-4 fw-bold
+                    {% if ozet.gelisim_puan is not none and ozet.gelisim_puan > 0 %}text-success
+                    {% elif ozet.gelisim_puan is not none and ozet.gelisim_puan < 0 %}text-danger
+                    {% else %}text-muted{% endif %}">
+                    {% if ozet.gelisim_puan is none %}—
+                    {% else %}
+                        {% if ozet.gelisim_puan > 0 %}<i class="bi bi-arrow-up"></i>
+                        {% elif ozet.gelisim_puan < 0 %}<i class="bi bi-arrow-down"></i>
+                        {% else %}<i class="bi bi-dash"></i>{% endif %}
+                        {{ "{:+.2f}".format(ozet.gelisim_puan) }}
+                    {% endif %}
+                </div>
+                <small class="text-muted">puan</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Otomatik oneriler -->
+{% if oneriler %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Otomatik Gozlemler ve Oneriler</h6>
+    </div>
+    <div class="card-body">
+        {% for o in oneriler %}
+        <div class="alert alert-{% if o.tip == 'uyari' %}warning{% elif o.tip == 'guclu' %}success{% else %}info{% endif %} small mb-2 py-2">
+            {% if o.tip == 'uyari' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% elif o.tip == 'guclu' %}<i class="bi bi-star-fill me-2"></i>
+            {% else %}<i class="bi bi-info-circle me-2"></i>{% endif %}
+            {{ o.mesaj }}
+        </div>
+        {% endfor %}
+        <small class="text-muted d-block mt-2">
+            <i class="bi bi-info-circle me-1"></i>Bu oneriler otomatik kurallarla uretilir; rehber ogretmenin degerlendirmesi esastir.
+        </small>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+    <!-- Trend grafigi -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Performans Trendi</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rehberlik ozeti -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-chat-square-heart me-2"></i>Rehberlik Gorusmeleri</h6>
+                <span class="badge bg-secondary">{{ toplam_gorusme_sayisi }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if son_gorusmeler %}
+                <ul class="list-group list-group-flush">
+                    {% for g in son_gorusmeler %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <a href="{{ url_for('rehberlik.gorusme.detay', gorusme_id=g.id) }}"
+                                   class="fw-semibold text-decoration-none">{{ g.konu }}</a>
+                                <div class="small text-muted">
+                                    <span class="badge bg-{{ g.gorusme_turu_badge }} text-white">{{ g.gorusme_turu_str }}</span>
+                                    {{ g.gorusme_tarihi.strftime('%d.%m.%Y') }}
+                                </div>
+                                {% if g.sonuc_ve_oneri %}
+                                <small class="text-muted d-block mt-1" style="white-space: pre-wrap;">{{ g.sonuc_ve_oneri[:120] }}{% if g.sonuc_ve_oneri|length > 120 %}…{% endif %}</small>
+                                {% endif %}
+                            </div>
+                            <span class="badge bg-{{ g.durum_badge }}">{{ g.durum_str }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <small>Bu ogrenci icin henuz rehberlik gorusmesi kaydi yok.</small>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white text-end">
+                <a href="{{ url_for('rehberlik.gorusme.liste') }}?ogrenci_id={{ ogrenci.id }}"
+                   class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-list me-1"></i>Tum Gorusmeler
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ders bazli performans -->
+<div class="card shadow-sm mt-3">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-bookshelf me-2"></i>Ders Bazli Performans</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ders</th>
+                        <th class="text-center">Sinav Sayisi</th>
+                        <th class="text-center">Ortalama Net</th>
+                        <th class="text-center">Sinif Ort.</th>
+                        <th class="text-center">Fark</th>
+                        <th class="text-center">D / Y / B (toplam)</th>
+                        <th>Performans</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for kod, p in ders_performans.items() %}
+                {% set oran = (p.ortalama_net / p.soru_sayisi * 100) if p.soru_sayisi else 0 %}
+                <tr>
+                    <td class="fw-semibold">{{ p.ders_adi }}</td>
+                    <td class="text-center">{{ p.sinav_sayisi }}</td>
+                    <td class="text-center fw-bold text-primary">{{ "{:.2f}".format(p.ortalama_net) }}</td>
+                    <td class="text-center text-muted">
+                        {% if p.sinif_ort is not none %}{{ "{:.2f}".format(p.sinif_ort) }}{% else %}—{% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if p.delta is none %}—
+                        {% elif p.delta > 0 %}
+                            <span class="badge bg-success">+{{ "{:.2f}".format(p.delta) }}</span>
+                        {% elif p.delta < 0 %}
+                            <span class="badge bg-danger">{{ "{:.2f}".format(p.delta) }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">0.00</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center small">
+                        <span class="text-success">{{ p.dogru }}</span> /
+                        <span class="text-danger">{{ p.yanlis }}</span> /
+                        <span class="text-muted">{{ p.bos }}</span>
+                    </td>
+                    <td style="min-width: 200px;">
+                        <div class="progress" style="height: 16px;">
+                            <div class="progress-bar
+                                {% if oran >= 70 %}bg-success
+                                {% elif oran >= 40 %}bg-info
+                                {% elif oran >= 20 %}bg-warning
+                                {% else %}bg-danger{% endif %}"
+                                style="width: {{ '%.1f'|format(oran) }}%;">
+                                {{ "{:.0f}".format(oran) }}%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Sinav listesi -->
+<div class="card shadow-sm mt-3 mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Tum Denemeleri (Kronolojik)</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Sinav</th>
+                        <th>Tip</th>
+                        <th class="text-center">Siralama</th>
+                        <th class="text-center">Net</th>
+                        <th class="text-center">Puan</th>
+                        <th class="text-center">D / Y / B</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in sinav_listesi|reverse %}
+                {% set k = item.katilim %}
+                <tr>
+                    <td>{{ item.sinav.tarih.strftime('%d.%m.%Y') }}</td>
+                    <td class="fw-semibold">{{ item.sinav.ad }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ item.sinav.tip_str }}</span></td>
+                    <td class="text-center">
+                        {% if item.siralama %}
+                            <strong>{{ item.siralama }}</strong>
+                            <small class="text-muted">/ {{ item.toplam_katilimci }}</small>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="text-center">{{ "{:.2f}".format(k.toplam_net) if k.toplam_net is not none else '—' }}</td>
+                    <td class="text-center fw-bold text-primary">
+                        {{ "{:.2f}".format(k.toplam_puan) if k.toplam_puan is not none else '—' }}
+                    </td>
+                    <td class="text-center small">
+                        <span class="text-success">{{ k.toplam_dogru or 0 }}</span> /
+                        <span class="text-danger">{{ k.toplam_yanlis or 0 }}</span> /
+                        <span class="text-muted">{{ k.toplam_bos or 0 }}</span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('deneme_sinavi.rapor.sinav_raporu', sinav_id=item.sinav.id) }}"
+                           class="btn btn-outline-info btn-sm" title="Sinav raporu">
+                            <i class="bi bi-bar-chart"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+    const labels = {{ trend_labels|tojson }};
+    const sinavAdlari = {{ trend_sinav_adlari|tojson }};
+    const netData = {{ trend_net|tojson }};
+    const puanData = {{ trend_puan|tojson }};
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Toplam Net',
+                    data: netData,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    yAxisID: 'y',
+                    tension: 0.3,
+                    pointRadius: 4,
+                },
+                {
+                    label: 'Toplam Puan',
+                    data: puanData,
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    yAxisID: 'y1',
+                    tension: 0.3,
+                    pointRadius: 4,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            const i = items[0].dataIndex;
+                            return sinavAdlari[i] + ' (' + labels[i] + ')';
+                        }
+                    }
+                },
+                legend: { position: 'bottom' }
+            },
+            scales: {
+                y: {
+                    type: 'linear', position: 'left',
+                    title: { display: true, text: 'Net' }
+                },
+                y1: {
+                    type: 'linear', position: 'right',
+                    grid: { drawOnChartArea: false },
+                    title: { display: true, text: 'Puan' }
+                }
+            }
+        }
+    });
+})();
+</script>
+
+{% endif %}
+{% endblock %}

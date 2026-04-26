@@ -8,200 +8,454 @@
 {% endblock %}
 
 {% block devamsizlik_content %}
-<div class="mb-4">
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <i class="bi bi-info-circle me-2"></i>
-        <strong>{{ sube.tam_ad }}</strong> - <strong>{{ ders_saati }}. Ders</strong> - <strong>{{ tarih.strftime('%d.%m.%Y') }}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+<div class="yoklama-baslik mb-3">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h5 class="mb-1">
+                <i class="bi bi-clipboard-check text-primary me-2"></i>{{ sube.tam_ad }}
+            </h5>
+            <small class="text-muted">
+                <i class="bi bi-calendar-event me-1"></i>{{ tarih.strftime('%d.%m.%Y') }}
+                <span class="mx-2">·</span>
+                <i class="bi bi-clock-history me-1"></i>{{ ders_saati }}. Ders
+                <span class="mx-2">·</span>
+                <i class="bi bi-people me-1"></i>{{ ogrenciler|length }} öğrenci
+            </small>
+        </div>
+        <div class="yoklama-ozet small text-muted">
+            <span class="badge bg-success-subtle text-success border" id="ozetVar">
+                <i class="bi bi-check"></i> Var: <span id="sayiVar">0</span>
+            </span>
+            <span class="badge bg-danger-subtle text-danger border" id="ozetYok">
+                <i class="bi bi-x"></i> Yok: <span id="sayiYok">0</span>
+            </span>
+            <span class="badge bg-warning-subtle text-warning border" id="ozetOzel" style="display:none;">
+                <i class="bi bi-info-circle"></i> Özel: <span id="sayiOzel">0</span>
+            </span>
+        </div>
     </div>
 </div>
 
-<!-- Hızlı İşlemler -->
-<div class="mb-3">
-    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tumunu-hazir">
-        <i class="bi bi-check-all me-1"></i>Tümünü Hazır
+<!-- Hızlı işlemler -->
+<div class="d-flex gap-2 flex-wrap mb-3">
+    <button type="button" class="btn btn-sm btn-outline-success" id="btnTumuVar">
+        <i class="bi bi-check-all me-1"></i>Tümünü Var
     </button>
-    <button type="button" class="btn btn-sm btn-outline-danger" id="btn-tumunu-devamsiz">
-        <i class="bi bi-x-circle me-1"></i>Tümünü Devamsız
-    </button>
-    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-temizle">
-        <i class="bi bi-arrow-clockwise me-1"></i>Sıfırla
+    <button type="button" class="btn btn-sm btn-outline-danger" id="btnTumuYok">
+        <i class="bi bi-x-circle me-1"></i>Tümünü Yok
     </button>
 </div>
 
-<form method="POST" action="{{ url_for('devamsizlik.yoklama.yoklama_al') }}" class="mb-4">
+<form method="POST" action="{{ url_for('devamsizlik.yoklama.yoklama_al') }}" id="yoklamaForm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="sube_id" value="{{ sube.id }}">
     <input type="hidden" name="tarih" value="{{ tarih.isoformat() }}">
     <input type="hidden" name="ders_saati" value="{{ ders_saati }}">
 
-    <div class="table-responsive">
-        <table class="table table-hover table-sm">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 5%">#</th>
-                    <th style="width: 35%">Öğrenci</th>
-                    <th style="width: 55%">Durum</th>
-                    <th style="width: 5%" class="text-center">
-                        <i class="bi bi-list-ul" title="Not alanı"></i>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if ogrenciler %}
-                    {% for ogrenci in ogrenciler %}
-                    <tr>
-                        <td class="text-muted">{{ loop.index }}</td>
-                        <td>
-                            <a href="{{ url_for('devamsizlik.yoklama.ogrenci_devamsizlik', ogrenci_id=ogrenci.id) }}"
-                               target="_blank" class="text-decoration-none">
-                                <strong>{{ ogrenci.tam_ad }}</strong><br>
-                                <small class="text-muted">{{ ogrenci.ogrenci_no }}</small>
-                            </a>
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group" style="width: 100%;">
-                                <input type="radio" class="btn-check durum-radio"
-                                       name="durum_{{ ogrenci.id }}" value="mevcut"
-                                       id="durum_{{ ogrenci.id }}_mevcut"
-                                       {% if ogrenci.id not in mevcut %}checked{% endif %}>
-                                <label class="btn btn-outline-success btn-sm"
-                                       for="durum_{{ ogrenci.id }}_mevcut">
-                                    <i class="bi bi-check-circle me-1"></i>Hazır
-                                </label>
+    <div class="yoklama-listesi">
+        {% if not ogrenciler %}
+        <div class="card">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                Bu sınıfta aktif öğrenci bulunmamaktadır.
+            </div>
+        </div>
+        {% else %}
+        {% for ogrenci in ogrenciler %}
+        {% set mevcut_kayit = mevcut.get(ogrenci.id) %}
+        {% set ilk_durum = mevcut_kayit.durum if mevcut_kayit else 'mevcut' %}
+        {% set ilk_aciklama = (mevcut_kayit.aciklama if mevcut_kayit else '') or '' %}
+        <div class="yoklama-satir" data-ogrenci-id="{{ ogrenci.id }}" data-state="{{ ilk_durum }}">
+            <input type="hidden" name="durum_{{ ogrenci.id }}" value="{{ ilk_durum }}">
 
-                                <input type="radio" class="btn-check durum-radio"
-                                       name="durum_{{ ogrenci.id }}" value="devamsiz"
-                                       id="durum_{{ ogrenci.id }}_devamsiz"
-                                       {% if ogrenci.id in mevcut and mevcut[ogrenci.id].durum == 'devamsiz' %}checked{% endif %}>
-                                <label class="btn btn-outline-danger btn-sm"
-                                       for="durum_{{ ogrenci.id }}_devamsiz">
-                                    <i class="bi bi-x-circle me-1"></i>Devamsız
-                                </label>
+            <div class="yoklama-satir-icerik">
+                <div class="yoklama-ogrenci">
+                    <div class="ogrenci-numara">{{ loop.index }}</div>
+                    <div>
+                        <a href="{{ url_for('devamsizlik.yoklama.ogrenci_devamsizlik', ogrenci_id=ogrenci.id) }}"
+                           target="_blank" class="text-decoration-none text-reset">
+                            <strong>{{ ogrenci.tam_ad }}</strong>
+                        </a>
+                        {% if ogrenci.ogrenci_no %}
+                        <small class="text-muted d-block">{{ ogrenci.ogrenci_no }}</small>
+                        {% endif %}
+                    </div>
+                </div>
 
-                                <input type="radio" class="btn-check durum-radio"
-                                       name="durum_{{ ogrenci.id }}" value="gec"
-                                       id="durum_{{ ogrenci.id }}_gec"
-                                       {% if ogrenci.id in mevcut and mevcut[ogrenci.id].durum == 'gec' %}checked{% endif %}>
-                                <label class="btn btn-outline-warning btn-sm"
-                                       for="durum_{{ ogrenci.id }}_gec">
-                                    <i class="bi bi-clock me-1"></i>Geç
-                                </label>
+                <div class="yoklama-aksiyonlar">
+                    <!-- Ana iki buton: Var / Yok -->
+                    <div class="ya-toggle" role="group" aria-label="Devam durumu">
+                        <button type="button"
+                                class="ya-btn ya-var"
+                                data-action="set" data-target-state="mevcut"
+                                aria-pressed="false">
+                            <i class="bi bi-check-lg"></i><span class="ms-1 d-none d-sm-inline">Var</span>
+                        </button>
+                        <button type="button"
+                                class="ya-btn ya-yok"
+                                data-action="set" data-target-state="devamsiz"
+                                aria-pressed="false">
+                            <i class="bi bi-x-lg"></i><span class="ms-1 d-none d-sm-inline">Yok</span>
+                        </button>
+                    </div>
 
-                                <input type="radio" class="btn-check durum-radio"
-                                       name="durum_{{ ogrenci.id }}" value="izinli"
-                                       id="durum_{{ ogrenci.id }}_izinli"
-                                       {% if ogrenci.id in mevcut and mevcut[ogrenci.id].durum == 'izinli' %}checked{% endif %}>
-                                <label class="btn btn-outline-info btn-sm"
-                                       for="durum_{{ ogrenci.id }}_izinli">
-                                    <i class="bi bi-exclamation-circle me-1"></i>İzinli
-                                </label>
+                    <!-- Özel durum chip'i (geç/izinli/raporlu seçilince ortaya çıkar) -->
+                    <span class="ya-chip d-none" data-action="open-menu" role="button" tabindex="0"
+                          title="Düzenle"></span>
 
-                                <input type="radio" class="btn-check durum-radio"
-                                       name="durum_{{ ogrenci.id }}" value="raporlu"
-                                       id="durum_{{ ogrenci.id }}_raporlu"
-                                       {% if ogrenci.id in mevcut and mevcut[ogrenci.id].durum == 'raporlu' %}checked{% endif %}>
-                                <label class="btn btn-outline-secondary btn-sm"
-                                       for="durum_{{ ogrenci.id }}_raporlu">
-                                    <i class="bi bi-file-text me-1"></i>Raporlu
-                                </label>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <i class="bi bi-sticky" style="cursor: help; color: #6c757d;"
-                               title="Not eklemek için açılır menüyü tıklayın"></i>
-                        </td>
-                    </tr>
-                    <tr class="table-secondary d-none" id="notlar-{{ ogrenci.id }}">
-                        <td colspan="4">
-                            <label class="form-label">Not (Opsiyonel)</label>
-                            <textarea name="aciklama_{{ ogrenci.id }}" class="form-control form-control-sm"
-                                      placeholder="Not ekleyiniz..."
-                                      rows="2">{% if ogrenci.id in mevcut %}{{ mevcut[ogrenci.id].aciklama or '' }}{% endif %}</textarea>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="4" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
-                            Bu sınıfta aktif öğrenci bulunmamaktadır.
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+                    <!-- ⋮ menüsü -->
+                    <div class="dropdown ya-dropdown">
+                        <button type="button"
+                                class="btn btn-sm btn-light"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                aria-label="Diğer durumlar">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">Özel durum</h6></li>
+                            <li>
+                                <a class="dropdown-item ya-set-state" href="#" data-target-state="gec">
+                                    <i class="bi bi-clock me-2 text-warning"></i>Geç geldi
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item ya-set-state" href="#" data-target-state="izinli">
+                                    <i class="bi bi-info-circle me-2 text-info"></i>İzinli
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item ya-set-state" href="#" data-target-state="raporlu">
+                                    <i class="bi bi-file-text me-2 text-secondary"></i>Raporlu
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item ya-toggle-not" href="#">
+                                    <i class="bi bi-sticky me-2"></i>Not ekle / düzenle
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="yoklama-not {% if not ilk_aciklama %}d-none{% endif %}">
+                <textarea name="aciklama_{{ ogrenci.id }}"
+                          class="form-control form-control-sm"
+                          rows="2"
+                          placeholder="Not (opsiyonel)…">{{ ilk_aciklama }}</textarea>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
     </div>
 
-    <div class="d-flex gap-2">
-        <button type="submit" name="kaydet" class="btn btn-primary btn-lg">
-            <i class="bi bi-check-lg me-2"></i>Yoklamayı Kaydet
-        </button>
-        <a href="{{ url_for('devamsizlik.yoklama.index') }}" class="btn btn-secondary btn-lg">
-            <i class="bi bi-x-lg me-2"></i>İptal
+    {% if ogrenciler %}
+    <div class="yoklama-altbar">
+        <a href="{{ url_for('devamsizlik.yoklama.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg me-1"></i>İptal
         </a>
+        <button type="submit" name="kaydet" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Yoklamayı Kaydet
+        </button>
     </div>
+    {% endif %}
 </form>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Tümünü Hazır
-    document.getElementById('btn-tumunu-hazir').addEventListener('click', function() {
-        document.querySelectorAll('.durum-radio[value="mevcut"]').forEach(radio => radio.checked = true);
-    });
-
-    // Tümünü Devamsız
-    document.getElementById('btn-tumunu-devamsiz').addEventListener('click', function() {
-        document.querySelectorAll('.durum-radio[value="devamsiz"]').forEach(radio => radio.checked = true);
-    });
-
-    // Temizle
-    document.getElementById('btn-temizle').addEventListener('click', function() {
-        document.querySelectorAll('.durum-radio[value="mevcut"]').forEach(radio => radio.checked = true);
-    });
-
-    // Not alanlarını göster/gizle
-    document.querySelectorAll('tbody tr').forEach(row => {
-        const icon = row.querySelector('.bi-sticky');
-        if (icon) {
-            icon.addEventListener('click', function() {
-                const tds = row.querySelectorAll('td');
-                const ogrenciIndex = Array.from(tds[0].textContent.trim());
-
-                // Sonraki satırı bul (notlar satırı)
-                const notarSatiri = row.nextElementSibling;
-                if (notarSatiri && notarSatiri.id.startsWith('notlar-')) {
-                    notarSatiri.classList.toggle('d-none');
-                }
-            });
-        }
-    });
-});
-</script>
-
 <style>
-.btn-group {
+/* === Yoklama satir kart tasarimi === */
+.yoklama-listesi {
     display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 5rem; /* alt bar icin */
+}
+.yoklama-satir {
+    background: #fff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+    transition: border-color 0.2s, box-shadow 0.15s;
+}
+.yoklama-satir:hover {
+    border-color: rgba(79, 70, 229, 0.3);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+/* State'e gore sol kenar rengi */
+.yoklama-satir[data-state="mevcut"]   { border-left: 4px solid #10b981; }
+.yoklama-satir[data-state="devamsiz"] { border-left: 4px solid #ef4444; }
+.yoklama-satir[data-state="gec"]      { border-left: 4px solid #f59e0b; }
+.yoklama-satir[data-state="izinli"]   { border-left: 4px solid #06b6d4; }
+.yoklama-satir[data-state="raporlu"]  { border-left: 4px solid #64748b; }
+
+.yoklama-satir-icerik {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.yoklama-ogrenci {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1 1 50%;
+    min-width: 0;
+}
+.ogrenci-numara {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+.yoklama-aksiyonlar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* === Ana toggle (Var / Yok) === */
+.ya-toggle {
+    display: inline-flex;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 3px;
     gap: 0;
 }
-
-.btn-group .btn {
-    flex: 1;
-    border-radius: 0 !important;
-    border-right: 1px solid rgba(0,0,0,0.125) !important;
+.ya-btn {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    padding: 0.42rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1;
+    min-width: 42px;
+}
+.ya-btn:hover { color: #1e293b; }
+.ya-btn[aria-pressed="true"].ya-var {
+    background: #10b981;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(16, 185, 129, 0.35);
+}
+.ya-btn[aria-pressed="true"].ya-yok {
+    background: #ef4444;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.35);
+}
+/* Ozel durum aktifken Var/Yok donuk gorunsun */
+.yoklama-satir[data-state="gec"] .ya-toggle,
+.yoklama-satir[data-state="izinli"] .ya-toggle,
+.yoklama-satir[data-state="raporlu"] .ya-toggle {
+    opacity: 0.45;
 }
 
-.btn-group .btn:first-child {
-    border-radius: 0.25rem 0 0 0.25rem !important;
+/* === Ozel durum chip'i === */
+.ya-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    border: 1px solid transparent;
+}
+.ya-chip[data-state-chip="gec"] {
+    background: #fef3c7; color: #92400e; border-color: #fde68a;
+}
+.ya-chip[data-state-chip="izinli"] {
+    background: #cffafe; color: #155e75; border-color: #a5f3fc;
+}
+.ya-chip[data-state-chip="raporlu"] {
+    background: #e2e8f0; color: #334155; border-color: #cbd5e1;
+}
+.ya-chip:hover { opacity: 0.85; }
+
+/* === Not alani === */
+.yoklama-not {
+    margin-top: 0.6rem;
 }
 
-.btn-group .btn:last-child {
-    border-right: none !important;
-    border-radius: 0 0.25rem 0.25rem 0 !important;
+/* === Sticky alt bar === */
+.yoklama-altbar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    z-index: 100;
+}
+@media (min-width: 992px) {
+    .yoklama-altbar {
+        left: var(--sidebar-width, 270px);
+    }
+    body.sidebar-collapsed .yoklama-altbar {
+        left: 0;
+    }
 }
 
-table tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+/* === Mobil duzenlemeler === */
+@media (max-width: 575.98px) {
+    .yoklama-satir {
+        padding: 0.55rem 0.65rem;
+    }
+    .ogrenci-numara {
+        width: 24px; height: 24px;
+        font-size: 0.7rem;
+    }
+    .ya-btn {
+        padding: 0.4rem 0.55rem;
+        min-width: 38px;
+    }
+    .yoklama-aksiyonlar { gap: 0.3rem; }
 }
 </style>
+
+<script>
+(function() {
+    var listesi = document.querySelector('.yoklama-listesi');
+    if (!listesi) return;
+
+    var STATE_LABELLERI = {
+        'mevcut': '',
+        'devamsiz': '',
+        'gec':     {'icon': 'bi-clock',        'text': 'Geç'},
+        'izinli':  {'icon': 'bi-info-circle',  'text': 'İzinli'},
+        'raporlu': {'icon': 'bi-file-text',    'text': 'Raporlu'},
+    };
+
+    function setState(satir, state) {
+        var hidden = satir.querySelector('input[type="hidden"][name^="durum_"]');
+        if (!hidden) return;
+        hidden.value = state;
+        satir.dataset.state = state;
+
+        var varBtn = satir.querySelector('.ya-var');
+        var yokBtn = satir.querySelector('.ya-yok');
+        var chip = satir.querySelector('.ya-chip');
+        var ozel = (state === 'gec' || state === 'izinli' || state === 'raporlu');
+
+        if (varBtn) varBtn.setAttribute('aria-pressed', state === 'mevcut' ? 'true' : 'false');
+        if (yokBtn) yokBtn.setAttribute('aria-pressed', state === 'devamsiz' ? 'true' : 'false');
+
+        if (chip) {
+            if (ozel) {
+                var meta = STATE_LABELLERI[state];
+                chip.classList.remove('d-none');
+                chip.dataset.stateChip = state;
+                chip.innerHTML = '<i class="bi ' + meta.icon + '"></i>' + meta.text +
+                                 '<i class="bi bi-pencil ms-1" style="font-size:0.7em;opacity:0.6;"></i>';
+            } else {
+                chip.classList.add('d-none');
+                chip.removeAttribute('data-state-chip');
+                chip.innerHTML = '';
+            }
+        }
+
+        ozetGuncelle();
+    }
+
+    function ozetGuncelle() {
+        var sayilar = {var: 0, yok: 0, ozel: 0};
+        listesi.querySelectorAll('.yoklama-satir').forEach(function(s) {
+            var st = s.dataset.state;
+            if (st === 'mevcut') sayilar.var++;
+            else if (st === 'devamsiz') sayilar.yok++;
+            else sayilar.ozel++;
+        });
+        var elVar = document.getElementById('sayiVar');
+        var elYok = document.getElementById('sayiYok');
+        var elOzel = document.getElementById('sayiOzel');
+        var ozetOzel = document.getElementById('ozetOzel');
+        if (elVar) elVar.textContent = sayilar.var;
+        if (elYok) elYok.textContent = sayilar.yok;
+        if (elOzel) elOzel.textContent = sayilar.ozel;
+        if (ozetOzel) ozetOzel.style.display = sayilar.ozel > 0 ? '' : 'none';
+    }
+
+    // Tek tıklamayla state degistir
+    listesi.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        var satir = e.target.closest('.yoklama-satir');
+        if (!satir) return;
+
+        var aksiyon = btn.dataset.action;
+
+        if (aksiyon === 'set') {
+            e.preventDefault();
+            setState(satir, btn.dataset.targetState);
+        } else if (aksiyon === 'open-menu') {
+            // Chip'e tiklayinca dropdown'i ac
+            e.preventDefault();
+            var dd = satir.querySelector('.ya-dropdown [data-bs-toggle="dropdown"]');
+            if (dd && window.bootstrap) {
+                bootstrap.Dropdown.getOrCreateInstance(dd).show();
+            }
+        }
+    });
+
+    // Dropdown'dan ozel durum sec
+    listesi.addEventListener('click', function(e) {
+        var item = e.target.closest('.ya-set-state');
+        if (item) {
+            e.preventDefault();
+            var satir = e.target.closest('.yoklama-satir');
+            setState(satir, item.dataset.targetState);
+            return;
+        }
+        var notBtn = e.target.closest('.ya-toggle-not');
+        if (notBtn) {
+            e.preventDefault();
+            var satir = e.target.closest('.yoklama-satir');
+            var notAlani = satir.querySelector('.yoklama-not');
+            if (notAlani) {
+                notAlani.classList.toggle('d-none');
+                if (!notAlani.classList.contains('d-none')) {
+                    var ta = notAlani.querySelector('textarea');
+                    if (ta) ta.focus();
+                }
+            }
+        }
+    });
+
+    // Toplu butonlar
+    var btnTumuVar = document.getElementById('btnTumuVar');
+    var btnTumuYok = document.getElementById('btnTumuYok');
+    if (btnTumuVar) btnTumuVar.addEventListener('click', function() {
+        listesi.querySelectorAll('.yoklama-satir').forEach(function(s) {
+            setState(s, 'mevcut');
+        });
+    });
+    if (btnTumuYok) btnTumuYok.addEventListener('click', function() {
+        listesi.querySelectorAll('.yoklama-satir').forEach(function(s) {
+            setState(s, 'devamsiz');
+        });
+    });
+
+    // Ilk render: tum satirlari kaydedilmis state ile senkronize et
+    listesi.querySelectorAll('.yoklama-satir').forEach(function(s) {
+        setState(s, s.dataset.state || 'mevcut');
+    });
+})();
+</script>
 {% endblock %}

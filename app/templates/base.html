@@ -28,7 +28,7 @@
     <nav class="navbar navbar-dark bg-primary fixed-top">
         <div class="container-fluid">
             <div class="d-flex align-items-center">
-                <button class="btn btn-link text-white d-lg-none me-2 p-0 sidebar-toggle" type="button" id="sidebarToggle" aria-label="Menü">
+                <button class="btn btn-link text-white me-2 p-0 sidebar-toggle" type="button" id="sidebarToggle" aria-label="Menü">
                     <i class="bi bi-list fs-4"></i>
                 </button>
                 <a class="navbar-brand d-flex align-items-center mb-0" href="{{ url_for('main.dashboard') }}">
@@ -71,13 +71,6 @@
             <div class="sidebar-content">
                 {% for item in menu_items %}
                 {% set renk = item.renk_kat|default('', true) %}
-                {# Kategori degistiginde ince ayirici cizgi #}
-                {% if not loop.first and renk %}
-                {% set prev_renk = menu_items[loop.index0 - 1].renk_kat|default('', true) %}
-                {% if renk != prev_renk %}
-                <div class="sidebar-separator"></div>
-                {% endif %}
-                {% endif %}
                 <div class="sidebar-section">
                     {% if item.children %}
                     <a class="sidebar-link has-children{% if renk %} modul-{{ renk }}{% endif %} {% if request.path.startswith(item.url) and item.url != '/' %}active{% endif %}" data-bs-toggle="collapse" href="#menu-{{ loop.index }}" role="button"

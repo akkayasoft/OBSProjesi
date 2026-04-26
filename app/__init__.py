@@ -371,6 +371,15 @@ def create_app(config_class=Config):
         if current_user.is_authenticated:
             from app.module_registry import modul_renk_kategorisi, url_to_modul_key
 
+            # Turkce karakterleri normalize ederek alfabetik siralama anahtari
+            def _menu_sort_key(s: str) -> str:
+                s = (s or '').lower()
+                tr_map = {'ı': 'i', 'i̇': 'i', 'ş': 's', 'ğ': 'g',
+                          'ü': 'u', 'ö': 'o', 'ç': 'c'}
+                for tr, en in tr_map.items():
+                    s = s.replace(tr, en)
+                return s
+
             # Ilk kurulumda varsayilan izinleri olustur. Ayrica yeni modul
             # eklendiyse (MODULLER'de olup DB'de kaydi olmayan) eksikleri tamamla.
             # Fonksiyon idempotenttir: mevcut kayitlara dokunmaz.
@@ -390,7 +399,8 @@ def create_app(config_class=Config):
                 elif modul_key in izinli_moduller:
                     # Renk kategorisi ekle
                     item['renk_kat'] = modul_renk_kategorisi(modul_key)
-                    # Cocuklari role gore filtrele (opsiyonel 'roller' alani)
+                    # Cocuklari role gore filtrele (opsiyonel 'roller' alani) +
+                    # alt menuyu de A-Z sirala
                     cocuklar = item.get('children') or []
                     if cocuklar and kullanici_rolu:
                         filtrelenmis = [
@@ -398,7 +408,18 @@ def create_app(config_class=Config):
                             if 'roller' not in c or kullanici_rolu in c['roller']
                         ]
                         item['children'] = filtrelenmis
+                    if item.get('children'):
+                        item['children'] = sorted(
+                            item['children'],
+                            key=lambda c: _menu_sort_key(c.get('label', '')),
+                        )
                     menu_items.append(item)
+
+            # Ana menu bagliklarini A-Z sirala (Turkce karakter normalize)
+            menu_items = sorted(
+                menu_items,
+                key=lambda i: _menu_sort_key(i.get('label', '')),
+            )
 
             # Aktif sayfanin modul rengini hesapla (sidebar + page header icin)
             aktif_modul = url_to_modul_key(request.path)

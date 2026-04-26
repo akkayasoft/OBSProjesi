@@ -1,64 +1,108 @@
 // OBS - Genel JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Sidebar toggle (mobil / tablet) ---
+    // --- Sidebar toggle ---
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
     var toggle = document.getElementById('sidebarToggle');
+    var body = document.body;
+    var DESKTOP_BREAKPOINT = 992;
+    var COLLAPSED_KEY = 'obs:sidebar:collapsed';
 
-    function openSidebar() {
+    function isDesktop() {
+        return window.innerWidth >= DESKTOP_BREAKPOINT;
+    }
+
+    // --- Mobil: overlay + slide-in ---
+    function openMobileSidebar() {
         if (sidebar) sidebar.classList.add('show');
         if (overlay) overlay.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        body.style.overflow = 'hidden';
     }
 
-    function closeSidebar() {
+    function closeMobileSidebar() {
         if (sidebar) sidebar.classList.remove('show');
         if (overlay) overlay.classList.remove('show');
-        document.body.style.overflow = '';
+        body.style.overflow = '';
     }
 
-    function toggleSidebar(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (sidebar && sidebar.classList.contains('show')) {
-            closeSidebar();
+    // --- Desktop: collapse/expand (margin sifirlanir, sidebar kayar) ---
+    function applyDesktopCollapsed(collapsed) {
+        if (collapsed) {
+            body.classList.add('sidebar-collapsed');
         } else {
-            openSidebar();
+            body.classList.remove('sidebar-collapsed');
+        }
+    }
+
+    function toggleDesktopSidebar() {
+        var collapsed = !body.classList.contains('sidebar-collapsed');
+        applyDesktopCollapsed(collapsed);
+        try {
+            localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
+        } catch (e) { /* private mode */ }
+    }
+
+    // Sayfa yuklenirken kaydedilmis durumu uygula (sadece desktop'ta)
+    if (isDesktop()) {
+        try {
+            if (localStorage.getItem(COLLAPSED_KEY) === '1') {
+                applyDesktopCollapsed(true);
+            }
+        } catch (e) { /* private mode */ }
+    }
+
+    function handleToggle(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        if (isDesktop()) {
+            toggleDesktopSidebar();
+        } else {
+            if (sidebar && sidebar.classList.contains('show')) {
+                closeMobileSidebar();
+            } else {
+                openMobileSidebar();
+            }
         }
     }
 
     if (toggle) {
-        toggle.addEventListener('click', toggleSidebar);
+        toggle.addEventListener('click', handleToggle);
         toggle.addEventListener('touchend', function(e) {
             e.preventDefault();
-            toggleSidebar(e);
+            handleToggle(e);
         }, { passive: false });
     }
 
     if (overlay) {
-        overlay.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeMobileSidebar);
         overlay.addEventListener('touchend', function(e) {
             e.preventDefault();
-            closeSidebar();
+            closeMobileSidebar();
         }, { passive: false });
     }
 
-    // Sidebar icindeki linklere tiklaninca kapat (mobilde)
+    // Mobilde sidebar icindeki linklere tiklaninca kapat
     if (sidebar) {
         sidebar.querySelectorAll('a.sidebar-link:not(.has-children)').forEach(function(link) {
             link.addEventListener('click', function() {
-                if (window.innerWidth < 992) {
-                    closeSidebar();
+                if (!isDesktop()) {
+                    closeMobileSidebar();
                 }
             });
         });
     }
 
-    // Ekran genisleyince sidebar state'ini temizle
+    // Pencere boyutu degisince:
+    // - Mobile→Desktop: mobile show'u temizle, kaydedilmis collapse durumunu uygula
+    // - Desktop→Mobile: collapsed'i temizle (mobilde her zaman acilabilir)
     window.addEventListener('resize', function() {
-        if (window.innerWidth >= 992) {
-            closeSidebar();
+        if (isDesktop()) {
+            closeMobileSidebar();
+            try {
+                applyDesktopCollapsed(localStorage.getItem(COLLAPSED_KEY) === '1');
+            } catch (e) { /* */ }
+        } else {
+            applyDesktopCollapsed(false);
         }
     });
 

@@ -619,6 +619,17 @@ h4.mb-0 {
     touch-action: manipulation;
 }
 
+/* === Desktop: sidebar-collapsed durumu === */
+/* body.sidebar-collapsed: drawer kapatildi, page-content tam genislige yayilir */
+body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+}
+body.sidebar-collapsed .page-content {
+    margin-left: 0;
+    width: 100%;
+}
+
 /* === Sidebar Overlay (mobil) === */
 .sidebar-overlay {
     display: none;

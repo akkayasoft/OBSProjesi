@@ -281,6 +281,146 @@ def ogrenci_risk_skoru(ogrenci_id: int, bugun: date | None = None) -> dict[str, 
     }
 
 
+def risk_snapshot_kaydet(ogrenci_id: int,
+                          bugun: date | None = None,
+                          force: bool = False) -> 'RiskSkoruGecmisi | None':
+    """Bir ogrenci icin gunun risk skoru snapshot'ini DB'ye yazar.
+
+    Ayni gunde mevcut bir snapshot varsa: force=True ise gunceller, degilse
+    es gecer. ISO haftaya gore bir snapshot/hafta yeterli — varsayilan olarak
+    haftada 1 kez calistirilmasi beklenir.
+
+    Donus: olusturulan/guncellenen kayit, ya da None.
+    """
+    from app.models.rehberlik import RiskSkoruGecmisi  # circular import guard
+
+    bugun = bugun or date.today()
+    risk = ogrenci_risk_skoru(ogrenci_id, bugun=bugun)
+    if not risk.get('ogrenci'):
+        return None
+
+    mevcut = (RiskSkoruGecmisi.query
+              .filter_by(ogrenci_id=ogrenci_id, snapshot_tarih=bugun)
+              .first())
+    if mevcut and not force:
+        return mevcut
+
+    detay = risk.get('detay', {}) or {}
+    sebepler_csv = ','.join(risk.get('sebepler', []) or [])
+
+    if mevcut:
+        mevcut.skor = risk['skor']
+        mevcut.seviye = risk['seviye']
+        mevcut.devamsizlik_gun = (detay.get('devamsizlik') or {}).get('gun_sayisi', 0)
+        mevcut.olumsuz_davranis = (detay.get('davranis') or {}).get('olumsuz_sayi', 0)
+        mevcut.deneme_trend = (detay.get('deneme') or {}).get('trend')
+        mevcut.sebepler = sebepler_csv
+        kayit = mevcut
+    else:
+        kayit = RiskSkoruGecmisi(
+            ogrenci_id=ogrenci_id,
+            snapshot_tarih=bugun,
+            skor=risk['skor'],
+            seviye=risk['seviye'],
+            devamsizlik_gun=(detay.get('devamsizlik') or {}).get('gun_sayisi', 0),
+            olumsuz_davranis=(detay.get('davranis') or {}).get('olumsuz_sayi', 0),
+            deneme_trend=(detay.get('deneme') or {}).get('trend'),
+            sebepler=sebepler_csv,
+        )
+        db.session.add(kayit)
+    return kayit
+
+
+def risk_snapshot_toplu(force: bool = False) -> dict:
+    """Tum aktif ogrenciler icin gunun snapshot'ini olusturur.
+
+    Donus: {'olusturulan': N, 'guncellenen': M, 'es_gecilen': K, 'toplam': T}
+    """
+    from app.models.rehberlik import RiskSkoruGecmisi
+
+    bugun = date.today()
+    aktifler = Ogrenci.query.filter_by(aktif=True).all()
+    olusturulan = guncellenen = es_gecilen = 0
+    for o in aktifler:
+        mevcut = (RiskSkoruGecmisi.query
+                  .filter_by(ogrenci_id=o.id, snapshot_tarih=bugun)
+                  .first())
+        if mevcut and not force:
+            es_gecilen += 1
+            continue
+        kayit = risk_snapshot_kaydet(o.id, bugun=bugun, force=force)
+        if kayit is None:
+            continue
+        if mevcut:
+            guncellenen += 1
+        else:
+            olusturulan += 1
+
+    db.session.commit()
+    return {
+        'olusturulan': olusturulan,
+        'guncellenen': guncellenen,
+        'es_gecilen': es_gecilen,
+        'toplam': len(aktifler),
+        'tarih': bugun,
+    }
+
+
+def risk_trend(ogrenci_id: int, hafta_sayisi: int = 12,
+                bugune_kayit_garanti: bool = True) -> dict:
+    """Bir ogrencinin son N haftadaki risk skoru trendini dondurur.
+
+    Eger bugun icin snapshot yoksa ve `bugune_kayit_garanti=True` ise once
+    snapshot kaydedilir, sonra trend hesaplanir. Bu sayede profile sayfasi
+    her acildiginda guncel veri uretilir (cron beklenmesine gerek kalmaz).
+    """
+    from app.models.rehberlik import RiskSkoruGecmisi
+
+    bugun = date.today()
+    if bugune_kayit_garanti:
+        risk_snapshot_kaydet(ogrenci_id, bugun=bugun, force=False)
+        db.session.commit()
+
+    baslangic = bugun - timedelta(days=hafta_sayisi * 7)
+    kayitlar = (RiskSkoruGecmisi.query
+                .filter(RiskSkoruGecmisi.ogrenci_id == ogrenci_id,
+                        RiskSkoruGecmisi.snapshot_tarih >= baslangic)
+                .order_by(RiskSkoruGecmisi.snapshot_tarih.asc())
+                .all())
+
+    noktalar = [{
+        'tarih': k.snapshot_tarih.strftime('%d.%m.%Y'),
+        'tarih_iso': k.snapshot_tarih.isoformat(),
+        'skor': k.skor,
+        'seviye': k.seviye,
+        'devamsizlik_gun': k.devamsizlik_gun,
+        'olumsuz_davranis': k.olumsuz_davranis,
+        'deneme_trend': k.deneme_trend,
+    } for k in kayitlar]
+
+    if len(kayitlar) >= 2:
+        ilk, son = kayitlar[0], kayitlar[-1]
+        delta = son.skor - ilk.skor
+        if delta < -5:
+            yon = 'iyilesme'
+        elif delta > 5:
+            yon = 'kotulesme'
+        else:
+            yon = 'sabit'
+    else:
+        delta = 0
+        yon = 'yetersiz'
+
+    return {
+        'noktalar': noktalar,
+        'kayit_sayisi': len(kayitlar),
+        'ilk_skor': kayitlar[0].skor if kayitlar else None,
+        'son_skor': kayitlar[-1].skor if kayitlar else None,
+        'delta': delta,
+        'yon': yon,
+    }
+
+
 def risk_listesi(limit: int = 20, esik: int = 30,
                  ogrenci_ids: list[int] | None = None) -> list[dict]:
     """Tum aktif ogrenciler icin risk skorlarini hesaplayip esik ustunde olanlari dondurur.

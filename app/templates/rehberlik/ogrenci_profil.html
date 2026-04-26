@@ -29,6 +29,66 @@
     </div>
 </div>
 
+<!-- Risk Skoru Trendi -->
+{% if risk %}
+<div class="card shadow-sm mb-4 border-{{ risk.badge }}">
+    <div class="card-header bg-{{ risk.badge }} bg-opacity-10 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="mb-0">
+                <i class="bi bi-shield-exclamation me-2"></i>Risk Skoru
+            </h5>
+            <small class="text-muted">
+                Devamsizlik (30g) + deneme trendi + olumsuz davranis (14g) + profil
+            </small>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-center">
+                <div class="fs-3 fw-bold text-{{ risk.badge }}">{{ risk.skor }}<small class="text-muted fs-6">/100</small></div>
+                <small class="text-muted text-uppercase">{{ risk.seviye }}</small>
+            </div>
+            {% if risk_trend.kayit_sayisi >= 2 %}
+            <div class="text-center border-start ps-3">
+                <div class="fs-5 fw-semibold {% if risk_trend.yon == 'iyilesme' %}text-success{% elif risk_trend.yon == 'kotulesme' %}text-danger{% else %}text-muted{% endif %}">
+                    {% if risk_trend.delta > 0 %}+{% endif %}{{ risk_trend.delta }}
+                </div>
+                <small class="text-muted">
+                    {% if risk_trend.yon == 'iyilesme' %}<i class="bi bi-arrow-down-circle text-success"></i> iyilesme
+                    {% elif risk_trend.yon == 'kotulesme' %}<i class="bi bi-arrow-up-circle text-danger"></i> kotulesme
+                    {% else %}sabit{% endif %}
+                </small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        {% if risk.sebepler %}
+        <div class="mb-3">
+            <small class="text-muted me-2">Aktif sinyaller:</small>
+            {% for s in risk.sebepler %}
+            <span class="badge bg-light text-dark border me-1">{{ s }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if risk_trend.kayit_sayisi >= 2 %}
+        <div style="position: relative; height: 220px;">
+            <canvas id="riskTrendChart"></canvas>
+        </div>
+        <small class="text-muted d-block mt-2">
+            <i class="bi bi-info-circle me-1"></i>
+            Son {{ risk_trend.kayit_sayisi }} snapshot — haftalik kaydedilen risk skoru tarihcesi.
+        </small>
+        {% else %}
+        <div class="alert alert-info mb-0 small">
+            <i class="bi bi-clock-history me-1"></i>
+            Trend grafigi icin en az 2 hafta veri gereklidir. Bu sayfayi her ziyaretinizde
+            bugune ait snapshot otomatik olarak kaydedilir.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Ozet Istatistikler -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
@@ -490,4 +550,80 @@
         <i class="bi bi-arrow-left me-1"></i>Ogrenci Listesine Don
     </a>
 </div>
+
+{% if risk_trend and risk_trend.kayit_sayisi >= 2 %}
+<script>
+(function() {
+    const noktalar = {{ risk_trend.noktalar | tojson }};
+    const ctx = document.getElementById('riskTrendChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+
+    // Renk: skor seviyesine gore
+    const renk = function(skor) {
+        if (skor < 30) return '#198754';   // success
+        if (skor < 55) return '#ffc107';   // warning
+        return '#dc3545';                  // danger
+    };
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: noktalar.map(n => n.tarih),
+            datasets: [{
+                label: 'Risk Skoru',
+                data: noktalar.map(n => n.skor),
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
+                tension: 0.25,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: noktalar.map(n => renk(n.skor)),
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(ctx) {
+                            const n = noktalar[ctx.dataIndex];
+                            const lines = [];
+                            if (n.devamsizlik_gun) lines.push('Devamsizlik: ' + n.devamsizlik_gun + ' gun');
+                            if (n.olumsuz_davranis) lines.push('Olumsuz davranis: ' + n.olumsuz_davranis);
+                            if (n.deneme_trend) lines.push('Deneme trendi: ' + n.deneme_trend);
+                            lines.push('Seviye: ' + n.seviye);
+                            return lines;
+                        }
+                    }
+                },
+                annotation: {}
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    ticks: { stepSize: 20 },
+                    title: { display: true, text: 'Risk Skoru' },
+                    grid: {
+                        color: function(ctx) {
+                            const v = ctx.tick.value;
+                            if (v === 30 || v === 55) return 'rgba(220, 53, 69, 0.25)';
+                            return 'rgba(0,0,0,0.05)';
+                        }
+                    }
+                },
+                x: {
+                    title: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

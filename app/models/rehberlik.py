@@ -288,3 +288,41 @@ class RehberlikPlani(db.Model):
 
     def __repr__(self):
         return f'<RehberlikPlani {self.baslik}>'
+
+
+class RiskSkoruGecmisi(db.Model):
+    """Ogrenci risk skoru haftalik snapshot.
+
+    Erken uyari sisteminin uygulanan plan/gorusme sonrasi etkinligini
+    olcebilmek icin haftalik (veya manuel) snapshot saklanir.
+    """
+    __tablename__ = 'risk_skoru_gecmisi'
+    __table_args__ = (
+        db.UniqueConstraint('ogrenci_id', 'snapshot_tarih',
+                            name='uq_risk_gecmisi_ogrenci_tarih'),
+        db.Index('ix_risk_gecmisi_tarih', 'snapshot_tarih'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    ogrenci_id = db.Column(db.Integer, db.ForeignKey('ogrenciler.id'), nullable=False)
+    snapshot_tarih = db.Column(db.Date, nullable=False, default=date.today)
+    skor = db.Column(db.Integer, nullable=False)
+    seviye = db.Column(db.String(10), nullable=False)
+    # dusuk, orta, yuksek
+    devamsizlik_gun = db.Column(db.Integer, nullable=False, default=0)
+    olumsuz_davranis = db.Column(db.Integer, nullable=False, default=0)
+    deneme_trend = db.Column(db.String(20), nullable=True)
+    # yukseliyor, dusuyor, sabit, yetersiz, None
+    sebepler = db.Column(db.Text, nullable=True)  # CSV
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    ogrenci = db.relationship('Ogrenci',
+                              backref=db.backref('risk_skoru_gecmisi', lazy='dynamic'))
+
+    @property
+    def seviye_badge(self):
+        return {'dusuk': 'success', 'orta': 'warning', 'yuksek': 'danger'}.get(
+            self.seviye, 'secondary')
+
+    def __repr__(self):
+        return f'<RiskSkoruGecmisi {self.ogrenci_id} {self.snapshot_tarih} {self.skor}>'

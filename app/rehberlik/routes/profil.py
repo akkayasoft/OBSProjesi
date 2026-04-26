@@ -6,6 +6,7 @@ from app.models.rehberlik import OgrenciProfil, Gorusme, DavranisKaydi, VeliGoru
 from app.models.muhasebe import Ogrenci
 from app.rehberlik.forms import OgrenciProfilForm
 from app.rehberlik.akademik_analiz import ogrenci_analizi
+from app.rehberlik.risk_skoru import ogrenci_risk_skoru, risk_trend
 
 bp = Blueprint('profil', __name__)
 
@@ -65,6 +66,10 @@ def ogrenci_profil(ogrenci_id):
     # Deneme sinavi akademik analizi
     akademik = ogrenci_analizi(ogrenci_id)
 
+    # Erken uyari: anlik risk skoru + 12 haftalik trend
+    risk = ogrenci_risk_skoru(ogrenci_id)
+    trend = risk_trend(ogrenci_id, hafta_sayisi=12)
+
     return render_template('rehberlik/ogrenci_profil.html',
                            ogrenci=ogrenci,
                            profil=profil,
@@ -74,7 +79,9 @@ def ogrenci_profil(ogrenci_id):
                            planlar=planlar,
                            olumlu_davranis=olumlu_davranis,
                            olumsuz_davranis=olumsuz_davranis,
-                           akademik=akademik)
+                           akademik=akademik,
+                           risk=risk,
+                           risk_trend=trend)
 
 
 @bp.route('/<int:ogrenci_id>/duzenle', methods=['GET', 'POST'])

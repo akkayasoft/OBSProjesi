@@ -731,4 +731,21 @@ def create_app(config_class=Config):
                 print(f'    - {h}')
         print('=' * 60)
 
+    @app.cli.command('risk-snapshot')
+    @click.option('--force', is_flag=True, default=False,
+                  help='Bugun mevcut snapshot varsa uzerine yaz')
+    def risk_snapshot_command(force):
+        """Tum aktif ogrenciler icin gunun risk skoru snapshot'ini kaydeder.
+
+        Haftalik cron olarak calismasi onerilir:
+            0 6 * * 1  flask risk-snapshot
+        """
+        from app.rehberlik.risk_skoru import risk_snapshot_toplu
+        sonuc = risk_snapshot_toplu(force=force)
+        click.echo(f"Risk snapshot - {sonuc['tarih'].strftime('%d.%m.%Y')}")
+        click.echo(f"  Toplam aktif ogrenci   : {sonuc['toplam']}")
+        click.echo(f"  Olusturulan            : {sonuc['olusturulan']}")
+        click.echo(f"  Guncellenen            : {sonuc['guncellenen']}")
+        click.echo(f"  Es gecilen (mevcut)    : {sonuc['es_gecilen']}")
+
     return app

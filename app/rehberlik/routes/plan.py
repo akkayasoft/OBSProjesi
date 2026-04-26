@@ -101,7 +101,43 @@ def yeni():
 @role_required('admin', 'ogretmen')
 def detay(plan_id):
     plan = RehberlikPlani.query.get_or_404(plan_id)
-    return render_template('rehberlik/plan_detay.html', plan=plan)
+
+    # Plan etkinligi: plan baslangicindan bitisine (yoksa bugune) kadar olan
+    # risk skoru snapshot'lari
+    from app.models.rehberlik import RiskSkoruGecmisi
+    from datetime import date as _date
+
+    son_tarih = plan.bitis_tarihi or _date.today()
+    snapshotlar = (RiskSkoruGecmisi.query
+                   .filter(RiskSkoruGecmisi.ogrenci_id == plan.ogrenci_id,
+                           RiskSkoruGecmisi.snapshot_tarih >= plan.baslangic_tarihi,
+                           RiskSkoruGecmisi.snapshot_tarih <= son_tarih)
+                   .order_by(RiskSkoruGecmisi.snapshot_tarih.asc())
+                   .all())
+
+    etkinlik = None
+    if len(snapshotlar) >= 2:
+        ilk, son = snapshotlar[0], snapshotlar[-1]
+        delta = son.skor - ilk.skor
+        if delta < -10:
+            yon = 'iyilesme'
+        elif delta > 10:
+            yon = 'kotulesme'
+        else:
+            yon = 'sabit'
+        etkinlik = {
+            'ilk': ilk,
+            'son': son,
+            'delta': delta,
+            'yon': yon,
+            'noktalar': [{
+                'tarih': s.snapshot_tarih.strftime('%d.%m.%Y'),
+                'skor': s.skor,
+                'seviye': s.seviye,
+            } for s in snapshotlar],
+        }
+
+    return render_template('rehberlik/plan_detay.html', plan=plan, etkinlik=etkinlik)
 
 
 @bp.route('/<int:plan_id>/duzenle', methods=['GET', 'POST'])

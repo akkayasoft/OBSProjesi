@@ -132,7 +132,7 @@
                                class="btn btn-sm btn-outline-info" title="Rapor">
                                 <i class="bi bi-bar-chart"></i>
                             </a>
-                            {% if current_user.rol == 'admin' %}
+                            {% if current_user.rol in ('admin', 'yonetici') %}
                             <form method="POST"
                                   action="{{ url_for('deneme_sinavi.sinav.sil', sinav_id=s.id) }}"
                                   class="d-inline"

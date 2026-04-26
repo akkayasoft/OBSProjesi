@@ -152,7 +152,7 @@ def durum_degistir(sinav_id):
 
 @bp.route('/<int:sinav_id>/sil', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('admin', 'yonetici')
 def sil(sinav_id):
     sinav = DenemeSinavi.query.get_or_404(sinav_id)
     ad = sinav.ad

@@ -1,0 +1,202 @@
+{% extends "kayit/_layout.html" %}
+
+{% block title %}Veliler{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Veliler</li>
+{% endblock %}
+
+{% block kayit_content %}
+{% set ph = {
+    'title': 'Veliler',
+    'subtitle': 'Kayıtlı tüm velilerin listesi (kardeş öğrenciler aynı satırda gruplanır)',
+    'icon': 'bi-people-fill',
+    'badge': {'text': toplam ~ ' veli', 'color': 'primary'}
+} %}
+{% include "components/page_header.html" %}
+
+<!-- Filtreler -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="search" name="arama" value="{{ arama }}"
+                           class="form-control form-control-sm"
+                           placeholder="Veli adı, telefon, e-posta, TC, öğrenci adı veya numarası…"
+                           autofocus>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="yakinlik" class="form-select form-select-sm">
+                    <option value="">Tüm yakınlıklar</option>
+                    <option value="anne" {% if yakinlik == 'anne' %}selected{% endif %}>Anne</option>
+                    <option value="baba" {% if yakinlik == 'baba' %}selected{% endif %}>Baba</option>
+                    <option value="vasi" {% if yakinlik == 'vasi' %}selected{% endif %}>Vasi</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-1">
+                <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
+                    <i class="bi bi-funnel me-1"></i>Filtrele
+                </button>
+                {% if arama or yakinlik %}
+                <a href="{{ url_for('kayit.veli.liste') }}"
+                   class="btn btn-sm btn-outline-secondary"
+                   title="Filtreyi temizle">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if veliler %}
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Veli</th>
+                        <th>İletişim</th>
+                        <th>Bağlı Öğrenciler</th>
+                        <th class="text-center">Sistem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in veliler %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="veli-avatar"
+                                     style="width:32px;height:32px;border-radius:50%;
+                                            background:linear-gradient(135deg,#a5b4fc,#818cf8);
+                                            color:#fff;font-weight:700;font-size:0.78rem;
+                                            display:inline-flex;align-items:center;justify-content:center;
+                                            flex-shrink:0;">
+                                    {{ (v.tam_ad[:2] or '?').upper() }}
+                                </div>
+                                <div>
+                                    <strong>{{ v.tam_ad }}</strong>
+                                    <small class="text-muted d-block">
+                                        <span class="badge bg-light text-dark border">
+                                            {% if v.yakinlik == 'anne' %}<i class="bi bi-person me-1"></i>Anne
+                                            {% elif v.yakinlik == 'baba' %}<i class="bi bi-person me-1"></i>Baba
+                                            {% elif v.yakinlik == 'vasi' %}<i class="bi bi-shield me-1"></i>Vasi
+                                            {% else %}{{ v.yakinlik }}{% endif %}
+                                        </span>
+                                        {% if v.tc_kimlik %}
+                                        <span class="ms-1">TC: {{ v.tc_kimlik[:3] }}*****{{ v.tc_kimlik[-2:] }}</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if v.telefon %}
+                            <div>
+                                <a href="tel:{{ v.telefon }}" class="text-decoration-none small">
+                                    <i class="bi bi-telephone me-1 text-muted"></i>{{ v.telefon }}
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% if v.email %}
+                            <div>
+                                <a href="mailto:{{ v.email }}" class="text-decoration-none small text-muted">
+                                    <i class="bi bi-envelope me-1"></i>{{ v.email }}
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% if v.meslek %}
+                            <small class="text-muted d-block">
+                                <i class="bi bi-briefcase me-1"></i>{{ v.meslek }}
+                            </small>
+                            {% endif %}
+                            {% if not v.telefon and not v.email %}
+                            <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% for o in v.ogrenciler %}
+                            <a href="{{ url_for('kayit.ogrenci.detay', ogrenci_id=o.id) }}"
+                               class="text-decoration-none d-inline-flex align-items-center
+                                      bg-light border rounded-pill px-2 py-1 me-1 mb-1">
+                                <i class="bi bi-mortarboard me-1 text-primary"
+                                   style="font-size:0.75rem;"></i>
+                                <span class="small">
+                                    <strong>{{ o.tam_ad }}</strong>
+                                    {% if o.sinif %}<span class="text-muted">· {{ o.sinif }}</span>{% endif %}
+                                </span>
+                            </a>
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            {% if v.sistem_kullanicisi %}
+                            <span class="badge bg-success-subtle text-success border" title="Veli portalına giriş yapabiliyor">
+                                <i class="bi bi-check-circle me-1"></i>Aktif
+                            </span>
+                            {% else %}
+                            <span class="badge bg-light text-muted border" title="Henüz veli kullanıcı hesabı oluşturulmamış">
+                                <i class="bi bi-dash-circle me-1"></i>Yok
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if son_sayfa > 1 %}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+            Sayfa {{ page }} / {{ son_sayfa }} · Toplam {{ toplam }} veli
+            {% if sistem_kayit_sayisi %}
+            (<span class="text-success">{{ sistem_kayit_sayisi }} sistem kullanıcısı</span>)
+            {% endif %}
+        </small>
+        <div class="btn-group btn-group-sm">
+            {% if page > 1 %}
+            <a href="{{ url_for('kayit.veli.liste', page=page-1, arama=arama, yakinlik=yakinlik) }}"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-chevron-left"></i> Önceki
+            </a>
+            {% endif %}
+            {% if page < son_sayfa %}
+            <a href="{{ url_for('kayit.veli.liste', page=page+1, arama=arama, yakinlik=yakinlik) }}"
+               class="btn btn-outline-secondary">
+                Sonraki <i class="bi bi-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if not son_sayfa or son_sayfa == 1 %}
+<small class="text-muted d-block mt-2">
+    Toplam {{ toplam }} veli
+    {% if sistem_kayit_sayisi %}
+    · <span class="text-success">{{ sistem_kayit_sayisi }} sistem kullanıcısı</span>
+    {% endif %}
+</small>
+{% endif %}
+
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+        {% if arama or yakinlik %}
+        Bu filtreyle eşleşen veli bulunamadı.
+        <a href="{{ url_for('kayit.veli.liste') }}" class="d-block mt-2">Filtreyi temizle</a>
+        {% else %}
+        Sistemde henüz kayıtlı veli bulunmamaktadır.
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

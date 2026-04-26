@@ -193,6 +193,8 @@ def create_app(config_class=Config):
             {'label': 'Kayıt Yönetimi', 'icon': 'bi-journal-check', 'url': '/kayit/', 'modul_key': 'kayit', 'children': [
                 {'label': 'Öğrenci Listesi', 'icon': 'bi-people', 'url': '/kayit/ogrenci/'},
                 {'label': 'Yeni Kayıt', 'icon': 'bi-person-plus', 'url': '/kayit/ogrenci/yeni'},
+                {'label': 'Veliler', 'icon': 'bi-people-fill', 'url': '/kayit/veli/',
+                 'roller': ['admin', 'yonetici']},
                 {'label': 'Sınıf / Şube', 'icon': 'bi-building', 'url': '/kayit/sinif/',
                  'roller': ['admin', 'yonetici']},
                 {'label': 'Dönemler', 'icon': 'bi-calendar-range', 'url': '/kayit/donem/',

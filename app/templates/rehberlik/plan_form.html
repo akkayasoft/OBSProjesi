@@ -8,8 +8,44 @@
 {% endblock %}
 
 {% block rehberlik_content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
+{% if sablon %}
+<div class="alert alert-success py-2 mb-3 d-flex align-items-start">
+    <i class="bi bi-magic me-2 fs-4"></i>
+    <div class="flex-grow-1 small">
+        <strong>{{ sablon.sablon_ad }}</strong> sablonu uygulandi
+        ({{ sablon.ogrenci.tam_ad }} icin).
+        Form alanlari risk analizi temel alinarak onceden dolduruldu — kontrol
+        edip duzenleyebilirsiniz.
+        {% if sablon.gerekce %}
+        <div class="mt-1">
+            <small class="text-muted">Sinyaller:</small>
+            {% for g in sablon.gerekce %}
+            <span class="badge bg-light text-dark border ms-1">{{ g }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <div class="dropdown ms-2">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+            Sablon degistir
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            {% for s in sablon.tum_sablonlar %}
+            <li>
+                <a class="dropdown-item {% if s.kod == sablon.sablon_kodu %}active{% endif %}"
+                   href="{{ url_for('rehberlik.plan.yeni', ogrenci_id=sablon.ogrenci.id, sablon=s.kod) }}">
+                    {{ s.ad }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-lg-{% if sablon %}8{% else %}10 mx-auto{% endif %}">
         <div class="card shadow-sm">
             <div class="card-header bg-white">
                 <h5 class="mb-0"><i class="bi bi-map me-2"></i>{{ baslik }}</h5>
@@ -85,5 +121,83 @@
             </div>
         </div>
     </div>
+
+    {% if sablon %}
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-{{ sablon.risk.badge }}">
+            <div class="card-header bg-{{ sablon.risk.badge }} bg-opacity-10 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-clipboard-data me-2"></i>Risk Profili
+                </h6>
+                <span class="badge bg-{{ sablon.risk.badge }} fs-6">
+                    {{ sablon.risk.skor }}/100
+                </span>
+            </div>
+            <div class="card-body small">
+                <div class="mb-2">
+                    <strong>{{ sablon.ogrenci.tam_ad }}</strong>
+                    {% if sablon.ogrenci.aktif_sinif_sube %}
+                    <small class="text-muted d-block">{{ sablon.ogrenci.aktif_sinif_sube }}</small>
+                    {% endif %}
+                </div>
+
+                <ul class="list-unstyled mb-3">
+                    {% set d = sablon.risk.detay.devamsizlik %}
+                    {% set dn = sablon.risk.detay.deneme %}
+                    {% set dv = sablon.risk.detay.davranis %}
+                    <li>
+                        <i class="bi bi-calendar-x me-1 text-muted"></i>
+                        Devamsizlik (30g):
+                        <strong class="{% if d.gun_sayisi >= 4 %}text-danger{% endif %}">
+                            {{ d.gun_sayisi }} gun
+                        </strong>
+                    </li>
+                    <li>
+                        <i class="bi bi-bar-chart me-1 text-muted"></i>
+                        Deneme trendi:
+                        <strong>
+                            {% if dn.trend == 'dusuyor' %}
+                            <span class="text-danger">dusuyor ({{ '%+.1f'|format(dn.trend_fark or 0) }}p)</span>
+                            {% elif dn.trend == 'yukseliyor' %}
+                            <span class="text-success">yukseliyor</span>
+                            {% elif dn.trend == 'sabit' %}
+                            sabit
+                            {% else %}
+                            <span class="text-muted">yetersiz veri</span>
+                            {% endif %}
+                        </strong>
+                        {% if dn.son_yuzdelik %}
+                        <small class="text-muted d-block ms-3">son dilim: %{{ dn.son_yuzdelik }}</small>
+                        {% endif %}
+                    </li>
+                    <li>
+                        <i class="bi bi-emoji-frown me-1 text-muted"></i>
+                        Olumsuz davranis (14g):
+                        <strong class="{% if dv.olumsuz_sayi >= 2 %}text-danger{% endif %}">
+                            {{ dv.olumsuz_sayi }} kayit
+                        </strong>
+                    </li>
+                </ul>
+
+                {% if sablon.risk.sebepler %}
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-lightning me-1"></i>Aktif sinyaller:
+                    </small>
+                    {% for s in sablon.risk.sebepler %}
+                    <span class="badge bg-light text-dark border me-1 mb-1">{{ s }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="alert alert-light border small mb-0">
+                    <i class="bi bi-info-circle me-1 text-muted"></i>
+                    Sablon icerigi <strong>oneri</strong> niteligindedir; ogrencinin ozel
+                    durumuna gore form alanlarini duzenleyiniz.
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

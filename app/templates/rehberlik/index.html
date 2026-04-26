@@ -322,6 +322,10 @@
                                        class="btn btn-sm btn-primary" title="Hizli gorusme baslat">
                                         <i class="bi bi-chat-dots me-1"></i>Gorusme
                                     </a>
+                                    <a href="{{ url_for('rehberlik.plan.yeni', ogrenci_id=r.ogrenci.id) }}"
+                                       class="btn btn-sm btn-warning" title="Otomatik sablonla plan olustur">
+                                        <i class="bi bi-magic"></i>
+                                    </a>
                                 </td>
                             </tr>
                             {% endfor %}

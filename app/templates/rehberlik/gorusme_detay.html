@@ -21,6 +21,10 @@
                         {% endif %}
                     </div>
                     <div>
+                        <a href="{{ url_for('rehberlik.plan.yeni', ogrenci_id=gorusme.ogrenci.id) }}"
+                           class="btn btn-sm btn-outline-success" title="Bu ogrenci icin otomatik sablonla plan olustur">
+                            <i class="bi bi-magic me-1"></i>Plan Olustur
+                        </a>
                         <a href="{{ url_for('rehberlik.gorusme.duzenle', gorusme_id=gorusme.id) }}"
                            class="btn btn-sm btn-outline-warning" title="Duzenle">
                             <i class="bi bi-pencil me-1"></i>Duzenle

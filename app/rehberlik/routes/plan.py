@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models.rehberlik import RehberlikPlani
 from app.models.muhasebe import Ogrenci
 from app.rehberlik.forms import RehberlikPlaniForm
+from app.rehberlik.plan_sablon import plan_sablonu_uret, SABLONLAR
 
 bp = Blueprint('plan', __name__)
 
@@ -47,6 +48,32 @@ def yeni():
     form.ogrenci_id.choices = [(o.id, f'{o.ogrenci_no} - {o.tam_ad}')
                                 for o in Ogrenci.query.filter_by(aktif=True).order_by(Ogrenci.ad).all()]
 
+    # Sablon onerisi: ?ogrenci_id=N (otomatik) veya ?ogrenci_id=N&sablon=KOD (manuel)
+    sablon = None
+    secili_ogrenci_id = request.args.get('ogrenci_id', type=int)
+    secili_sablon = request.args.get('sablon')
+    if secili_ogrenci_id and request.method == 'GET':
+        sablon = plan_sablonu_uret(
+            secili_ogrenci_id,
+            sablon_kodu=secili_sablon if secili_sablon in SABLONLAR else None,
+        )
+        if sablon and sablon.get('ogrenci'):
+            # Form alanlarini sablon ile onceden doldur
+            if not form.ogrenci_id.data:
+                form.ogrenci_id.data = secili_ogrenci_id
+            if not form.baslik.data:
+                form.baslik.data = sablon['baslik']
+            if not form.hedefler.data:
+                form.hedefler.data = sablon['hedefler']
+            if not form.uygulanacak_yontemler.data:
+                form.uygulanacak_yontemler.data = sablon['uygulanacak_yontemler']
+            if not form.baslangic_tarihi.data:
+                form.baslangic_tarihi.data = sablon['baslangic_tarihi']
+            if not form.bitis_tarihi.data:
+                form.bitis_tarihi.data = sablon['bitis_tarihi']
+        else:
+            sablon = None
+
     if form.validate_on_submit():
         plan = RehberlikPlani(
             ogrenci_id=form.ogrenci_id.data,
@@ -65,7 +92,8 @@ def yeni():
         return redirect(url_for('rehberlik.plan.liste'))
 
     return render_template('rehberlik/plan_form.html',
-                           form=form, baslik='Yeni Rehberlik Plani')
+                           form=form, baslik='Yeni Rehberlik Plani',
+                           sablon=sablon)
 
 
 @bp.route('/<int:plan_id>')

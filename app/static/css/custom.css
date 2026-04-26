@@ -770,13 +770,58 @@ h4.mb-0 {
 
 /* === Print === */
 @media print {
-    .navbar, .sidebar, .no-print {
+    .navbar, .sidebar, .no-print, .app-footer {
         display: none !important;
     }
     .page-content {
         margin-left: 0 !important;
         width: 100% !important;
     }
+}
+
+/* === Footer === */
+.app-footer {
+    margin-top: 2rem;
+    padding: 0.85rem 0;
+    font-size: 0.78rem;
+    color: var(--text-muted, #64748b);
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    background: linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.015));
+}
+.app-footer .container-fluid {
+    padding: 0 1.5rem;
+    max-width: 1600px;
+}
+.app-footer .text-muted-2 {
+    color: rgba(100, 116, 139, 0.65);
+    margin: 0 0.25rem;
+}
+.app-footer .footer-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.15s;
+}
+.app-footer .footer-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+.app-footer strong {
+    color: #334155;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+/* Public (login) sayfasinda footer alta sabit ama daha sade */
+.app-footer-public {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 50;
 }
 
 /* === Sidebar Toggle Butonu === */

@@ -148,6 +148,15 @@ def create_app(config_class=Config):
             return dict(okunmamis_bildirim=Bildirim.okunmamis_sayisi(current_user.id))
         return dict(okunmamis_bildirim=0)
 
+    # Footer icin yil + surum
+    @app.context_processor
+    def inject_footer():
+        from datetime import date
+        return dict(
+            now_yil=date.today().year,
+            obs_surum=app.config.get('OBS_SURUM', '1.0'),
+        )
+
     # Context processor - sidebar menü
     @app.context_processor
     def inject_menu():

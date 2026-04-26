@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models.rehberlik import Gorusme
 from app.models.muhasebe import Ogrenci
 from app.rehberlik.forms import GorusmeForm
+from app.rehberlik.gorusme_ozet import gorusme_baglam_ozeti
 
 bp = Blueprint('gorusme', __name__)
 
@@ -51,6 +52,16 @@ def yeni():
     form.ogrenci_id.choices = [(o.id, f'{o.ogrenci_no} - {o.tam_ad}')
                                 for o in Ogrenci.query.filter_by(aktif=True).order_by(Ogrenci.ad).all()]
 
+    # Pre-select ogrenci varsa (querystring'den geliyorsa) baglam ozetini yukle
+    secili_ogrenci_id = request.args.get('ogrenci_id', type=int)
+    if secili_ogrenci_id and not form.ogrenci_id.data:
+        form.ogrenci_id.data = secili_ogrenci_id
+    baglam = None
+    if secili_ogrenci_id:
+        baglam = gorusme_baglam_ozeti(secili_ogrenci_id)
+        if baglam.get('ogrenci') is None:
+            baglam = None
+
     if form.validate_on_submit():
         gorusme = Gorusme(
             ogrenci_id=form.ogrenci_id.data,
@@ -69,7 +80,8 @@ def yeni():
         return redirect(url_for('rehberlik.gorusme.liste'))
 
     return render_template('rehberlik/gorusme_form.html',
-                           form=form, baslik='Yeni Gorusme')
+                           form=form, baslik='Yeni Gorusme',
+                           baglam=baglam)
 
 
 @bp.route('/<int:gorusme_id>')

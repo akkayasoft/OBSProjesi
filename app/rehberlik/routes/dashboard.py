@@ -3,7 +3,7 @@ from flask_login import login_required
 from app.utils import role_required
 from datetime import datetime
 from app.models.rehberlik import Gorusme, OgrenciProfil, DavranisKaydi, VeliGorusmesi, RehberlikPlani
-from app.rehberlik.akademik_analiz import risk_altindaki_ogrenciler
+from app.rehberlik.risk_skoru import risk_listesi
 
 bp = Blueprint('dashboard', __name__)
 
@@ -40,11 +40,15 @@ def index():
         RehberlikPlani.baslangic_tarihi.desc()
     ).limit(5).all()
 
-    # Akademik risk altindaki ogrenciler (deneme sinavi bazli)
-    risk_ogrenciler = risk_altindaki_ogrenciler(limit=10)
+    # Erken uyari: kompozit risk skoru (devamsizlik + deneme + davranis + profil)
+    risk_ogrenciler = risk_listesi(limit=15, esik=30)
+    risk_yuksek_sayi = sum(1 for r in risk_ogrenciler if r['seviye'] == 'yuksek')
+    risk_orta_sayi = sum(1 for r in risk_ogrenciler if r['seviye'] == 'orta')
 
     return render_template('rehberlik/index.html',
                            risk_ogrenciler=risk_ogrenciler,
+                           risk_yuksek_sayi=risk_yuksek_sayi,
+                           risk_orta_sayi=risk_orta_sayi,
                            toplam_gorusme=toplam_gorusme,
                            tamamlanan_gorusme=tamamlanan_gorusme,
                            planlanan_gorusme=planlanan_gorusme,

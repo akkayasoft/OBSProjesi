@@ -207,15 +207,32 @@
     </div>
 </div>
 
-<!-- Akademik Risk: destege ihtiyaci olan ogrenciler -->
+<!-- Erken Uyari Sistemi: Kompozit Risk Skoru -->
 <div class="row g-4 mt-2">
     <div class="col-12">
-        <div class="card border-warning shadow-sm">
-            <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 text-warning-emphasis">
-                    <i class="bi bi-exclamation-triangle me-2"></i>Destege Ihtiyaci Olan Ogrenciler
-                </h5>
-                <small class="text-muted">Son deneme sinavi sonuclarina gore otomatik tespit</small>
+        <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger bg-opacity-10 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-0 text-danger-emphasis">
+                        <i class="bi bi-shield-exclamation me-2"></i>Erken Uyari Sistemi
+                    </h5>
+                    <small class="text-muted">
+                        Devamsizlik + deneme trendi + davranis + profil sinyalleri birlestirilerek
+                        haftalik risk skoru hesaplanir (0-100).
+                    </small>
+                </div>
+                <div>
+                    {% if risk_yuksek_sayi %}
+                    <span class="badge bg-danger me-1" title="Yuksek risk">
+                        <i class="bi bi-exclamation-triangle me-1"></i>{{ risk_yuksek_sayi }} yuksek
+                    </span>
+                    {% endif %}
+                    {% if risk_orta_sayi %}
+                    <span class="badge bg-warning text-dark" title="Orta risk">
+                        {{ risk_orta_sayi }} orta
+                    </span>
+                    {% endif %}
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if risk_ogrenciler %}
@@ -223,48 +240,87 @@
                     <table class="table mb-0 align-middle">
                         <thead class="table-light">
                             <tr>
+                                <th style="width: 90px;">Risk</th>
                                 <th>Ogrenci</th>
-                                <th>Son Sinav</th>
-                                <th class="text-end">Puan</th>
-                                <th class="text-end">Seviye Ort.</th>
-                                <th class="text-center">Dilim</th>
-                                <th>Nedenler</th>
+                                <th class="text-center" style="width: 80px;">Devamsiz<br><small class="text-muted">30g</small></th>
+                                <th class="text-center" style="width: 80px;">Deneme<br><small class="text-muted">trend</small></th>
+                                <th class="text-center" style="width: 80px;">Davranis<br><small class="text-muted">14g</small></th>
+                                <th>Sinyaller</th>
                                 <th class="text-end">Aksiyon</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in risk_ogrenciler %}
                             <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-{{ r.badge }} fs-6 fw-bold" style="min-width: 45px;">
+                                            {{ r.skor }}
+                                        </span>
+                                        <small class="text-muted text-uppercase">
+                                            {{ r.seviye }}
+                                        </small>
+                                    </div>
+                                </td>
                                 <td class="fw-semibold">
                                     <i class="bi bi-person me-1 text-muted"></i>{{ r.ogrenci.tam_ad }}
                                     {% if r.ogrenci.ogrenci_no %}
                                     <small class="text-muted ms-1">({{ r.ogrenci.ogrenci_no }})</small>
                                     {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary">{{ r.son_sinav.tip_str }}</span>
-                                    <small class="text-muted ms-1">{{ r.son_sinav.tarih.strftime('%d.%m.%Y') }}</small>
-                                </td>
-                                <td class="text-end fw-bold">
-                                    {{ "{:.2f}".format(r.son_puan) if r.son_puan is not none else '—' }}
-                                </td>
-                                <td class="text-end text-muted">
-                                    {{ "{:.2f}".format(r.seviye_ort) if r.seviye_ort is not none else '—' }}
+                                    {% if r.ogrenci.aktif_sinif_sube %}
+                                    <br><small class="text-muted">{{ r.ogrenci.aktif_sinif_sube }}</small>
+                                    {% endif %}
                                 </td>
                                 <td class="text-center">
-                                    {% if r.yuzdelik %}
-                                    <span class="badge bg-danger-subtle text-danger">%{{ r.yuzdelik }}</span>
-                                    {% else %}—{% endif %}
+                                    {% set d = r.detay.devamsizlik %}
+                                    {% if d.gun_sayisi > 0 %}
+                                    <span class="badge bg-{% if d.gun_sayisi >= 4 %}danger{% elif d.gun_sayisi >= 2 %}warning text-dark{% else %}secondary{% endif %}">
+                                        {{ d.gun_sayisi }} gun
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% set dn = r.detay.deneme %}
+                                    {% if dn.trend == 'dusuyor' %}
+                                    <span class="badge bg-danger" title="Trend dusuyor">
+                                        <i class="bi bi-arrow-down"></i>
+                                        {% if dn.trend_fark %}{{ '%+.1f'|format(dn.trend_fark) }}{% endif %}
+                                    </span>
+                                    {% elif dn.trend == 'yukseliyor' %}
+                                    <span class="badge bg-success" title="Trend yukseliyor">
+                                        <i class="bi bi-arrow-up"></i>
+                                    </span>
+                                    {% elif dn.trend == 'sabit' %}
+                                    <span class="text-muted small">sabit</span>
+                                    {% else %}
+                                    <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% set dv = r.detay.davranis %}
+                                    {% if dv.olumsuz_sayi > 0 %}
+                                    <span class="badge bg-{% if dv.olumsuz_sayi >= 2 %}danger{% else %}warning text-dark{% endif %}">
+                                        {{ dv.olumsuz_sayi }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted small">—</span>
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    {% for n in r.nedenler %}
-                                    <span class="badge bg-warning-subtle text-warning me-1">{{ n }}</span>
+                                    {% for n in r.sebepler %}
+                                    <span class="badge bg-light text-dark border me-1 mb-1 small">{{ n }}</span>
                                     {% endfor %}
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end text-nowrap">
                                     <a href="{{ url_for('rehberlik.profil.ogrenci_profil', ogrenci_id=r.ogrenci.id) }}"
-                                       class="btn btn-sm btn-outline-primary" title="Rehberlik profili">
-                                        <i class="bi bi-arrow-right"></i>
+                                       class="btn btn-sm btn-outline-secondary" title="Profil">
+                                        <i class="bi bi-person-lines-fill"></i>
+                                    </a>
+                                    <a href="{{ url_for('rehberlik.gorusme.yeni', ogrenci_id=r.ogrenci.id) }}"
+                                       class="btn btn-sm btn-primary" title="Hizli gorusme baslat">
+                                        <i class="bi bi-chat-dots me-1"></i>Gorusme
                                     </a>
                                 </td>
                             </tr>
@@ -274,8 +330,8 @@
                 </div>
                 {% else %}
                 <div class="text-center text-muted py-4">
-                    <i class="bi bi-emoji-smile fs-3 d-block mb-2 opacity-50"></i>
-                    Su an risk altinda gozuken ogrenci yok — tum ogrenciler dengeli.
+                    <i class="bi bi-shield-check fs-3 d-block mb-2 opacity-50 text-success"></i>
+                    Su an risk esiginin (30) ustunde ogrenci yok — tum ogrenciler dengeli.
                 </div>
                 {% endif %}
             </div>

@@ -8,8 +8,16 @@
 {% endblock %}
 
 {% block rehberlik_content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
+{% if not baglam %}
+<div class="alert alert-info py-2 small mb-3">
+    <i class="bi bi-lightbulb me-1"></i>
+    <strong>Ipucu:</strong> Risk panelindeki "Gorusme" butonunu kullanirsaniz veya
+    URL'e <code>?ogrenci_id=...</code> ekleyerek bu sayfayi acarsaniz, ogrencinin
+    son durumu otomatik olarak ozetlenir ve gorusme metnine eklemeye hazir olur.
+</div>
+{% endif %}
+<div class="row g-4">
+    <div class="col-lg-{% if baglam %}7{% else %}8{% endif %}">
         <div class="card shadow-sm">
             <div class="card-header bg-white">
                 <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>{{ baslik }}</h5>
@@ -20,8 +28,14 @@
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label">{{ form.ogrenci_id.label.text }} <span class="text-danger">*</span></label>
-                            {{ form.ogrenci_id(class="form-select") }}
+                            <label class="form-label">
+                                {{ form.ogrenci_id.label.text }} <span class="text-danger">*</span>
+                                <a href="#" id="ozetGetirLink" class="small ms-2 text-decoration-none"
+                                   title="Secili ogrenci icin baglam ozetini yukle">
+                                    <i class="bi bi-arrow-clockwise"></i> ozet getir
+                                </a>
+                            </label>
+                            {{ form.ogrenci_id(class="form-select", id="ogrenciSelect") }}
                             {% for error in form.ogrenci_id.errors %}
                             <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
@@ -85,5 +99,172 @@
             </div>
         </div>
     </div>
+
+    {% if baglam %}
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-{{ baglam.risk.badge }}">
+            <div class="card-header bg-{{ baglam.risk.badge }} bg-opacity-10 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-clipboard-data me-2"></i>Otomatik Baglam Ozeti
+                </h6>
+                <span class="badge bg-{{ baglam.risk.badge }} fs-6">
+                    Risk {{ baglam.risk.skor }}/100
+                </span>
+            </div>
+            <div class="card-body small">
+                <div class="mb-2">
+                    <strong><i class="bi bi-person me-1"></i>{{ baglam.ogrenci.tam_ad }}</strong>
+                    {% if baglam.ogrenci.aktif_sinif_sube %}
+                    <small class="text-muted d-block">{{ baglam.ogrenci.aktif_sinif_sube }}</small>
+                    {% endif %}
+                </div>
+
+                <ul class="list-unstyled mb-3">
+                    <li>
+                        <i class="bi bi-calendar-x me-1 text-muted"></i>
+                        Devamsizlik (30g):
+                        <strong class="{% if baglam.devamsizlik_30g >= 4 %}text-danger{% endif %}">
+                            {{ baglam.devamsizlik_30g }} gun
+                        </strong>
+                    </li>
+                    <li>
+                        <i class="bi bi-emoji-frown me-1 text-muted"></i>
+                        Olumsuz davranis (14g):
+                        <strong class="{% if baglam.olumsuz_davranis_14g >= 2 %}text-danger{% endif %}">
+                            {{ baglam.olumsuz_davranis_14g }} kayit
+                        </strong>
+                    </li>
+                    {% if baglam.son_gorusme %}
+                    <li>
+                        <i class="bi bi-chat-square-text me-1 text-muted"></i>
+                        Son gorusme: <strong>{{ baglam.son_gorusme_gunluk }} gun once</strong>
+                        <small class="text-muted d-block ms-3">"{{ baglam.son_gorusme.konu }}"</small>
+                    </li>
+                    {% else %}
+                    <li>
+                        <i class="bi bi-chat-square-text me-1 text-muted"></i>
+                        <em class="text-muted">Daha onceki gorusme kaydi yok</em>
+                    </li>
+                    {% endif %}
+                    {% if baglam.aktif_plan %}
+                    <li>
+                        <i class="bi bi-map me-1 text-muted"></i>
+                        Aktif plan: <strong>{{ baglam.aktif_plan.baslik }}</strong>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                {% if baglam.son_3_deneme %}
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-bar-chart me-1"></i>Son denemeler:
+                    </small>
+                    <ul class="list-unstyled mb-0 ps-3">
+                        {% for d in baglam.son_3_deneme %}
+                        <li>
+                            <small>
+                                {{ d.tarih.strftime('%d.%m') if d.tarih else '—' }} —
+                                {{ d.sinav_ad }}:
+                                {% if d.puan is not none %}<strong>{{ '%.1f'|format(d.puan) }}p</strong>{% endif %}
+                                {% if d.net is not none %}<span class="text-muted">({{ '%.1f'|format(d.net) }} net)</span>{% endif %}
+                            </small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if baglam.risk.sebepler %}
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-lightning me-1"></i>Risk sinyalleri:
+                    </small>
+                    {% for s in baglam.risk.sebepler %}
+                    <span class="badge bg-light text-dark border me-1 mb-1">{{ s }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if baglam.oneri_konular %}
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">
+                        <i class="bi bi-bookmark-star me-1"></i>Onerilen konular:
+                    </small>
+                    {% for k in baglam.oneri_konular %}
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary me-1 mb-1 oneri-konu-btn"
+                            data-konu="{{ k }}">
+                        {{ k }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <button type="button" class="btn btn-sm btn-outline-secondary w-100"
+                        id="ozetEkleBtn">
+                    <i class="bi bi-arrow-down-circle me-1"></i>Ozeti "Icerik" alanina kopyala
+                </button>
+                <textarea id="ozetMetin" class="d-none">{{ baglam.metin }}</textarea>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+// "Ozet getir" linki: secili ogrenci icin sayfayi yeniden yukle
+(function() {
+    const link = document.getElementById('ozetGetirLink');
+    const sel = document.getElementById('ogrenciSelect');
+    if (link && sel) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (sel.value) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('ogrenci_id', sel.value);
+                window.location.href = url.toString();
+            }
+        });
+    }
+})();
+</script>
+{% if baglam %}
+<script>
+(function() {
+    // "Konu" butonlarina tikla -> konu input'unu doldur
+    document.querySelectorAll('.oneri-konu-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const konu = btn.getAttribute('data-konu');
+            const input = document.querySelector('input[name="konu"]');
+            if (input) {
+                input.value = konu;
+                input.focus();
+            }
+        });
+    });
+    // "Ozeti kopyala" -> icerik textarea'sina ekle
+    const ozetBtn = document.getElementById('ozetEkleBtn');
+    const ozetMetin = document.getElementById('ozetMetin');
+    if (ozetBtn && ozetMetin) {
+        ozetBtn.addEventListener('click', function() {
+            const icerik = document.querySelector('textarea[name="icerik"]');
+            if (icerik) {
+                const mevcut = (icerik.value || '').trim();
+                const yeni = ozetMetin.value;
+                icerik.value = mevcut ? (yeni + '\n\n' + mevcut) : yeni;
+                icerik.focus();
+                ozetBtn.classList.remove('btn-outline-secondary');
+                ozetBtn.classList.add('btn-success');
+                ozetBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Eklendi';
+                setTimeout(function() {
+                    ozetBtn.classList.add('btn-outline-secondary');
+                    ozetBtn.classList.remove('btn-success');
+                    ozetBtn.innerHTML = '<i class="bi bi-arrow-down-circle me-1"></i>Ozeti "Icerik" alanina kopyala';
+                }, 2000);
+            }
+        });
+    }
+})();
+</script>
+{% endif %}
 {% endblock %}

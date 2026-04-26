@@ -15,20 +15,19 @@
         <form method="POST" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
             <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">{{ form.yayinci.label.text }}</label>
-                    {{ form.yayinci(class="form-select") }}
-                </div>
-                <div class="col-md-6">
+                <div class="col-md-9">
                     <label class="form-label">{{ form.pdf.label.text }}</label>
                     {{ form.pdf(class="form-control") }}
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>{{ form.pdf.description }}
+                    </small>
                     {% if form.pdf.errors %}
                         {% for e in form.pdf.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
                     {% endif %}
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-upload me-1"></i>Yükle
+                        <i class="bi bi-upload me-1"></i>Yükle ve Önizle
                     </button>
                 </div>
             </div>
@@ -37,11 +36,24 @@
 </div>
 
 {% if parse_sonuc %}
-<div class="alert alert-info">
-    <strong>PDF başlığı:</strong>
-    {% if parse_sonuc.okul_adi %}{{ parse_sonuc.okul_adi }}{% endif %}
-    {% if parse_sonuc.il %} — {{ parse_sonuc.il }} / {{ parse_sonuc.ilce }}{% endif %}
-    {% if parse_sonuc.sinav_adi %} · <strong>{{ parse_sonuc.sinav_adi }}</strong>{% endif %}
+<div class="alert alert-info d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="flex-grow-1">
+        <strong>PDF başlığı:</strong>
+        {% if parse_sonuc.okul_adi %}{{ parse_sonuc.okul_adi }}{% endif %}
+        {% if parse_sonuc.il %} — {{ parse_sonuc.il }} / {{ parse_sonuc.ilce }}{% endif %}
+        {% if parse_sonuc.sinav_adi %} · <strong>{{ parse_sonuc.sinav_adi }}</strong>{% endif %}
+    </div>
+    <div>
+        {% if parse_sonuc.yayinci %}
+        <span class="badge bg-primary" title="PDF içinden otomatik tespit edildi ({{ parse_sonuc.yayinci_kaynak or '?' }})">
+            <i class="bi bi-bookmark-star me-1"></i>{{ parse_sonuc.yayinci }}
+        </span>
+        {% else %}
+        <span class="badge bg-secondary" title="PDF içinde bilinen yayıncı adı bulunamadı">
+            <i class="bi bi-question-circle me-1"></i>Yayıncı tespit edilemedi
+        </span>
+        {% endif %}
+    </div>
 </div>
 
 <div class="row g-3 mb-3">

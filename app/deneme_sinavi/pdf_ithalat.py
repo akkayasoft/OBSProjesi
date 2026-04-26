@@ -69,6 +69,92 @@ class PdfIthalatSonuc:
     okul_adi: Optional[str] = None
     il: Optional[str] = None
     ilce: Optional[str] = None
+    # PDF icinden tespit edilen yayinci adi (otomatik)
+    yayinci: Optional[str] = None
+    yayinci_kaynak: Optional[str] = None  # 'metni' | 'metadata' | None
+
+
+# --- Yayinci tespiti -------------------------------------------------------
+# PDF basligi/altligindan yayinci adi cikarmak icin desenler. Once metadata
+# (Author, Producer, Title), sonra PDF metni icinde aranir.
+
+# Onemli: liste sirasiyla kontrol edilir (en spesifik once). Ad eslestiginde
+# ham yazim tercih edilir; bulunamayanda regex ile yakalanan jenerik isim
+# dondurulur.
+BILINEN_YAYINCILAR = [
+    'Limit Yayinlari', 'Final Yayinlari', 'Bilfen Yayinlari',
+    'BilgiSarmal', 'Apotemi Yayinlari', 'Tonguc Akademi',
+    'Karekok Yayinlari', 'Esen Yayinlari', 'Newton Yayinlari',
+    'Hiz Yayinlari', 'Sinav Yayinlari', 'Doga Yayinlari',
+    '3D Yayinlari', 'Test Okul', 'Pegasus Yayinlari',
+    'Endemik Yayinlari', 'Akilli Adam Yayinlari',
+    'Cap Yayinlari', 'Nartest', 'Palme Yayinlari',
+]
+
+
+def _normalize_tr(s: str) -> str:
+    """Karsilastirma icin Turkce karakter normalize."""
+    s = (s or '').lower()
+    for a, b in (('ı', 'i'), ('İ', 'i'), ('ş', 's'), ('Ş', 's'),
+                 ('ğ', 'g'), ('Ğ', 'g'), ('ü', 'u'), ('Ü', 'u'),
+                 ('ö', 'o'), ('Ö', 'o'), ('ç', 'c'), ('Ç', 'c')):
+        s = s.replace(a, b)
+    return s
+
+
+def tespit_yayinci(metin: str, metadata: dict | None = None) -> tuple[str | None, str | None]:
+    """PDF metninden ve/veya metadata'sindan yayinci adini cikar.
+
+    Donus: (yayinci_adi, kaynak)
+        kaynak: 'metadata' | 'metni' | None
+    """
+    metadata = metadata or {}
+
+    # 1) Metadata fields
+    for key in ('Author', 'Producer', 'Creator', 'Title', 'Subject'):
+        val = metadata.get(key) or metadata.get(key.lower())
+        if not val:
+            continue
+        nval = _normalize_tr(str(val))
+        for ad in BILINEN_YAYINCILAR:
+            if _normalize_tr(ad) in nval:
+                return ad, 'metadata'
+
+    if not metin:
+        return None, None
+
+    # 2) Metin icinde bilinen isim ara (case-insensitive Turkce-normalize)
+    nmetin = _normalize_tr(metin)
+    for ad in BILINEN_YAYINCILAR:
+        if _normalize_tr(ad) in nmetin:
+            return ad, 'metni'
+
+    # 3) Jenerik regex: "<Bir-Iki kelime> Yayinlari" yakala
+    m = re.search(
+        r'([A-ZĞÜŞİÖÇ][A-Za-zĞÜŞİÖÇğüşıöç0-9]{1,15}'
+        r'(?:\s+[A-ZĞÜŞİÖÇ][A-Za-zĞÜŞİÖÇğüşıöç0-9]{1,15}){0,2})'
+        r'\s+Yayınları',
+        metin,
+    )
+    if m:
+        return m.group(0).strip(), 'metni'
+    # Turkce-asciisiz alternatif
+    m = re.search(
+        r'([A-Za-z0-9]{2,20}(?:\s+[A-Za-z0-9]{2,20}){0,2})\s+Yayinlari',
+        metin,
+    )
+    if m:
+        return m.group(0).strip(), 'metni'
+
+    # 4) "Akademi" eki (Tonguc Akademi gibi)
+    m = re.search(
+        r'([A-ZĞÜŞİÖÇ][A-Za-zĞÜŞİÖÇğüşıöç]{2,15})\s+Akademi',
+        metin,
+    )
+    if m:
+        return m.group(0).strip(), 'metni'
+
+    return None, None
 
 
 def _tokenize(rest: str) -> list[str]:
@@ -131,9 +217,22 @@ def parse_pdf(data: bytes) -> PdfIthalatSonuc:
 
     sinav_adi = okul_adi = il = ilce = None
 
+    yayinci_metni_buf: list[str] = []
+    pdf_metadata: dict = {}
+
     with pdfplumber.open(io.BytesIO(data)) as pdf:
+        try:
+            pdf_metadata = pdf.metadata or {}
+        except Exception:
+            pdf_metadata = {}
         for pg in pdf.pages:
             text = pg.extract_text() or ''
+            # Ilk 2 sayfanin tam metni + sonraki sayfalarin ilk 5 satiri
+            # yayinci tespiti icin yeterlidir
+            if pg.page_number <= 2:
+                yayinci_metni_buf.append(text)
+            else:
+                yayinci_metni_buf.append('\n'.join(text.split('\n')[:5]))
             for raw in text.split('\n'):
                 line = raw.strip()
                 if not line:
@@ -182,7 +281,12 @@ def parse_pdf(data: bytes) -> PdfIthalatSonuc:
                     puan=r['puan'],
                 ))
 
+    yayinci, yayinci_kaynak = tespit_yayinci(
+        '\n'.join(yayinci_metni_buf), pdf_metadata,
+    )
+
     return PdfIthalatSonuc(
         satirlar=satirlar, atlananlar=atlananlar,
         sinav_adi=sinav_adi, okul_adi=okul_adi, il=il, ilce=ilce,
+        yayinci=yayinci, yayinci_kaynak=yayinci_kaynak,
     )

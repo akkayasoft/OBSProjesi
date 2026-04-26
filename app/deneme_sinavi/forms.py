@@ -47,19 +47,19 @@ class DenemeDersiForm(FlaskForm):
 
 
 class PdfIthalatYukleForm(FlaskForm):
-    """Yayinci deneme sonuc PDF'ini yukleme formu."""
-    yayinci = SelectField(
-        'Yayinci / Format',
-        choices=[('x_yayinlari', 'X Yayinlari (LGS Okul Net Listesi)')],
-        default='x_yayinlari',
-        validators=[DataRequired()],
-    )
+    """Yayinci deneme sonuc PDF'ini yukleme formu.
+
+    Yayinci adi PDF icinden otomatik tespit edilir; kullanicinin secmesine
+    gerek yok. Format: 'LGS Okul Net Listesi' (sira, ono, isim, sinif,
+    6 ders D/Y/N, toplam, puan, dereceler).
+    """
     pdf = FileField(
         'PDF Dosyasi',
         validators=[
             FileRequired('PDF dosyasi seciniz.'),
             FileAllowed(['pdf'], 'Sadece PDF dosyasi yuklenebilir.'),
         ],
+        description='LGS Okul Net Listesi formatinda PDF — yayinci adi PDF icinden otomatik tespit edilir.',
     )
     submit = SubmitField('Yukle ve Onizleme')
 

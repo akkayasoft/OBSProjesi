@@ -79,6 +79,8 @@ def _sonuc_to_dict(sonuc: PdfIthalatSonuc) -> dict:
         'okul_adi': sonuc.okul_adi,
         'il': sonuc.il,
         'ilce': sonuc.ilce,
+        'yayinci': sonuc.yayinci,
+        'yayinci_kaynak': sonuc.yayinci_kaynak,
         'satirlar': [
             {
                 'sira': r.sira, 'ogrenci_no': r.ogrenci_no,
@@ -203,11 +205,15 @@ def onayla():
         return redirect(url_for('deneme_sinavi.sinav.detay', sinav_id=mevcut.id))
 
     # 1) DenemeSinavi
+    yayinci_str = data.get('yayinci') or 'Yayinci tespit edilemedi'
+    aciklama_parts = [f'PDF ithalat — {yayinci_str}']
+    if data.get('okul_adi'):
+        aciklama_parts.append(f'Okul: {data["okul_adi"]}')
+    aciklama_parts.append(f'{len(data.get("satirlar", []))} ogrenci')
     sinav = DenemeSinavi(
         ad=sinav_adi, sinav_tipi='lgs', donem=donem, tarih=tarih,
         hedef_seviye='8', sure_dakika=155, durum='tamamlandi',
-        aciklama=(f'PDF ithalat ({data.get("okul_adi") or "?"}) — '
-                  f'{len(data.get("satirlar", []))} ogrenci'),
+        aciklama=' • '.join(aciklama_parts),
         olusturan_id=current_user.id,
     )
     db.session.add(sinav)

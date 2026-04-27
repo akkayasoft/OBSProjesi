@@ -1,0 +1,43 @@
+{% extends "sistem/_layout.html" %}
+
+{% block title %}Giriş{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 4rem);">
+    <div style="width: 100%; max-width: 400px;">
+        <div class="text-center mb-4">
+            <i class="bi bi-shield-shaded" style="font-size: 3rem; color: #818cf8;"></i>
+            <h3 class="mt-2 mb-1">OBS Platform</h3>
+            <p class="text-muted small">Sistem yöneticisi girişi</p>
+        </div>
+
+        <div class="sistem-card">
+            {% if hata %}
+            <div class="alert alert-danger small">{{ hata }}</div>
+            {% endif %}
+
+            <form method="POST" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label class="form-label small">Kullanıcı Adı</label>
+                    <input type="text" name="username" class="form-control" required autofocus
+                           placeholder="kullanici_adi">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small">Şifre</label>
+                    <input type="password" name="password" class="form-control" required
+                           placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Giriş Yap
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-muted small mt-3">
+            Bu sayfa sadece OBS platform yöneticileri içindir.
+            Dershane kullanıcıları kendi tenant URL'inden giriş yapmalıdır.
+        </p>
+    </div>
+</div>
+{% endblock %}

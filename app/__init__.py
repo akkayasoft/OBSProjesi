@@ -100,6 +100,19 @@ def create_app(config_class=Config):
     from app.tenancy.routes import bp as abonelik_bp
     app.register_blueprint(abonelik_bp)
 
+    # Platform admin (sistem) — tum tenant'lari yoneten cross-tenant panel
+    from app.tenancy.sistem_routes import bp as sistem_bp
+    app.register_blueprint(sistem_bp)
+
+    # /sistem/* templatelerine admin objesini enjekte et
+    @app.context_processor
+    def _inject_platform_admin():
+        from app.tenancy.sistem_auth import aktif_platform_admin
+        try:
+            return dict(admin=aktif_platform_admin())
+        except Exception:
+            return dict(admin=None)
+
     from app.odev_takip import odev_takip_bp
     app.register_blueprint(odev_takip_bp, url_prefix='/odev')
 

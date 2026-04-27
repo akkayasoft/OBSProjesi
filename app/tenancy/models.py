@@ -66,3 +66,65 @@ class Tenant(MasterBase):
 
     def __repr__(self) -> str:
         return f'<Tenant slug={self.slug!r} db={self.db_name!r} durum={self.durum!r}>'
+
+
+class PlatformAdmin(MasterBase):
+    """Tum tenant'lari yoneten platform admini (Akkayasoft maintainer'i).
+
+    Bu hesap hicbir tenant'in User'i degildir; sadece master DB'de yasar.
+    /sistem/ url prefix'inden giris yapip tum dershaneleri yonetir.
+    """
+    __tablename__ = 'platform_admin'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(80), nullable=False, unique=True, index=True)
+    password_hash = Column(String(255), nullable=False)
+    ad = Column(String(100), nullable=False)
+    soyad = Column(String(100), nullable=False)
+    email = Column(String(200), nullable=True)
+    aktif = Column(Boolean, default=True, nullable=False)
+
+    son_giris = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    @property
+    def tam_ad(self) -> str:
+        return f"{self.ad} {self.soyad}".strip()
+
+    def set_password(self, sifre: str) -> None:
+        from werkzeug.security import generate_password_hash
+        self.password_hash = generate_password_hash(sifre)
+
+    def check_password(self, sifre: str) -> bool:
+        from werkzeug.security import check_password_hash
+        return check_password_hash(self.password_hash, sifre)
+
+    def __repr__(self) -> str:
+        return f'<PlatformAdmin {self.username!r}>'
+
+
+class PlatformAuditLog(MasterBase):
+    """Platform admin'lerin yaptigi degisiklikleri kayit altina al.
+
+    Kim ne zaman hangi tenant'a ne yapti, ileri donuk denetim icin.
+    """
+    __tablename__ = 'platform_audit_log'
+    __table_args__ = (
+        Index('ix_audit_admin_tarih', 'admin_id', 'created_at'),
+        Index('ix_audit_tenant', 'tenant_id'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    admin_id = Column(Integer, nullable=True)  # FK ekleyebiliriz; simdilik gevsek
+    admin_username = Column(String(80), nullable=True)  # admin silindiyse de gozuksun
+    tenant_id = Column(Integer, nullable=True)
+    tenant_slug = Column(String(64), nullable=True)
+    aksiyon = Column(String(50), nullable=False)
+    # tenant_create / tenant_update / tenant_suspend / tenant_activate / tenant_delete
+    # plan_change / limit_change / login / logout
+    detay = Column(Text, nullable=True)
+    ip = Column(String(45), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    def __repr__(self) -> str:
+        return f'<PlatformAuditLog {self.aksiyon} by={self.admin_username} tenant={self.tenant_slug}>'

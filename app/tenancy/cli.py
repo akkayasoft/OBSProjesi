@@ -213,5 +213,74 @@ def set_status_cmd(slug, durum):
         click.echo(f'✓ {slug} durumu: {durum}')
 
 
+@tenant_cli.command('create-admin')
+@click.argument('username')
+@click.option('--ad', required=True)
+@click.option('--soyad', required=True)
+@click.option('--email')
+@click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True,
+              help='Sifre (girilince soruluyor, gorunmuyor)')
+def create_platform_admin_cmd(username, ad, soyad, email, password):
+    """Yeni platform admin (sistem yoneticisi) olustur.
+
+    Bu hesap tenant'lardan bagimsizdir ve /sistem/giris uzerinden
+    girip tum tenant'lari yonetir.
+
+    Ornek:
+        flask tenant create-admin akkaya --ad Ayhan --soyad Akkaya
+    """
+    from app.tenancy.models import PlatformAdmin
+
+    with master_session() as s:
+        mevcut = s.execute(
+            select(PlatformAdmin).where(PlatformAdmin.username == username)
+        ).scalar_one_or_none()
+        if mevcut:
+            raise click.ClickException(f'Bu kullanici adi zaten var: {username}')
+
+        admin = PlatformAdmin(
+            username=username, ad=ad, soyad=soyad, email=email, aktif=True,
+        )
+        admin.set_password(password)
+        s.add(admin)
+        s.commit()
+        click.echo(f'✓ Platform admin olusturuldu: {username} ({ad} {soyad})')
+        click.echo('  Giris: /sistem/giris')
+
+
+@tenant_cli.command('list-admins')
+def list_platform_admins_cmd():
+    """Tum platform adminlerini listele."""
+    from app.tenancy.models import PlatformAdmin
+
+    with master_session() as s:
+        adminler = s.execute(select(PlatformAdmin).order_by(PlatformAdmin.id)).scalars().all()
+        if not adminler:
+            click.echo('(hic platform admin yok — once create-admin calistir)')
+            return
+        for a in adminler:
+            durum = '✓ aktif' if a.aktif else '✗ pasif'
+            son = a.son_giris.strftime('%d.%m.%Y %H:%M') if a.son_giris else 'hic'
+            click.echo(f'  {a.username:20s} {a.tam_ad:30s} {durum:10s} son giris: {son}')
+
+
+@tenant_cli.command('reset-admin-password')
+@click.argument('username')
+@click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True)
+def reset_platform_admin_password_cmd(username, password):
+    """Platform admin sifresini sifirla."""
+    from app.tenancy.models import PlatformAdmin
+
+    with master_session() as s:
+        admin = s.execute(
+            select(PlatformAdmin).where(PlatformAdmin.username == username)
+        ).scalar_one_or_none()
+        if not admin:
+            raise click.ClickException(f'Admin yok: {username}')
+        admin.set_password(password)
+        s.commit()
+        click.echo(f'✓ {username} sifresi guncellendi.')
+
+
 def register_cli(app):
     app.cli.add_command(tenant_cli)

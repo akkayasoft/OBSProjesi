@@ -1,0 +1,62 @@
+{% extends "sistem/_layout.html" %}
+
+{% block title %}Audit Log{% endblock %}
+
+{% block content %}
+<h4 class="mb-3"><i class="bi bi-clock-history me-2 text-info"></i>Audit Log</h4>
+<small class="text-muted d-block mb-3">Toplam {{ toplam }} kayıt — son işlemler önce</small>
+
+<div class="sistem-card p-0">
+    {% if loglar %}
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr>
+                <th style="width:160px;">Zaman</th>
+                <th>Admin</th>
+                <th>Aksiyon</th>
+                <th>Tenant</th>
+                <th>Detay</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for l in loglar %}
+            <tr>
+                <td><small>{{ l.created_at.strftime('%d.%m.%Y %H:%M:%S') if l.created_at }}</small></td>
+                <td><small>{{ l.admin_username or '—' }}</small></td>
+                <td><span class="badge bg-info text-dark">{{ l.aksiyon }}</span></td>
+                <td>
+                    {% if l.tenant_id %}
+                    <a href="{{ url_for('sistem.tenant_detay', tenant_id=l.tenant_id) }}"
+                       class="text-decoration-none small">
+                        {{ l.tenant_slug or '#' ~ l.tenant_id }}
+                    </a>
+                    {% else %}—{% endif %}
+                </td>
+                <td><small class="text-muted">{{ l.detay or '' }}</small></td>
+                <td><small class="text-muted">{{ l.ip or '' }}</small></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">Henüz kayıt yok.</div>
+    {% endif %}
+</div>
+
+{% if son_sayfa > 1 %}
+<div class="d-flex justify-content-center mt-3 gap-2">
+    {% if sayfa > 1 %}
+    <a href="?sayfa={{ sayfa - 1 }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-chevron-left"></i> Önceki
+    </a>
+    {% endif %}
+    <span class="text-muted small align-self-center">Sayfa {{ sayfa }} / {{ son_sayfa }}</span>
+    {% if sayfa < son_sayfa %}
+    <a href="?sayfa={{ sayfa + 1 }}" class="btn btn-sm btn-outline-secondary">
+        Sonraki <i class="bi bi-chevron-right"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

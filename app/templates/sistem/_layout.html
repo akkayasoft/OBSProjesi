@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistem{% endblock %} - OBS Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .sistem-navbar { background: linear-gradient(135deg, #1e293b, #312e81); padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sistem-brand { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.1rem; }
+        .sistem-brand .badge { background: #ef4444; font-size: 0.6rem; vertical-align: middle; margin-left: 0.5rem; padding: 0.2rem 0.4rem; }
+        .sistem-content { padding: 2rem 1.5rem; max-width: 1400px; margin: 0 auto; }
+        .sistem-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; }
+        .sistem-card .text-muted { color: #94a3b8 !important; }
+        .table { color: #e2e8f0; }
+        .table thead th { color: #94a3b8; font-weight: 600; border-bottom-color: #334155; }
+        .table tbody td { border-color: #334155; }
+        .table-hover tbody tr:hover { background: rgba(255,255,255,0.04); }
+        .form-control, .form-select { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+        .form-control:focus, .form-select:focus { background: #0f172a; color: #e2e8f0; border-color: #818cf8; box-shadow: 0 0 0 2px rgba(129,140,248,0.18); }
+        .form-control::placeholder { color: #64748b; }
+        a { color: #93c5fd; }
+        a:hover { color: #c7d2fe; }
+        .nav-link-sistem { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.4rem 0.85rem; border-radius: 6px; }
+        .nav-link-sistem:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .nav-link-sistem.active { background: rgba(129,140,248,0.18); color: #fff; }
+        .alert { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; }
+        .alert-success { border-left: 4px solid #10b981; }
+        .alert-danger { border-left: 4px solid #ef4444; }
+        .alert-warning { border-left: 4px solid #f59e0b; }
+        .alert-info { border-left: 4px solid #06b6d4; }
+        h1, h2, h3, h4, h5, h6 { color: #f1f5f9; }
+        .text-muted { color: #94a3b8 !important; }
+    </style>
+</head>
+<body>
+    {% if admin %}
+    <nav class="sistem-navbar">
+        <div class="d-flex justify-content-between align-items-center" style="max-width:1400px;margin:0 auto;">
+            <a href="{{ url_for('sistem.dashboard') }}" class="sistem-brand">
+                <i class="bi bi-shield-shaded"></i> OBS Platform
+                <span class="badge">SİSTEM</span>
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('sistem.dashboard') }}"
+                   class="nav-link-sistem {% if request.endpoint == 'sistem.dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid"></i> Tenant'lar
+                </a>
+                <a href="{{ url_for('sistem.audit') }}"
+                   class="nav-link-sistem {% if request.endpoint == 'sistem.audit' %}active{% endif %}">
+                    <i class="bi bi-clock-history"></i> Audit Log
+                </a>
+                <span class="text-muted small mx-2">|</span>
+                <span class="text-muted small">
+                    <i class="bi bi-person-circle"></i> {{ admin.tam_ad or admin.username }}
+                </span>
+                <form method="POST" action="{{ url_for('sistem.cikis') }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="nav-link-sistem" style="border:none;background:transparent;cursor:pointer;">
+                        <i class="bi bi-box-arrow-right"></i> Çıkış
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="sistem-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

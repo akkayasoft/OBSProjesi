@@ -1,0 +1,117 @@
+{% extends "sistem/_layout.html" %}
+
+{% block title %}Tenant'lar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-grid-3x3-gap me-2 text-info"></i>Tenant'lar
+        </h4>
+        <small class="text-muted">
+            Toplam: {{ toplam }} ·
+            <span class="text-success">{{ aktif }} aktif</span> ·
+            <span class="text-warning">{{ askida }} askıda</span>
+        </small>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<form method="GET" class="row g-2 align-items-center mb-3">
+    <div class="col-md-6">
+        <input type="search" name="arama" value="{{ arama }}"
+               class="form-control form-control-sm"
+               placeholder="Slug, ad veya e-posta ara…">
+    </div>
+    <div class="col-md-3">
+        <select name="durum" class="form-select form-select-sm">
+            <option value="">Tüm Durumlar</option>
+            <option value="aktif" {% if durum == 'aktif' %}selected{% endif %}>Aktif</option>
+            <option value="askida" {% if durum == 'askida' %}selected{% endif %}>Askıda</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-sm btn-primary w-100">
+            <i class="bi bi-funnel me-1"></i>Filtrele
+        </button>
+    </div>
+</form>
+
+<!-- Tenant tablosu -->
+<div class="sistem-card p-0">
+    {% if tenants %}
+    <table class="table table-hover mb-0 align-middle">
+        <thead>
+            <tr>
+                <th>Tenant</th>
+                <th>Plan</th>
+                <th>Durum</th>
+                <th>İletişim</th>
+                <th>Abonelik Bitiş</th>
+                <th class="text-end">İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tenants %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('sistem.tenant_detay', tenant_id=t.id) }}"
+                       class="text-decoration-none">
+                        <strong style="color:#e2e8f0;">{{ t.ad }}</strong>
+                    </a>
+                    <small class="text-muted d-block">
+                        <code>{{ t.slug }}</code> · {{ t.db_name }}
+                    </small>
+                </td>
+                <td>
+                    {% set p = planlar.get(t.plan, planlar['standart']) %}
+                    <span class="badge"
+                          style="background: rgba(129,140,248,0.18); color:#a5b4fc; border:1px solid rgba(129,140,248,0.3);">
+                        <i class="bi bi-stars me-1"></i>{{ p.ad }}
+                    </span>
+                </td>
+                <td>
+                    {% if t.durum == 'aktif' %}
+                    <span class="badge bg-success">Aktif</span>
+                    {% elif t.durum == 'askida' %}
+                    <span class="badge bg-warning text-dark">Askıda</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{{ t.durum }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <small class="text-muted">
+                        {% if t.iletisim_email %}
+                        <i class="bi bi-envelope me-1"></i>{{ t.iletisim_email }}<br>
+                        {% endif %}
+                        {% if t.iletisim_telefon %}
+                        <i class="bi bi-telephone me-1"></i>{{ t.iletisim_telefon }}
+                        {% endif %}
+                        {% if not t.iletisim_email and not t.iletisim_telefon %}—{% endif %}
+                    </small>
+                </td>
+                <td>
+                    {% if t.abonelik_bitis %}
+                    <small>{{ t.abonelik_bitis.strftime('%d.%m.%Y') }}</small>
+                    {% else %}
+                    <small class="text-muted">—</small>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="{{ url_for('sistem.tenant_detay', tenant_id=t.id) }}"
+                       class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-arrow-right"></i> Aç
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+        Tenant bulunamadı.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

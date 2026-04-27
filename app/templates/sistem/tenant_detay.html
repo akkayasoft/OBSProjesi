@@ -1,0 +1,172 @@
+{% extends "sistem/_layout.html" %}
+
+{% block title %}{{ tenant.ad }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('sistem.dashboard') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Tenant'lar
+    </a>
+    <span class="text-muted">/</span>
+    <strong>{{ tenant.ad }}</strong>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="sistem-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h4 class="mb-0">{{ tenant.ad }}</h4>
+                    <small class="text-muted">
+                        <code>{{ tenant.slug }}</code> · {{ tenant.db_name }}
+                        · oluşturuldu: {{ tenant.created_at.strftime('%d.%m.%Y') if tenant.created_at }}
+                    </small>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if tenant.durum == 'aktif' %}
+                    <form method="POST" action="{{ url_for('sistem.tenant_durum', tenant_id=tenant.id) }}"
+                          onsubmit="return confirm('{{ tenant.ad }} askıya alınacak — tüm kullanıcılar girişe alınamayacak. Devam edilsin mi?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="durum" value="askida">
+                        <button type="submit" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pause-circle me-1"></i>Askıya Al
+                        </button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('sistem.tenant_durum', tenant_id=tenant.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="durum" value="aktif">
+                        <button type="submit" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-play-circle me-1"></i>Aktif Et
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Anlik kullanim (tenant DB'sinden) -->
+            {% if istatistik %}
+            <div class="row g-2 mb-3">
+                {% for tip, etiket, ikon, alan in [
+                    ('ogrenci', 'Öğrenci', 'bi-mortarboard', 'ogrenci_limiti'),
+                    ('ogretmen', 'Öğretmen', 'bi-person-workspace', 'ogretmen_limiti'),
+                    ('kullanici', 'Toplam Kullanıcı', 'bi-people-fill', 'kullanici_limiti'),
+                ] %}
+                {% set mevcut = istatistik.get(tip, 0) %}
+                {% set override = tenant[alan] %}
+                {% set plan_limit = planlar.get(tenant.plan, planlar.standart)[alan] %}
+                {% set limit = override if override is not none else plan_limit %}
+                <div class="col-md-4">
+                    <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 0.85rem;">
+                        <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                            <i class="bi {{ ikon }} me-1"></i>{{ etiket }}
+                        </small>
+                        <div class="fs-4 fw-bold mt-1">
+                            {{ mevcut }}
+                            {% if limit %}<small class="text-muted fw-normal">/ {{ limit }}</small>
+                            {% else %}<small class="text-success fw-normal">/ ∞</small>{% endif %}
+                        </div>
+                        {% if limit and limit > 0 %}
+                        {% set oran = (mevcut / limit * 100) | round | int %}
+                        <div class="progress mt-2" style="height: 4px; background: #334155;">
+                            <div class="progress-bar bg-{% if oran >= 90 %}danger{% elif oran >= 70 %}warning{% else %}success{% endif %}"
+                                 style="width: {{ [oran, 100]|min }}%"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Plan + limit duzenleme -->
+            <form method="POST" action="{{ url_for('sistem.tenant_duzenle', tenant_id=tenant.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <h6 class="mb-2 mt-3"><i class="bi bi-stack me-1"></i>Plan</h6>
+                <div class="mb-3">
+                    <select name="plan" class="form-select form-select-sm">
+                        {% for kod, p in planlar.items() %}
+                        <option value="{{ kod }}" {% if tenant.plan == kod %}selected{% endif %}>
+                            {{ p.ad }}
+                            {% if p.ogrenci_limiti %}({{ p.ogrenci_limiti }} öğrenci, {{ p.ogretmen_limiti }} öğretmen){% else %}(sınırsız){% endif %}
+                            {% if p.fiyat_tl_aylik %} — {{ p.fiyat_tl_aylik }}₺/ay{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <h6 class="mb-2 mt-3"><i class="bi bi-sliders me-1"></i>Özel Limit (Opsiyonel)</h6>
+                <p class="small text-muted">Boş = plan default'u kullanılır. 0 = o tip için kayıt kapalı.</p>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small">Öğrenci</label>
+                        <input type="number" name="ogrenci_limiti" min="0" class="form-control form-control-sm"
+                               value="{{ tenant.ogrenci_limiti if tenant.ogrenci_limiti is not none else '' }}"
+                               placeholder="plan default">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Öğretmen</label>
+                        <input type="number" name="ogretmen_limiti" min="0" class="form-control form-control-sm"
+                               value="{{ tenant.ogretmen_limiti if tenant.ogretmen_limiti is not none else '' }}"
+                               placeholder="plan default">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Toplam Kullanıcı</label>
+                        <input type="number" name="kullanici_limiti" min="0" class="form-control form-control-sm"
+                               value="{{ tenant.kullanici_limiti if tenant.kullanici_limiti is not none else '' }}"
+                               placeholder="plan default">
+                    </div>
+                </div>
+
+                <h6 class="mb-2 mt-3"><i class="bi bi-envelope me-1"></i>İletişim & Abonelik</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label small">E-posta</label>
+                        <input type="email" name="iletisim_email" class="form-control form-control-sm"
+                               value="{{ tenant.iletisim_email or '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Telefon</label>
+                        <input type="text" name="iletisim_telefon" class="form-control form-control-sm"
+                               value="{{ tenant.iletisim_telefon or '' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Abonelik Bitiş</label>
+                        <input type="date" name="abonelik_bitis" class="form-control form-control-sm"
+                               value="{{ tenant.abonelik_bitis.isoformat() if tenant.abonelik_bitis else '' }}">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>Kaydet
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sag panel: audit log -->
+    <div class="col-md-4">
+        <div class="sistem-card">
+            <h6 class="mb-3"><i class="bi bi-clock-history me-1"></i>Bu Tenant'a Yapılan Son İşlemler</h6>
+            {% if loglar %}
+            <div class="d-flex flex-column gap-2">
+                {% for l in loglar %}
+                <div style="border-left: 2px solid #334155; padding: 0.4rem 0.7rem;">
+                    <small class="text-muted d-block">
+                        {{ l.created_at.strftime('%d.%m.%Y %H:%M') if l.created_at }}
+                        · {{ l.admin_username or 'sistem' }}
+                    </small>
+                    <strong class="d-block small">{{ l.aksiyon }}</strong>
+                    {% if l.detay %}
+                    <small class="text-muted d-block mt-1" style="font-size:0.72rem;">{{ l.detay }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">Henüz işlem kaydı yok.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

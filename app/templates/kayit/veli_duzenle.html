@@ -1,0 +1,178 @@
+{% extends "kayit/_layout.html" %}
+
+{% block title %}Veli Düzenle - {{ veli.tam_ad }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('kayit.veli.liste') }}">Veliler</a></li>
+<li class="breadcrumb-item active">{{ veli.tam_ad }}</li>
+{% endblock %}
+
+{% block kayit_content %}
+{% set ph = {
+    'title': 'Veli Düzenle',
+    'subtitle': veli.tam_ad,
+    'icon': 'bi-person-vcard'
+} %}
+{% include "components/page_header.html" %}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.yakinlik.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.yakinlik(class="form-select") }}
+                            {% for e in form.yakinlik.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">{{ form.tc_kimlik.label.text }}</label>
+                            {{ form.tc_kimlik(class="form-control", maxlength="11") }}
+                            {% for e in form.tc_kimlik.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.ad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.ad(class="form-control") }}
+                            {% for e in form.ad.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.soyad.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.soyad(class="form-control") }}
+                            {% for e in form.soyad.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.telefon.label.text }}</label>
+                            {{ form.telefon(class="form-control", placeholder="0555 555 55 55") }}
+                            {% for e in form.telefon.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.email.label.text }}</label>
+                            {{ form.email(class="form-control", placeholder="ornek@eposta.com") }}
+                            {% for e in form.email.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                            {% if veli.user_id %}
+                            <small class="form-text text-info">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Bu veliye bağlı bir sistem kullanıcısı var; e-posta değişikliği oraya da yansır.
+                            </small>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.meslek.label.text }}</label>
+                            {{ form.meslek(class="form-control") }}
+                            {% for e in form.meslek.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6"></div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.adres.label.text }}</label>
+                            {{ form.adres(class="form-control", rows="3") }}
+                            {% for e in form.adres.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+                        </div>
+                    </div>
+
+                    {% if kardes_kayit_sayisi > 0 %}
+                    <div class="alert alert-info mt-4 mb-0 small">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-info-circle fs-5"></i>
+                            <div class="flex-grow-1">
+                                <strong>Kardeş kayıt tespit edildi.</strong>
+                                Bu veli, sistemde başka {{ kardes_kayit_sayisi }} öğrencinin de velisi.
+                                Aşağıdaki kutuyu işaretlerseniz iletişim ve isim bilgileri tüm
+                                kardeş kayıtlarına da uygulanır (yakınlık alanı dokunulmaz).
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox"
+                                           id="kardeslereUygula" name="kardeslere_uygula" value="1" checked>
+                                    <label class="form-check-label fw-semibold" for="kardeslereUygula">
+                                        Tüm kardeş kayıtlarına uygula
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('kayit.veli.liste') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Listeye Dön
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-mortarboard me-2 text-primary"></i>
+                    Bağlı Öğrenciler
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if ogrenciler %}
+                <div class="list-group list-group-flush">
+                    {% for o in ogrenciler %}
+                    <a href="{{ url_for('kayit.ogrenci.detay', ogrenci_id=o.id) }}"
+                       class="list-group-item list-group-item-action px-0 py-2 border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ o.tam_ad }}</strong>
+                                {% if o.ogrenci_no %}
+                                <small class="text-muted d-block">{{ o.ogrenci_no }}</small>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ o.aktif_sinif_sube or '—' }}</small>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small mb-0">Bağlı öğrenci bulunamadı.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if veli.user_id %}
+        <div class="card shadow-sm border-success-subtle">
+            <div class="card-body">
+                <div class="d-flex align-items-start gap-2">
+                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                    <div>
+                        <strong class="d-block">Sistem kullanıcısı bağlı</strong>
+                        <small class="text-muted">
+                            Bu veli portal üzerinden öğrencisinin bilgilerine erişebiliyor.
+                            Şifre sıfırlama için Kullanıcı Yönetimi'ne başvurun.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-start gap-2">
+                    <i class="bi bi-info-circle text-muted fs-5"></i>
+                    <div>
+                        <small class="text-muted">
+                            Bu veli için henüz bir <strong>portal kullanıcısı</strong> oluşturulmamış.
+                            Veliyi portal'a alabilmek için öğrenci detayında "Veli Hesabı Oluştur" akışını
+                            kullanabilirsiniz.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -151,6 +151,11 @@ a {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border: none;
+    flex-wrap: nowrap; /* Dropdown acilinca sag taraf genisleyebilir; sol kismin
+                          alt satira (wrap) inmesini engellemek icin nowrap. */
+}
+.navbar > .container-fluid {
+    flex-wrap: nowrap;
 }
 
 .navbar-brand {

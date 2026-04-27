@@ -204,8 +204,18 @@ def dashboard():
         PersonelIzin.bitis_tarihi >= bugun
     ).all()
 
+    # Tenant abonelik plani + kullanim ozeti (sadece admin/yonetici icin gosterilir)
+    tenant_kullanim = None
+    if current_user.rol in ('admin', 'yonetici'):
+        try:
+            from app.tenancy.limitler import kullanim_durumu
+            tenant_kullanim = kullanim_durumu()
+        except Exception:
+            tenant_kullanim = None
+
     return render_template(
         'main/dashboard.html',
+        tenant_kullanim=tenant_kullanim,
         # Finansal KPI'lar
         aylik_gelir=aylik_gelir,
         aylik_gider=aylik_gider,

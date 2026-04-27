@@ -177,6 +177,51 @@
     </div>
 </div>
 
+{# === ABONELIK KULLANIMI (admin / yonetici) === #}
+{% if tenant_kullanim %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">Abonelik Planı</small>
+                <h6 class="mb-0 mt-1">
+                    <i class="bi bi-stars text-warning me-1"></i>
+                    {{ tenant_kullanim.plan_ad }}
+                    {% if tenant_kullanim.plan_aciklama %}
+                    <small class="text-muted fw-normal ms-1">— {{ tenant_kullanim.plan_aciklama }}</small>
+                    {% endif %}
+                </h6>
+            </div>
+            <div class="d-flex gap-3 flex-wrap">
+                {% for tip, etiket, ikon in [
+                    ('ogrenci', 'Öğrenci', 'bi-mortarboard'),
+                    ('ogretmen', 'Öğretmen', 'bi-person-workspace'),
+                    ('kullanici', 'Toplam Kullanıcı', 'bi-people-fill'),
+                ] %}
+                {% set d = tenant_kullanim[tip] %}
+                <div class="text-center" style="min-width:130px;">
+                    <small class="text-muted d-block">
+                        <i class="bi {{ ikon }} me-1"></i>{{ etiket }}
+                    </small>
+                    <strong class="d-block">
+                        {{ d.mevcut }}
+                        {% if d.limit %}<span class="text-muted fw-normal">/ {{ d.limit }}</span>
+                        {% else %}<span class="text-success fw-normal">/ ∞</span>{% endif %}
+                    </strong>
+                    {% if d.oran is not none %}
+                    <div class="progress mt-1" style="height:4px;">
+                        <div class="progress-bar bg-{% if d.oran >= 90 %}danger{% elif d.oran >= 70 %}warning{% else %}success{% endif %}"
+                             style="width: {{ d.oran }}%"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {# === FINANSAL KPI KARTLARI (admin / yonetici / muhasebeci) === #}
 {% if current_user.rol in ['admin', 'yonetici', 'muhasebeci'] %}
 <div class="row g-3 mb-4">

@@ -52,6 +52,13 @@ def init_master(app) -> None:
         expire_on_commit=False, future=True,
     )
 
+    # App startup'inda Tenant tablosuna sonradan eklenen kolonlari
+    # idempotent olarak backfill et (plan, ogrenci_limiti, vs.)
+    try:
+        _backfill_yeni_kolonlar()
+    except Exception:
+        pass
+
 
 def get_master_engine() -> Engine:
     if _master_engine is None:
@@ -77,5 +84,43 @@ def master_session() -> Session:
 
 
 def create_master_tables() -> None:
-    """Master DB semasi: tenants tablosunu olustur (idempotent)."""
+    """Master DB semasi: tenants tablosunu olustur + sonradan eklenen
+    kolonlari backfill et (idempotent)."""
     MasterBase.metadata.create_all(bind=get_master_engine())
+    _backfill_yeni_kolonlar()
+
+
+def _backfill_yeni_kolonlar():
+    """Tenant tablosuna sonradan eklenen kolonlari (plan, limitler)
+    ALTER TABLE ile ekler. create_all() mevcut tabloya yeni kolon
+    eklemez; bu fonksiyon idempotent — kolon varsa atlar."""
+    from sqlalchemy import text
+
+    eklenecek = [
+        ("plan", "VARCHAR(20) NOT NULL DEFAULT 'standart'"),
+        ("ogrenci_limiti", "INTEGER"),
+        ("kullanici_limiti", "INTEGER"),
+        ("ogretmen_limiti", "INTEGER"),
+    ]
+
+    try:
+        engine = get_master_engine()
+    except RuntimeError:
+        return
+
+    try:
+        with engine.begin() as conn:
+            mevcut_kolonlar = conn.execute(text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'tenants'"
+            )).scalars().all()
+            mevcut_kolonlar = set(mevcut_kolonlar)
+            for kolon, sql_tipi in eklenecek:
+                if kolon not in mevcut_kolonlar:
+                    conn.execute(text(
+                        f"ALTER TABLE tenants ADD COLUMN {kolon} {sql_tipi}"
+                    ))
+    except Exception as e:
+        # Master DB hata verirse uygulamayi durdurma — log basit print yeterli
+        import sys
+        print(f'[tenancy] _backfill_yeni_kolonlar uyarisi: {e}', file=sys.stderr)

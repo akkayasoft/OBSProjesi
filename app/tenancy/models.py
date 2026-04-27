@@ -33,6 +33,16 @@ class Tenant(MasterBase):
     durum = Column(String(20), nullable=False, default='aktif', index=True)
     # aktif / askida / silindi
 
+    # Abonelik plani: basic / standart / premium / unlimited
+    # Limitleri belirler — plan presetlerinden okunur (PLAN_LIMITLERI).
+    plan = Column(String(20), nullable=False, default='standart', index=True)
+
+    # Plan preset'inin limitini override eder (null ise plan default'u kullanilir).
+    # Ozel anlasmali musterilere dershane bazinda ozel limit verilebilsin diye.
+    ogrenci_limiti = Column(Integer, nullable=True)
+    kullanici_limiti = Column(Integer, nullable=True)
+    ogretmen_limiti = Column(Integer, nullable=True)
+
     abonelik_bitis = Column(Date, nullable=True)
     iletisim_email = Column(String(200), nullable=True)
     iletisim_telefon = Column(String(40), nullable=True)

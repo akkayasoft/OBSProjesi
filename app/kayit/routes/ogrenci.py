@@ -766,6 +766,15 @@ def yeni_kayit():
     form.sube_id.choices = [(s.id, s.tam_ad) for s in subeler]
 
     if form.validate_on_submit():
+        # Tenant ogrenci limit kontrolu
+        from app.tenancy.limitler import ogrenci_limit_kontrol
+        izin, mesaj = ogrenci_limit_kontrol()
+        if not izin:
+            flash(mesaj, 'danger')
+            return render_template('kayit/ogrenci/kayit_form.html',
+                                   form=form, baslik='Yeni Öğrenci Kaydı',
+                                   karteks_aktif=bool(karteks_dosya),
+                                   karteks_dosya=karteks_dosya)
         # Öğrenci no kontrolü
         mevcut = Ogrenci.query.filter_by(ogrenci_no=form.ogrenci_no.data).first()
         if mevcut:

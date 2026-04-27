@@ -77,6 +77,17 @@ def yeni():
     form = PersonelForm()
 
     if form.validate_on_submit():
+        # Tenant kullanici/ogretmen limit kontrolu (yeni User olusacak)
+        from app.tenancy.limitler import ogretmen_limit_kontrol, kullanici_limit_kontrol
+        izin, mesaj = ogretmen_limit_kontrol()
+        if not izin:
+            flash(mesaj, 'danger')
+            return render_template('personel/personel/form.html', form=form, baslik='Yeni Personel')
+        izin, mesaj = kullanici_limit_kontrol(yeni_rol='ogretmen')
+        if not izin:
+            flash(mesaj, 'danger')
+            return render_template('personel/personel/form.html', form=form, baslik='Yeni Personel')
+
         mevcut = Personel.query.filter_by(sicil_no=form.sicil_no.data).first()
         if mevcut:
             flash('Bu sicil numarası zaten kayıtlı!', 'danger')

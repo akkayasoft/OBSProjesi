@@ -129,6 +129,18 @@ def yeni():
             flash('Bu rolde kullanici olusturma yetkiniz yok.', 'danger')
             return redirect(url_for('kullanici.yonetim.liste'))
 
+        # Tenant kullanici limit kontrolu
+        from app.tenancy.limitler import kullanici_limit_kontrol, ogretmen_limit_kontrol
+        izin, mesaj = kullanici_limit_kontrol(yeni_rol=form.rol.data)
+        if not izin:
+            flash(mesaj, 'danger')
+            return render_template('kullanici/yeni.html', form=form)
+        if form.rol.data == 'ogretmen':
+            izin, mesaj = ogretmen_limit_kontrol()
+            if not izin:
+                flash(mesaj, 'danger')
+                return render_template('kullanici/yeni.html', form=form)
+
         kullanici = User(
             username=form.username.data,
             email=form.email.data,

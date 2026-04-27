@@ -862,6 +862,25 @@ h4.mb-0 {
     }
 }
 
+/* === Sifre flash mesaji === */
+.alert-sifre {
+    border: 2px solid #f59e0b !important;
+    background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
+    color: #78350f !important;
+    font-weight: 500;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.18);
+}
+.alert-sifre::before {
+    content: '⚠️ Bu mesajı kapatmadan veliye iletiniz!';
+    display: block;
+    font-size: 0.75rem;
+    color: #92400e;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
 /* === Page Header (components/page_header.html) === */
 .page-header {
     padding-bottom: 0.75rem;

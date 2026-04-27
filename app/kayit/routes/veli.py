@@ -10,6 +10,8 @@ Erisim: admin + yonetici.
 """
 from __future__ import annotations
 
+import secrets
+import string
 from collections import defaultdict
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
@@ -235,4 +237,50 @@ def duzenle(veli_id):
         veli=v,
         ogrenciler=ogrenciler,
         kardes_kayit_sayisi=len(diger_kayitlar),
+    )
+
+
+# --- Sifre sifirlama ------------------------------------------------------
+
+def _gen_sifre(uzunluk: int = 8) -> str:
+    """Karistirilmaya zor, hatirlanmasi kolay sifre uretici.
+
+    Format: 'Veli' + 4 rakam + 2 buyuk harf  (orn. 'Veli3947KP')
+    Bu format veliye telefon/SMS uzerinden kolayca soylenebilir.
+    """
+    rakamlar = ''.join(secrets.choice(string.digits) for _ in range(4))
+    harfler = ''.join(secrets.choice(string.ascii_uppercase) for _ in range(2))
+    return f'Veli{rakamlar}{harfler}'
+
+
+@bp.route('/<int:veli_id>/sifre-sifirla', methods=['POST'])
+@login_required
+@role_required('admin', 'yonetici')
+def sifre_sifirla(veli_id):
+    """Velinin portal hesabinin sifresini sifirlar (yeni rastgele sifre)."""
+    v = VeliBilgisi.query.get_or_404(veli_id)
+    if not v.user_id:
+        flash(f'"{v.tam_ad}" velisinin portal hesabı bulunmadığı için '
+              'şifre sıfırlanamadı.', 'warning')
+        return redirect(url_for('kayit.veli.liste'))
+
+    user = User.query.get(v.user_id)
+    if not user:
+        flash('Bağlı sistem kullanıcısı bulunamadı.', 'danger')
+        return redirect(url_for('kayit.veli.liste'))
+
+    yeni_sifre = _gen_sifre()
+    user.set_password(yeni_sifre)
+    db.session.commit()
+
+    # Flash mesaji: 'sifre' kategorisi ile gonderilir — base.html bu
+    # mesaji otomatik kapatmaz, yonetici manuel kapatana kadar durur.
+    flash(
+        f'🔑 "{v.tam_ad}" velisinin şifresi sıfırlandı. '
+        f'Yeni şifre: {yeni_sifre} — lütfen veliye iletiniz '
+        f'(bu mesaj kapatıldığında bir daha gösterilmez).',
+        'sifre',
+    )
+    return redirect(
+        request.referrer or url_for('kayit.veli.duzenle', veli_id=v.id)
     )

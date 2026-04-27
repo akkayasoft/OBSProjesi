@@ -214,6 +214,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Flash mesajlarini otomatik kapat ---
     document.querySelectorAll('.alert-dismissible').forEach(function(alert) {
+        // Bazi mesajlar (orn. sifre sifirlama) kullaniciya kalmali
+        if (alert.dataset.noAutoclose === '1') return;
         setTimeout(function() {
             var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
             bsAlert.close();

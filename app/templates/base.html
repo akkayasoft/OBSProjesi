@@ -140,7 +140,10 @@
                 {% if messages %}
                 <div class="flash-messages">
                     {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {% set _alert_cls = 'success' if category == 'sifre' else category %}
+                    <div class="alert alert-{{ _alert_cls }} alert-dismissible fade show {% if category == 'sifre' %}alert-sifre{% endif %}"
+                         role="alert"
+                         {% if category == 'sifre' %}data-no-autoclose="1"{% endif %}>
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>

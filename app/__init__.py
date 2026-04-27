@@ -1,3 +1,16 @@
+import os
+import time as _time
+
+# Sunucu UTC'de calissa bile uygulama Turkiye saati gostermeli.
+# Bu, datetime.now() ve date.today()'in UTC+3 dondurmesini saglar.
+# (datetime.utcnow() hala UTC'dir; DB'de UTC saklamak istiyorsa onu kullanabilir.)
+os.environ.setdefault('TZ', 'Europe/Istanbul')
+try:
+    _time.tzset()
+except AttributeError:
+    # Windows'ta tzset yok; production Linux'ta calisir
+    pass
+
 from flask import Flask, render_template, request
 from config import Config
 from app.extensions import db, login_manager, migrate, csrf

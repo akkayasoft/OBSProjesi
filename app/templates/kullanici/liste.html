@@ -24,13 +24,10 @@
                 </div>
                 <div class="col-md-3">
                     <select name="rol" class="form-select">
-                        <option value="">Tum Roller</option>
-                        <option value="admin" {{ 'selected' if rol_filtre == 'admin' }}>Sistem Yoneticisi</option>
-                        <option value="yonetici" {{ 'selected' if rol_filtre == 'yonetici' }}>Dershane Yoneticisi</option>
-                        <option value="ogretmen" {{ 'selected' if rol_filtre == 'ogretmen' }}>Ogretmen</option>
-                        <option value="veli" {{ 'selected' if rol_filtre == 'veli' }}>Veli</option>
-                        <option value="ogrenci" {{ 'selected' if rol_filtre == 'ogrenci' }}>Ogrenci</option>
-                        <option value="muhasebeci" {{ 'selected' if rol_filtre == 'muhasebeci' }}>Muhasebeci</option>
+                        <option value="">Tüm Roller</option>
+                        {% for kod, ad in secilebilir_roller %}
+                        <option value="{{ kod }}" {{ 'selected' if rol_filtre == kod }}>{{ ad }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3">

@@ -94,6 +94,7 @@ PRESETLER = {
             'muhasebe',
             'devamsizlik',
             'personel',
+            'kullanici',
             'ders_dagitimi',
             'not_defteri',
             'karne',
@@ -115,12 +116,13 @@ PRESETLER = {
     },
     'kurumsal': {
         'ad': 'Kurumsal',
-        'aciklama': 'Sistem modulleri (kullanici, denetim, ayarlar) haric tum is modulleri.',
+        'aciklama': 'Tum is modulleri + kullanici yonetimi (sistem yoneticileri haric).',
         'moduller': [
             'muhasebe',
             'kayit',
             'devamsizlik',
             'personel',
+            'kullanici',
             'ders_dagitimi',
             'not_defteri',
             'odev_takip',

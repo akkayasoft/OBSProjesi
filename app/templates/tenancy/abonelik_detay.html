@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Abonelik{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Ana Sayfa</a></li>
+            <li class="breadcrumb-item active">Abonelik</li>
+        </ol>
+    </nav>
+</div>
+
+{% set ph = {
+    'title': 'Abonelik Yönetimi',
+    'subtitle': tenant.ad ~ ' (' ~ tenant.slug ~ ')',
+    'icon': 'bi-stars',
+    'badge': {'text': planlar[tenant.plan]['ad'] if tenant.plan in planlar else tenant.plan,
+              'color': 'primary'}
+} %}
+{% include "components/page_header.html" %}
+
+<!-- Kullanim ozeti -->
+<div class="row g-3 mb-4">
+    {% for tip, etiket, ikon in [
+        ('ogrenci', 'Öğrenci', 'bi-mortarboard'),
+        ('ogretmen', 'Öğretmen', 'bi-person-workspace'),
+        ('kullanici', 'Toplam Kullanıcı', 'bi-people-fill'),
+    ] %}
+    {% set d = kullanim[tip] %}
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                            <i class="bi {{ ikon }} me-1"></i>{{ etiket }}
+                        </small>
+                        <h4 class="mb-0 mt-1">
+                            {{ d.mevcut }}
+                            {% if d.limit %}<small class="text-muted fw-normal">/ {{ d.limit }}</small>
+                            {% else %}<small class="text-success fw-normal">/ ∞</small>{% endif %}
+                        </h4>
+                    </div>
+                    {% if d.oran is not none %}
+                    <span class="badge bg-{% if d.oran >= 90 %}danger{% elif d.oran >= 70 %}warning text-dark{% else %}success{% endif %}">
+                        %{{ d.oran }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% if d.oran is not none %}
+                <div class="progress" style="height:6px;">
+                    <div class="progress-bar bg-{% if d.oran >= 90 %}danger{% elif d.oran >= 70 %}warning{% else %}success{% endif %}"
+                         style="width: {{ d.oran }}%"></div>
+                </div>
+                {% if d.oran >= 90 %}
+                <small class="text-danger mt-2 d-block">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Limit dolmak üzere. Plan yükseltmeyi düşünün.
+                </small>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Plan secici + override -->
+<form method="POST" action="{{ url_for('abonelik.duzenle') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h6 class="mb-0">
+                <i class="bi bi-stack me-2"></i>Plan Seçimi
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for kod, p in planlar.items() %}
+                <div class="col-md-3">
+                    <label class="plan-secim-card border rounded-3 p-3 h-100 d-flex flex-column position-relative
+                                  {% if tenant.plan == kod %}border-primary{% endif %}"
+                           style="cursor:pointer;">
+                        <input type="radio" name="plan" value="{{ kod }}"
+                               class="form-check-input position-absolute top-0 end-0 m-2"
+                               {% if tenant.plan == kod %}checked{% endif %}>
+                        <strong class="d-block mb-1">{{ p.ad }}</strong>
+                        {% if p.aciklama %}
+                        <small class="text-muted d-block mb-2">{{ p.aciklama }}</small>
+                        {% endif %}
+                        <ul class="list-unstyled small mb-2 flex-grow-1">
+                            <li>
+                                <i class="bi bi-mortarboard text-muted me-1"></i>
+                                {% if p.ogrenci_limiti %}{{ p.ogrenci_limiti }} öğrenci{% else %}<strong class="text-success">Sınırsız öğrenci</strong>{% endif %}
+                            </li>
+                            <li>
+                                <i class="bi bi-person-workspace text-muted me-1"></i>
+                                {% if p.ogretmen_limiti %}{{ p.ogretmen_limiti }} öğretmen{% else %}<strong class="text-success">Sınırsız öğretmen</strong>{% endif %}
+                            </li>
+                            <li>
+                                <i class="bi bi-people-fill text-muted me-1"></i>
+                                {% if p.kullanici_limiti %}{{ p.kullanici_limiti }} kullanıcı{% else %}<strong class="text-success">Sınırsız kullanıcı</strong>{% endif %}
+                            </li>
+                        </ul>
+                        {% if p.fiyat_tl_aylik %}
+                        <div class="mt-auto pt-2 border-top">
+                            <strong class="text-primary">{{ p.fiyat_tl_aylik }} ₺</strong>
+                            <small class="text-muted">/ ay</small>
+                        </div>
+                        {% else %}
+                        <div class="mt-auto pt-2 border-top">
+                            <small class="text-muted">İletişime geçin</small>
+                        </div>
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom override -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h6 class="mb-0">
+                <i class="bi bi-sliders me-2"></i>Özel Limit (Opsiyonel)
+            </h6>
+        </div>
+        <div class="card-body">
+            <p class="small text-muted">
+                Plan preset'inden farklı bir limit kullanmak isterseniz aşağıya yazın.
+                Boş bırakırsanız seçili planın varsayılan limiti kullanılır.
+                <strong>0</strong> yazarsanız o tip için kayıt tamamen kapatılır.
+            </p>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Öğrenci Limiti (override)</label>
+                    <input type="number" name="ogrenci_limiti"
+                           class="form-control"
+                           min="0"
+                           placeholder="Boş = plan default'u"
+                           value="{{ tenant.ogrenci_limiti if tenant.ogrenci_limiti is not none else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Öğretmen Limiti (override)</label>
+                    <input type="number" name="ogretmen_limiti"
+                           class="form-control"
+                           min="0"
+                           placeholder="Boş = plan default'u"
+                           value="{{ tenant.ogretmen_limiti if tenant.ogretmen_limiti is not none else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Toplam Kullanıcı Limiti (override)</label>
+                    <input type="number" name="kullanici_limiti"
+                           class="form-control"
+                           min="0"
+                           placeholder="Boş = plan default'u"
+                           value="{{ tenant.kullanici_limiti if tenant.kullanici_limiti is not none else '' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-end">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Aboneliği Güncelle
+        </button>
+    </div>
+</form>
+
+<style>
+.plan-secim-card {
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.plan-secim-card:hover {
+    border-color: var(--primary-light) !important;
+}
+.plan-secim-card.border-primary {
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.18);
+}
+</style>
+
+<script>
+// Plan kartına tıklandığında radio'yu seç + visual update
+document.querySelectorAll('.plan-secim-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+        document.querySelectorAll('.plan-secim-card').forEach(function(c) {
+            c.classList.remove('border-primary');
+        });
+        card.classList.add('border-primary');
+        var radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+    });
+});
+</script>
+{% endblock %}

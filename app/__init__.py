@@ -83,6 +83,10 @@ def create_app(config_class=Config):
     from app.bildirim import bildirim_bp
     app.register_blueprint(bildirim_bp, url_prefix='/bildirim')
 
+    # Abonelik / plan yonetimi (admin only)
+    from app.tenancy.routes import bp as abonelik_bp
+    app.register_blueprint(abonelik_bp)
+
     from app.odev_takip import odev_takip_bp
     app.register_blueprint(odev_takip_bp, url_prefix='/odev')
 
@@ -198,6 +202,8 @@ def create_app(config_class=Config):
             {'label': 'Kullanıcı Yönetimi', 'icon': 'bi-shield-lock', 'url': '/kullanici/', 'modul_key': 'kullanici', 'children': [
                 {'label': 'Kullanıcı Listesi', 'icon': 'bi-people', 'url': '/kullanici/liste'},
                 {'label': 'Yeni Kullanıcı', 'icon': 'bi-person-plus', 'url': '/kullanici/yeni'},
+                {'label': 'Abonelik / Plan', 'icon': 'bi-stars', 'url': '/abonelik/',
+                 'roller': ['admin']},
             ]},
             {'label': 'Kurum Yönetimi', 'icon': 'bi-building', 'url': '/kurum/', 'modul_key': 'kurum', 'children': [
                 {'label': 'Kurum Bilgileri', 'icon': 'bi-info-circle', 'url': '/kurum/bilgi'},

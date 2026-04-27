@@ -191,6 +191,11 @@
                     <small class="text-muted fw-normal ms-1">— {{ tenant_kullanim.plan_aciklama }}</small>
                     {% endif %}
                 </h6>
+                {% if current_user.rol == 'admin' %}
+                <a href="{{ url_for('abonelik.index') }}" class="small text-primary text-decoration-none">
+                    <i class="bi bi-pencil"></i> Plan değiştir
+                </a>
+                {% endif %}
             </div>
             <div class="d-flex gap-3 flex-wrap">
                 {% for tip, etiket, ikon in [

@@ -367,22 +367,25 @@ a {
     background: rgba(255, 255, 255, 0.14) !important;
 }
 
-/* === Sidebar === */
+/* === Sidebar (drawer pattern: varsayilan olarak gizli, hamburger ile acilir) === */
 .sidebar {
     width: var(--sidebar-width);
     height: calc(100vh - var(--navbar-height));
     position: fixed;
     left: 0;
-    top: var(--navbar-height); /* margin-top yerine direkt top — fixed konumlama daha kararli */
+    top: var(--navbar-height);
     overflow-y: auto;
     overflow-x: hidden;
-    /* Sadece transform'a animasyon — drawer ac/kapat icin yeterli, baska
-       property degisikliklerinde (ornek: dropdown acilinca) sidebar oynamaz */
+    transform: translateX(-100%); /* Default: gizli */
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1030;
     background: var(--sidebar-bg) !important;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
     will-change: transform;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.25);
+}
+.sidebar.show {
+    transform: translateX(0);
 }
 
 /* Scrollbar */
@@ -565,13 +568,10 @@ a {
 
 /* === Page Content === */
 .page-content {
-    margin-left: var(--sidebar-width);
+    margin-left: 0;
     margin-top: var(--navbar-height);
-    width: calc(100% - var(--sidebar-width));
+    width: 100%;
     min-height: calc(100vh - var(--navbar-height));
-    /* Drawer ac/kapat ile birlikte yumusak gecis */
-    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-content .container-fluid {
@@ -968,18 +968,7 @@ h4.mb-0 {
     touch-action: manipulation;
 }
 
-/* === Desktop: sidebar-collapsed durumu === */
-/* body.sidebar-collapsed: drawer kapatildi, page-content tam genislige yayilir */
-body.sidebar-collapsed .sidebar {
-    transform: translateX(-100%);
-    box-shadow: none;
-}
-body.sidebar-collapsed .page-content {
-    margin-left: 0;
-    width: 100%;
-}
-
-/* === Sidebar Overlay (mobil) === */
+/* === Sidebar Overlay (drawer arkasinda — tum ekran boyutlarinda) === */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -992,25 +981,6 @@ body.sidebar-collapsed .page-content {
 }
 .sidebar-overlay.show {
     display: block;
-}
-
-/* === Responsive === */
-
-/* Tablet */
-@media (max-width: 991.98px) {
-    .sidebar {
-        transform: translateX(-100%);
-        margin-left: 0;
-        z-index: 1030;
-    }
-    .sidebar.show {
-        transform: translateX(0);
-        box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
-    }
-    .page-content {
-        margin-left: 0;
-        width: 100%;
-    }
 }
 
 /* Mobil */

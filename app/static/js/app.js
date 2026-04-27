@@ -1,108 +1,60 @@
 // OBS - Genel JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Sidebar toggle ---
+    // --- Sidebar drawer (tum ekran boyutlarinda overlay olarak acilir) ---
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
     var toggle = document.getElementById('sidebarToggle');
     var body = document.body;
-    var DESKTOP_BREAKPOINT = 992;
-    var COLLAPSED_KEY = 'obs:sidebar:collapsed';
 
-    function isDesktop() {
-        return window.innerWidth >= DESKTOP_BREAKPOINT;
-    }
-
-    // --- Mobil: overlay + slide-in ---
-    function openMobileSidebar() {
+    function openSidebar() {
         if (sidebar) sidebar.classList.add('show');
         if (overlay) overlay.classList.add('show');
         body.style.overflow = 'hidden';
     }
 
-    function closeMobileSidebar() {
+    function closeSidebar() {
         if (sidebar) sidebar.classList.remove('show');
         if (overlay) overlay.classList.remove('show');
         body.style.overflow = '';
     }
 
-    // --- Desktop: collapse/expand (margin sifirlanir, sidebar kayar) ---
-    function applyDesktopCollapsed(collapsed) {
-        if (collapsed) {
-            body.classList.add('sidebar-collapsed');
-        } else {
-            body.classList.remove('sidebar-collapsed');
-        }
-    }
-
-    function toggleDesktopSidebar() {
-        var collapsed = !body.classList.contains('sidebar-collapsed');
-        applyDesktopCollapsed(collapsed);
-        try {
-            localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
-        } catch (e) { /* private mode */ }
-    }
-
-    // Sayfa yuklenirken kaydedilmis durumu uygula (sadece desktop'ta)
-    if (isDesktop()) {
-        try {
-            if (localStorage.getItem(COLLAPSED_KEY) === '1') {
-                applyDesktopCollapsed(true);
-            }
-        } catch (e) { /* private mode */ }
-    }
-
-    function handleToggle(e) {
+    function toggleSidebar(e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
-        if (isDesktop()) {
-            toggleDesktopSidebar();
+        if (sidebar && sidebar.classList.contains('show')) {
+            closeSidebar();
         } else {
-            if (sidebar && sidebar.classList.contains('show')) {
-                closeMobileSidebar();
-            } else {
-                openMobileSidebar();
-            }
+            openSidebar();
         }
     }
 
     if (toggle) {
-        toggle.addEventListener('click', handleToggle);
+        toggle.addEventListener('click', toggleSidebar);
         toggle.addEventListener('touchend', function(e) {
             e.preventDefault();
-            handleToggle(e);
+            toggleSidebar(e);
         }, { passive: false });
     }
 
     if (overlay) {
-        overlay.addEventListener('click', closeMobileSidebar);
+        overlay.addEventListener('click', closeSidebar);
         overlay.addEventListener('touchend', function(e) {
             e.preventDefault();
-            closeMobileSidebar();
+            closeSidebar();
         }, { passive: false });
     }
 
-    // Mobilde sidebar icindeki linklere tiklaninca kapat
+    // Sidebar icindeki linklere tiklaninca kapat
     if (sidebar) {
         sidebar.querySelectorAll('a.sidebar-link:not(.has-children)').forEach(function(link) {
-            link.addEventListener('click', function() {
-                if (!isDesktop()) {
-                    closeMobileSidebar();
-                }
-            });
+            link.addEventListener('click', closeSidebar);
         });
     }
 
-    // Pencere boyutu degisince:
-    // - Mobile→Desktop: mobile show'u temizle, kaydedilmis collapse durumunu uygula
-    // - Desktop→Mobile: collapsed'i temizle (mobilde her zaman acilabilir)
-    window.addEventListener('resize', function() {
-        if (isDesktop()) {
-            closeMobileSidebar();
-            try {
-                applyDesktopCollapsed(localStorage.getItem(COLLAPSED_KEY) === '1');
-            } catch (e) { /* */ }
-        } else {
-            applyDesktopCollapsed(false);
+    // ESC tusu ile kapat
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('show')) {
+            closeSidebar();
         }
     });
 

@@ -148,13 +148,28 @@ def create_app(config_class=Config):
             return dict(okunmamis_bildirim=Bildirim.okunmamis_sayisi(current_user.id))
         return dict(okunmamis_bildirim=0)
 
-    # Footer icin yil + surum
+    # Footer icin yil + surum + statik dosya cache-busting
+    # Surum, custom.css'in mtime'inden hesaplaniyor — dosya degistikce
+    # query string degisir, browser yeni dosyayi indirir.
+    import os as _os
+    _static_root = _os.path.join(_os.path.dirname(__file__), 'static')
+
+    def _asset_versiyonu():
+        try:
+            css_path = _os.path.join(_static_root, 'css', 'custom.css')
+            js_path = _os.path.join(_static_root, 'js', 'app.js')
+            mtime = max(_os.path.getmtime(css_path), _os.path.getmtime(js_path))
+            return str(int(mtime))
+        except OSError:
+            return '1'
+
     @app.context_processor
     def inject_footer():
         from datetime import date
         return dict(
             now_yil=date.today().year,
             obs_surum=app.config.get('OBS_SURUM', '1.0'),
+            asset_v=_asset_versiyonu(),
         )
 
     # Context processor - sidebar menü

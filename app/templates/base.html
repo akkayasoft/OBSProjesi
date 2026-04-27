@@ -26,25 +26,20 @@
 <body>
     {% if current_user.is_authenticated %}
     <!-- Navbar -->
-    <nav class="navbar navbar-dark fixed-top">
+    <nav class="navbar navbar-dark bg-primary fixed-top">
         <div class="container-fluid">
             <div class="d-flex align-items-center">
                 <button class="btn btn-link text-white d-lg-none me-2 p-0 sidebar-toggle" type="button" id="sidebarToggle" aria-label="Menü">
-                    <i class="bi bi-list"></i>
+                    <i class="bi bi-list fs-4"></i>
                 </button>
-                <a class="navbar-brand mb-0" href="{{ url_for('main.dashboard') }}">
-                    <span class="brand-mark">
-                        <i class="bi bi-mortarboard-fill"></i>
-                    </span>
-                    <span class="brand-text">
-                        <strong>OBS</strong>
-                        <small class="d-none d-md-block">Öğrenci Bilgi Sistemi</small>
-                    </span>
+                <a class="navbar-brand d-flex align-items-center mb-0" href="{{ url_for('main.dashboard') }}">
+                    <i class="bi bi-mortarboard-fill me-2"></i>
+                    <strong>OBS</strong>
                 </a>
             </div>
             <ul class="navbar-nav flex-row align-items-center">
                 <li class="nav-item">
-                    <a href="/bildirim/" class="nav-link nav-bell position-relative" title="Bildirimler">
+                    <a href="/bildirim/" class="nav-link position-relative me-3">
                         <i class="bi bi-bell"></i>
                         {% if okunmamis_bildirim > 0 %}
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -54,24 +49,11 @@
                     </a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link nav-user dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="avatar-bubble">
-                            {% set _ad = (current_user.ad or '?')|trim %}
-                            {% set _soyad = (current_user.soyad or '')|trim %}
-                            {{ (_ad[:1] ~ (_soyad[:1] if _soyad else ''))|upper }}
-                        </span>
-                        <span class="user-text d-none d-sm-flex">
-                            <strong>{{ current_user.tam_ad }}</strong>
-                            <small>{{ current_user.rol_str }}</small>
-                        </span>
+                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i><span class="d-none d-sm-inline">{{ current_user.tam_ad }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <div class="dropdown-item-text">
-                                <strong class="d-block">{{ current_user.tam_ad }}</strong>
-                                <small class="text-muted">{{ current_user.rol_str }}</small>
-                            </div>
-                        </li>
+                        <li><span class="dropdown-item-text text-muted small">{{ current_user.rol_str }}</span></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/kullanici/profil"><i class="bi bi-person-circle me-2"></i>Profilim</a></li>
                         <li><a class="dropdown-item" href="{{ url_for('auth.cikis') }}"><i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap</a></li>

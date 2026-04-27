@@ -110,16 +110,12 @@ def _backfill_yeni_kolonlar():
 
     try:
         with engine.begin() as conn:
-            mevcut_kolonlar = conn.execute(text(
-                "SELECT column_name FROM information_schema.columns "
-                "WHERE table_name = 'tenants'"
-            )).scalars().all()
-            mevcut_kolonlar = set(mevcut_kolonlar)
             for kolon, sql_tipi in eklenecek:
-                if kolon not in mevcut_kolonlar:
-                    conn.execute(text(
-                        f"ALTER TABLE tenants ADD COLUMN {kolon} {sql_tipi}"
-                    ))
+                # IF NOT EXISTS ile multiple gunicorn worker'in race condition
+                # olusturmasini engelle (Postgres 9.6+).
+                conn.execute(text(
+                    f"ALTER TABLE tenants ADD COLUMN IF NOT EXISTS {kolon} {sql_tipi}"
+                ))
     except Exception as e:
         # Master DB hata verirse uygulamayi durdurma — log basit print yeterli
         import sys

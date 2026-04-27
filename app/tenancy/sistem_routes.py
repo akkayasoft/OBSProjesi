@@ -124,7 +124,9 @@ def dashboard():
 @platform_admin_required
 def tenant_detay(tenant_id):
     with master_session() as s:
-        tenant = s.query(Tenant).filter_by(id=tenant_id).first_or_404()
+        tenant = s.query(Tenant).filter_by(id=tenant_id).first()
+        if not tenant:
+            abort(404)
         s.expunge(tenant)
 
         # Audit log son 20 kayit
@@ -203,7 +205,9 @@ def tenant_duzenle(tenant_id):
 
     admin = aktif_platform_admin()
     with master_session() as s:
-        tenant = s.query(Tenant).filter_by(id=tenant_id).first_or_404()
+        tenant = s.query(Tenant).filter_by(id=tenant_id).first()
+        if not tenant:
+            abort(404)
         eski_plan = tenant.plan
         tenant.plan = yeni_plan
         tenant.ogrenci_limiti = yeni_ogrenci
@@ -230,7 +234,9 @@ def tenant_durum(tenant_id):
         abort(400)
     admin = aktif_platform_admin()
     with master_session() as s:
-        tenant = s.query(Tenant).filter_by(id=tenant_id).first_or_404()
+        tenant = s.query(Tenant).filter_by(id=tenant_id).first()
+        if not tenant:
+            abort(404)
         eski = tenant.durum
         tenant.durum = yeni_durum
         audit_kaydet(s, admin,

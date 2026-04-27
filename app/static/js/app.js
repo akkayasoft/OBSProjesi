@@ -1,11 +1,16 @@
 // OBS - Genel JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Sidebar drawer (tum ekran boyutlarinda overlay olarak acilir) ---
+    // --- Sidebar drawer (yalnizca mobil/tablet — desktop'ta kalici) ---
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
     var toggle = document.getElementById('sidebarToggle');
     var body = document.body;
+    var DESKTOP_BREAKPOINT = 992;
+
+    function isMobile() {
+        return window.innerWidth < DESKTOP_BREAKPOINT;
+    }
 
     function openSidebar() {
         if (sidebar) sidebar.classList.add('show');
@@ -44,18 +49,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }, { passive: false });
     }
 
-    // Sidebar icindeki linklere tiklaninca kapat
+    // Mobilde sidebar icindeki linklere tiklaninca otomatik kapat
     if (sidebar) {
         sidebar.querySelectorAll('a.sidebar-link:not(.has-children)').forEach(function(link) {
-            link.addEventListener('click', closeSidebar);
+            link.addEventListener('click', function() {
+                if (isMobile()) closeSidebar();
+            });
         });
     }
 
-    // ESC tusu ile kapat
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('show')) {
-            closeSidebar();
-        }
+    // Pencere genislerse mobile-show state'ini temizle
+    window.addEventListener('resize', function() {
+        if (!isMobile()) closeSidebar();
     });
 
     // --- Sidebar arama (live filter) ---

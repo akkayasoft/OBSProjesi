@@ -367,7 +367,7 @@ a {
     background: rgba(255, 255, 255, 0.14) !important;
 }
 
-/* === Sidebar (drawer pattern: varsayilan olarak gizli, hamburger ile acilir) === */
+/* === Sidebar (web: kalici sol panel; mobil: drawer overlay) === */
 .sidebar {
     width: var(--sidebar-width);
     height: calc(100vh - var(--navbar-height));
@@ -376,16 +376,21 @@ a {
     top: var(--navbar-height);
     overflow-y: auto;
     overflow-x: hidden;
-    transform: translateX(-100%); /* Default: gizli */
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1030;
     background: var(--sidebar-bg) !important;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
-    will-change: transform;
-    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.25);
 }
-.sidebar.show {
-    transform: translateX(0);
+/* Mobil/tablet: gizli, .show ile slide-in */
+@media (max-width: 991.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+        will-change: transform;
+    }
+    .sidebar.show {
+        transform: translateX(0);
+        box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
+    }
 }
 
 /* Scrollbar */
@@ -568,10 +573,17 @@ a {
 
 /* === Page Content === */
 .page-content {
-    margin-left: 0;
+    margin-left: var(--sidebar-width);
     margin-top: var(--navbar-height);
-    width: 100%;
+    width: calc(100% - var(--sidebar-width));
     min-height: calc(100vh - var(--navbar-height));
+}
+/* Mobil/tablet: sidebar gizli, content tam genislik */
+@media (max-width: 991.98px) {
+    .page-content {
+        margin-left: 0;
+        width: 100%;
+    }
 }
 
 .page-content .container-fluid {

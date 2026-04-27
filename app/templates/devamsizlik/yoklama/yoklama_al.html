@@ -304,7 +304,12 @@
     gap: 0.5rem;
     z-index: 100;
 }
-/* Drawer pattern: page-content artik tam genislikte, altbar da sol kenardan */
+/* Desktop'ta sidebar kalici oldugu icin altbar sidebar genisliginden basliyor */
+@media (min-width: 992px) {
+    .yoklama-altbar {
+        left: var(--sidebar-width, 270px);
+    }
+}
 
 /* === Mobil duzenlemeler === */
 @media (max-width: 575.98px) {

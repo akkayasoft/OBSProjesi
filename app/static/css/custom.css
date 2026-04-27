@@ -158,7 +158,9 @@ a {
         0 6px 20px -6px rgba(15, 23, 42, 0.4);      /* yumusak depth */
     border: none;
     padding: 0 1rem;
-    position: relative;
+    /* position: fixed Bootstrap'in 'fixed-top' class'i ile geliyor; burada
+       override etme. ::after pseudo-element fixed elemana gore zaten
+       absolute konumlanir. */
 }
 
 /* Hafif alt accent cizgisi: hex degerden gradient'e gecis */

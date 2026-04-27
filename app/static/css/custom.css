@@ -184,6 +184,12 @@ a {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     padding: 0.5rem;
     margin-top: 0.5rem;
+    /* Popper kutuphanesinin ureti(p)gi transform'u override et,
+       her zaman toggle'in altinda acil. */
+    top: 100% !important;
+    bottom: auto !important;
+    transform: none !important;
+    inset: auto 0 auto auto !important; /* sag-hizali (dropdown-menu-end ile uyumlu) */
 }
 
 .navbar .dropdown-item {

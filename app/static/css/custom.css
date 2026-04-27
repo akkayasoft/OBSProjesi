@@ -185,11 +185,14 @@ a {
     padding: 0.5rem;
     margin-top: 0.5rem;
     /* Popper kutuphanesinin ureti(p)gi transform'u override et,
-       her zaman toggle'in altinda acil. */
+       her zaman toggle'in altinda acil. Tek tek property kullan;
+       'inset' shorthand sonradan top'i geri 'auto'ya cekiyordu. */
+    position: absolute !important;
     top: 100% !important;
+    right: 0 !important;
     bottom: auto !important;
+    left: auto !important;
     transform: none !important;
-    inset: auto 0 auto auto !important; /* sag-hizali (dropdown-menu-end ile uyumlu) */
 }
 
 .navbar .dropdown-item {

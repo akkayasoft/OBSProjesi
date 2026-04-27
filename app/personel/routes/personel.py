@@ -168,8 +168,22 @@ def duzenle(personel_id):
         personel.ise_baslama_tarihi = form.ise_baslama_tarihi.data
         personel.ise_bitis_tarihi = form.ise_bitis_tarihi.data
 
+        # Bagli User hesabi varsa ad/soyad/email senkronize et
+        senkronize_user = False
+        if personel.user_id:
+            user = User.query.get(personel.user_id)
+            if user:
+                user.ad = personel.ad
+                user.soyad = personel.soyad
+                if personel.email:
+                    user.email = personel.email
+                senkronize_user = True
+
         db.session.commit()
-        flash('Personel bilgileri güncellendi.', 'success')
+        msg = 'Personel bilgileri güncellendi.'
+        if senkronize_user:
+            msg += ' Sistem kullanıcısı da senkronize edildi.'
+        flash(msg, 'success')
         return redirect(url_for('personel.personel_crud.detay', personel_id=personel.id))
 
     return render_template('personel/personel/form.html',
@@ -182,10 +196,96 @@ def duzenle(personel_id):
 def durum_degistir(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     personel.aktif = not personel.aktif
+    # Bagli kullaniciyi da pasiflestir/aktiflestir
+    if personel.user_id:
+        u = User.query.get(personel.user_id)
+        if u:
+            u.aktif = personel.aktif
     db.session.commit()
     durum_str = 'aktif' if personel.aktif else 'pasif'
     flash(f'{personel.tam_ad} {durum_str} yapıldı.', 'success')
     return redirect(url_for('personel.personel_crud.detay', personel_id=personel.id))
+
+
+@bp.route('/<int:personel_id>/sil', methods=['POST'])
+@login_required
+@role_required('admin', 'yonetici')
+def sil(personel_id):
+    """Personel ve bagli sistem kullanicisini birlikte siler.
+
+    Sicil/odeme/izin kayitlari personel.id uzerinden cascade ile temizlenir
+    (modeldeki relationship'ler delete-orphan degil, ama lazy='dynamic';
+    odeme_kayitlari ve izinler manuel silinmeli).
+    """
+    from app.models.muhasebe import PersonelOdemeKaydi
+    from app.models.personel import PersonelIzin
+
+    personel = Personel.query.get_or_404(personel_id)
+    ad = personel.tam_ad
+    user_id = personel.user_id
+
+    # Bagli kayitlari sil
+    PersonelIzin.query.filter_by(personel_id=personel.id).delete()
+    PersonelOdemeKaydi.query.filter_by(personel_id=personel.id).delete()
+
+    db.session.delete(personel)
+    db.session.flush()
+
+    # Bagli User'i da sil (sadece bu personel icin acilmissa — rol='ogretmen'
+    # veya unique user_id ile baska personel referansi yoksa)
+    silinen_user = False
+    if user_id:
+        user = User.query.get(user_id)
+        if user and user.rol in ('ogretmen', 'muhasebeci'):
+            db.session.delete(user)
+            silinen_user = True
+
+    db.session.commit()
+    msg = f'"{ad}" personel kaydı silindi.'
+    if silinen_user:
+        msg += ' Sistem kullanıcısı da kaldırıldı.'
+    flash(msg, 'success')
+    return redirect(url_for('personel.personel_crud.liste'))
+
+
+@bp.route('/<int:personel_id>/sifre-sifirla', methods=['POST'])
+@login_required
+@role_required('admin', 'yonetici')
+def sifre_sifirla(personel_id):
+    """Personelin sistem hesabinin sifresini sifirlar."""
+    import secrets
+    import string
+
+    personel = Personel.query.get_or_404(personel_id)
+    if not personel.user_id:
+        flash(f'"{personel.tam_ad}" personelinin sistem hesabı bulunmuyor.',
+              'warning')
+        return redirect(url_for('personel.personel_crud.detay',
+                                personel_id=personel.id))
+
+    user = User.query.get(personel.user_id)
+    if not user:
+        flash('Bağlı sistem kullanıcısı bulunamadı.', 'danger')
+        return redirect(url_for('personel.personel_crud.detay',
+                                personel_id=personel.id))
+
+    # Format: 'Pers' + 4 rakam + 2 buyuk harf
+    rakamlar = ''.join(secrets.choice(string.digits) for _ in range(4))
+    harfler = ''.join(secrets.choice(string.ascii_uppercase) for _ in range(2))
+    yeni_sifre = f'Pers{rakamlar}{harfler}'
+
+    user.set_password(yeni_sifre)
+    db.session.commit()
+
+    flash(
+        f'🔑 "{personel.tam_ad}" personelinin şifresi sıfırlandı. '
+        f'Kullanıcı adı: {user.username} · Yeni şifre: {yeni_sifre} — '
+        f'lütfen kullanıcıya iletiniz '
+        f'(bu mesaj kapatıldığında bir daha gösterilmez).',
+        'sifre',
+    )
+    return redirect(url_for('personel.personel_crud.detay',
+                            personel_id=personel.id))
 
 
 @bp.route('/toplu-yukle/sablon')

@@ -93,7 +93,7 @@
                         <span class="badge bg-secondary">Pasif</span>
                         {% endif %}
                     </td>
-                    <td class="text-center">
+                    <td class="text-center text-nowrap">
                         <a href="{{ url_for('personel.personel_crud.detay', personel_id=p.id) }}"
                            class="btn btn-sm btn-outline-primary" title="Detay">
                             <i class="bi bi-eye"></i>
@@ -102,6 +102,28 @@
                            class="btn btn-sm btn-outline-warning" title="Düzenle">
                             <i class="bi bi-pencil"></i>
                         </a>
+                        {% if current_user.rol in ('admin', 'yonetici') %}
+                        {% if p.user_id %}
+                        <form method="POST"
+                              action="{{ url_for('personel.personel_crud.sifre_sifirla', personel_id=p.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('&quot;{{ p.tam_ad }}&quot; personelinin şifresi sıfırlanacak. Devam edilsin mi?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Şifre sıfırla">
+                                <i class="bi bi-key"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form method="POST"
+                              action="{{ url_for('personel.personel_crud.sil', personel_id=p.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('&quot;{{ p.tam_ad }}&quot; personeli ve bağlı sistem hesabı kalıcı olarak silinecek. Devam edilsin mi?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% else %}

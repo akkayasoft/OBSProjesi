@@ -36,18 +36,44 @@
                 </p>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{{ url_for('personel.personel_crud.duzenle', personel_id=personel.id) }}"
-                   class="btn btn-outline-warning me-1">
-                    <i class="bi bi-pencil me-1"></i>Düzenle
-                </a>
-                <form method="POST" action="{{ url_for('personel.personel_crud.durum_degistir', personel_id=personel.id) }}" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-outline-{{ 'danger' if personel.aktif else 'success' }}"
-                            onclick="return confirm('{{ personel.tam_ad }} personelini {{ 'pasif' if personel.aktif else 'aktif' }} yapmak istediğinize emin misiniz?')">
-                        <i class="bi bi-toggle-{{ 'on' if personel.aktif else 'off' }} me-1"></i>
-                        {{ 'Pasif Yap' if personel.aktif else 'Aktif Yap' }}
-                    </button>
-                </form>
+                <div class="btn-group mb-1">
+                    <a href="{{ url_for('personel.personel_crud.duzenle', personel_id=personel.id) }}"
+                       class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-pencil me-1"></i>Düzenle
+                    </a>
+                    <form method="POST" action="{{ url_for('personel.personel_crud.durum_degistir', personel_id=personel.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-{{ 'secondary' if personel.aktif else 'success' }} btn-sm"
+                                onclick="return confirm('{{ personel.tam_ad }} personelini {{ 'pasif' if personel.aktif else 'aktif' }} yapmak istediğinize emin misiniz?')">
+                            <i class="bi bi-toggle-{{ 'on' if personel.aktif else 'off' }} me-1"></i>
+                            {{ 'Pasif Yap' if personel.aktif else 'Aktif Yap' }}
+                        </button>
+                    </form>
+                </div>
+                {% if current_user.rol in ('admin', 'yonetici') %}
+                <div class="btn-group d-block mt-1">
+                    {% if personel.user_id %}
+                    <form method="POST"
+                          action="{{ url_for('personel.personel_crud.sifre_sifirla', personel_id=personel.id) }}"
+                          class="d-inline"
+                          onsubmit="return confirm('{{ personel.tam_ad }} personelinin şifresi sıfırlanacak ve yeni şifre ekranda gösterilecek. Devam edilsin mi?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-warning btn-sm" title="Şifre sıfırla">
+                            <i class="bi bi-key me-1"></i>Şifre Sıfırla
+                        </button>
+                    </form>
+                    {% endif %}
+                    <form method="POST"
+                          action="{{ url_for('personel.personel_crud.sil', personel_id=personel.id) }}"
+                          class="d-inline"
+                          onsubmit="return confirm('{{ personel.tam_ad }} personeli ve bağlı sistem hesabı kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam edilsin mi?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Personeli sil">
+                            <i class="bi bi-trash me-1"></i>Sil
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

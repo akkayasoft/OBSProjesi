@@ -59,10 +59,15 @@ def impersonate_consume():
     kullaniciyi bu tenant'ta login eder.
 
     Token /sistem/tenant/<id>/impersonate uretiyor ve sadece bu tenant
-    icin gecerlidir; max 2 dakika.
+    icin gecerlidir; max 2 dakika ve TEK KULLANIMLIK (master DB'de
+    jti uzerinden atomic UPDATE ile track edilir).
     """
+    from datetime import datetime
     from flask import current_app, g
     from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+    from sqlalchemy import update
+    from app.tenancy.master import master_session
+    from app.tenancy.models import ImpersonationToken
 
     token = request.args.get('t', '')
     if not token:
@@ -81,11 +86,43 @@ def impersonate_consume():
         flash('Geçersiz impersonate imzası.', 'danger')
         return redirect(url_for('auth.giris'))
 
+    jti = data.get('jti')
+    if not jti:
+        # Eski format token (jti'siz) — guvenlik nedeniyle reddet
+        flash('Geçersiz token formatı. Lütfen sistem panelden yeniden '
+              'impersonate başlatın.', 'danger')
+        return redirect(url_for('auth.giris'))
+
     # Mevcut tenant'i kontrol et — token sadece kendi tenant'inda gecerli
     tenant_obj = getattr(g, 'tenant', None)
     beklenen_slug = data.get('tenant_slug')
     if tenant_obj is not None and beklenen_slug and tenant_obj.slug != beklenen_slug:
         flash('Token bu tenant icin geçerli değil.', 'danger')
+        return redirect(url_for('auth.giris'))
+
+    # Atomic mark-used: jti var ve kullanildi_mi=False ise True'ya cevir.
+    # rowcount 0 ise ya zaten kullanilmis ya da hic kayit yok -> reddet.
+    try:
+        with master_session() as ms:
+            result = ms.execute(
+                update(ImpersonationToken)
+                .where(
+                    ImpersonationToken.jti == jti,
+                    ImpersonationToken.kullanildi_mi.is_(False),
+                )
+                .values(
+                    kullanildi_mi=True,
+                    kullanim_zamani=datetime.utcnow(),
+                    kullanim_ip=request.remote_addr,
+                )
+            )
+            ms.commit()
+            if result.rowcount == 0:
+                flash('Bu impersonate bağlantısı daha önce kullanıldı veya '
+                      'iptal edilmiş. Sistem panelden yenisini başlatın.', 'danger')
+                return redirect(url_for('auth.giris'))
+    except Exception as e:
+        flash(f'Impersonate doğrulanamadı: {type(e).__name__}', 'danger')
         return redirect(url_for('auth.giris'))
 
     user = User.query.filter_by(id=data.get('user_id'), aktif=True).first()

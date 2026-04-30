@@ -59,6 +59,16 @@ def init_master(app) -> None:
     except Exception:
         pass
 
+    # Yeni eklenen master tablolarini otomatik olustur (idempotent —
+    # CREATE TABLE IF NOT EXISTS gibi davranir, mevcut tablolari etkilemez).
+    # Boylece ImpersonationToken gibi yeni tablolar deploy sirasinda otomatik
+    # olusur, ekstra adim gerekmez.
+    try:
+        MasterBase.metadata.create_all(bind=_master_engine)
+    except Exception as e:
+        import sys
+        print(f'[tenancy] master create_all uyarisi: {e}', file=sys.stderr)
+
 
 def get_master_engine() -> Engine:
     if _master_engine is None:

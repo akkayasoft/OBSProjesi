@@ -19,7 +19,8 @@ from sqlalchemy import or_, func, text
 from sqlalchemy.orm import Session as SAQSession
 
 from app.tenancy.master import master_session, get_master_engine
-from app.tenancy.models import Tenant, PlatformAdmin, PlatformAuditLog
+from app.tenancy.models import (Tenant, PlatformAdmin, PlatformAuditLog,
+                                ImpersonationToken)
 from app.tenancy.limitler import PLAN_LIMITLERI
 from app.tenancy.sistem_auth import (
     aktif_platform_admin, platform_admin_login, platform_admin_logout,
@@ -707,19 +708,32 @@ def tenant_impersonate(tenant_id):
         flash(f'Tenant DB\'sine ulaşılamadı: {e}', 'danger')
         return redirect(url_for('sistem.tenant_detay', tenant_id=tenant_id))
 
-    # Token uret
+    # Token uret — jti (unique id) ile birlikte tek kullanimlik
+    import uuid
+    jti = uuid.uuid4().hex
     s_token = _impersonate_serializer()
     token = s_token.dumps({
         'tenant_slug': tenant.slug,
         'user_id': target_id,
         'admin_username': admin.username if admin else None,
+        'jti': jti,
     })
 
-    # Audit
+    # Master DB'ye token kaydi (kullanildi_mi=False) + audit
     with master_session() as s:
         t = s.query(Tenant).filter_by(id=tenant_id).first()
-        audit_kaydet(s, admin, 'tenant_impersonate', tenant=t,
-                     detay=f'target_user={target_username} (id={target_id})')
+        s.add(ImpersonationToken(
+            jti=jti,
+            tenant_id=tenant_id,
+            tenant_slug=tenant.slug,
+            target_user_id=target_id,
+            target_username=target_username,
+            admin_id=admin.id if admin else None,
+            admin_username=admin.username if admin else None,
+            kullanildi_mi=False,
+        ))
+        audit_kaydet(s, admin, 'tenant_impersonate_issue', tenant=t,
+                     detay=f'target_user={target_username} (id={target_id}) jti={jti[:8]}')
         s.commit()
 
     # Tenant subdomain URL'ini hesapla

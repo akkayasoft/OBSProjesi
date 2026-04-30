@@ -103,6 +103,35 @@ class PlatformAdmin(MasterBase):
         return f'<PlatformAdmin {self.username!r}>'
 
 
+class ImpersonationToken(MasterBase):
+    """Impersonate icin uretilen tek kullanimlik token kaydi.
+
+    Replay'i engellemek icin: token uretilince burada bir satir acilir,
+    /auth/impersonate consume edildiginde atomic UPDATE ile
+    kullanildi_mi True yapilir. Aynisi tekrar kullanilirsa 0 satir
+    update edilir -> reddedilir.
+    """
+    __tablename__ = 'impersonation_tokens'
+
+    id = Column(Integer, primary_key=True)
+    jti = Column(String(64), nullable=False, unique=True, index=True)
+    tenant_id = Column(Integer, nullable=True)
+    tenant_slug = Column(String(64), nullable=False)
+    target_user_id = Column(Integer, nullable=False)
+    target_username = Column(String(80), nullable=True)
+    admin_id = Column(Integer, nullable=True)
+    admin_username = Column(String(80), nullable=True)
+
+    kullanildi_mi = Column(Boolean, default=False, nullable=False, index=True)
+    olusturma_zamani = Column(DateTime, default=datetime.utcnow, nullable=False)
+    kullanim_zamani = Column(DateTime, nullable=True)
+    kullanim_ip = Column(String(45), nullable=True)
+
+    def __repr__(self) -> str:
+        return (f'<ImpersonationToken jti={self.jti!r} '
+                f'tenant={self.tenant_slug} used={self.kullanildi_mi}>')
+
+
 class PlatformAuditLog(MasterBase):
     """Platform admin'lerin yaptigi degisiklikleri kayit altina al.
 

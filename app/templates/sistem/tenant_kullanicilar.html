@@ -1,0 +1,213 @@
+{% extends "sistem/_layout.html" %}
+
+{% block title %}{{ tenant.ad }} - Kullanıcılar{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('sistem.dashboard') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Tenant'lar
+    </a>
+    <span class="text-muted">/</span>
+    <a href="{{ url_for('sistem.tenant_detay', tenant_id=tenant.id) }}"
+       class="text-decoration-none">{{ tenant.ad }}</a>
+    <span class="text-muted">/</span>
+    <strong>Kullanıcılar</strong>
+</div>
+
+{% if hata %}
+<div class="alert alert-danger small">{{ hata }}</div>
+{% endif %}
+
+<div class="row g-3">
+    <!-- Sol: kullanici listesi -->
+    <div class="col-lg-8">
+        <div class="sistem-card">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h6 class="mb-0">
+                    <i class="bi bi-people me-1"></i>{{ tenant.ad }} — {{ kullanicilar|length }} kullanıcı
+                </h6>
+            </div>
+
+            <form method="GET" class="row g-2 mb-3">
+                <div class="col-md-7">
+                    <input type="search" name="arama" value="{{ arama }}"
+                           class="form-control form-control-sm"
+                           placeholder="Kullanıcı adı, ad, soyad veya e-posta ara…">
+                </div>
+                <div class="col-md-3">
+                    <select name="rol" class="form-select form-select-sm">
+                        <option value="">Tüm Roller</option>
+                        {% for r in roller %}
+                        <option value="{{ r }}" {% if rol == r %}selected{% endif %}>{{ r }}</option>
+                        {% endfor %}
+                        <option value="admin" {% if rol == 'admin' %}selected{% endif %}>admin</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-sm btn-primary w-100">Filtrele</button>
+                </div>
+            </form>
+
+            {% if kullanicilar %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı</th>
+                            <th>Rol</th>
+                            <th>Durum</th>
+                            <th class="text-end">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in kullanicilar %}
+                        <tr>
+                            <td>
+                                <strong>{{ u.ad }} {{ u.soyad }}</strong>
+                                <small class="text-muted d-block">
+                                    <code>{{ u.username }}</code> · {{ u.email }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      style="background: rgba(129,140,248,0.18); color:#a5b4fc; border:1px solid rgba(129,140,248,0.3);">
+                                    {{ u.rol }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if u.aktif %}
+                                <span class="badge bg-success">Aktif</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Pasif</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-warning"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#sifreModal{{ u.id }}"
+                                            title="Şifre sıfırla">
+                                        <i class="bi bi-key"></i>
+                                    </button>
+                                    <form method="POST"
+                                          action="{{ url_for('sistem.tenant_kullanici_durum', tenant_id=tenant.id, user_id=u.id) }}"
+                                          class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-info"
+                                                title="{% if u.aktif %}Pasifleştir{% else %}Aktifleştir{% endif %}">
+                                            {% if u.aktif %}
+                                            <i class="bi bi-pause"></i>
+                                            {% else %}
+                                            <i class="bi bi-play"></i>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="POST"
+                                          action="{{ url_for('sistem.tenant_kullanici_sil', tenant_id=tenant.id, user_id=u.id) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('{{ u.username }} silinecek. Bu işlem geri alınamaz. Devam?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-danger" title="Sil">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Sifre sifirlama modal'i -->
+                        <div class="modal fade" id="sifreModal{{ u.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content" style="background:#1e293b; color:#e2e8f0;">
+                                    <form method="POST"
+                                          action="{{ url_for('sistem.tenant_kullanici_sifre', tenant_id=tenant.id, user_id=u.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="modal-header" style="border-color:#334155;">
+                                            <h6 class="modal-title">{{ u.username }} — Şifre Sıfırla</h6>
+                                            <button type="button" class="btn-close btn-close-white"
+                                                    data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <label class="form-label small">Yeni Şifre (min 6)</label>
+                                            <input type="password" name="yeni_sifre"
+                                                   class="form-control form-control-sm"
+                                                   required minlength="6" autofocus>
+                                        </div>
+                                        <div class="modal-footer" style="border-color:#334155;">
+                                            <button class="btn btn-sm btn-warning">
+                                                <i class="bi bi-key me-1"></i>Şifreyi Güncelle
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                Kullanıcı bulunamadı.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sag: yeni kullanici formu -->
+    <div class="col-lg-4">
+        <div class="sistem-card">
+            <h6 class="mb-3"><i class="bi bi-person-plus me-1"></i>Yeni Kullanıcı</h6>
+            <form method="POST" action="{{ url_for('sistem.tenant_kullanici_yeni', tenant_id=tenant.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-2">
+                    <label class="form-label small">Kullanıcı Adı *</label>
+                    <input type="text" name="username" class="form-control form-control-sm" required>
+                </div>
+                <div class="row g-2">
+                    <div class="col-6 mb-2">
+                        <label class="form-label small">Ad *</label>
+                        <input type="text" name="ad" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <label class="form-label small">Soyad *</label>
+                        <input type="text" name="soyad" class="form-control form-control-sm" required>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">E-posta</label>
+                    <input type="email" name="email" class="form-control form-control-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Rol *</label>
+                    <select name="rol" class="form-select form-select-sm">
+                        <option value="yonetici">yonetici</option>
+                        <option value="muhasebeci" selected>muhasebeci</option>
+                        <option value="ogretmen">ogretmen</option>
+                        <option value="veli">veli</option>
+                        <option value="ogrenci">ogrenci</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Şifre * (min 6)</label>
+                    <input type="password" name="sifre" class="form-control form-control-sm"
+                           required minlength="6">
+                </div>
+                <button class="btn btn-success btn-sm w-100">
+                    <i class="bi bi-plus-lg me-1"></i>Kullanıcı Oluştur
+                </button>
+            </form>
+        </div>
+
+        <div class="sistem-card mt-3">
+            <h6 class="mb-2"><i class="bi bi-info-circle me-1"></i>Bilgi</h6>
+            <p class="small text-muted mb-0">
+                Bu sayfa <strong>{{ tenant.slug }}</strong> tenant'ının kendi
+                veritabanına yazar. Burada yapılan işlemler sadece o
+                tenant'ı etkiler.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

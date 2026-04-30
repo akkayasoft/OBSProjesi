@@ -51,3 +51,51 @@ def cikis():
     logout_user()
     flash('Başarıyla çıkış yaptınız.', 'info')
     return redirect(url_for('auth.giris'))
+
+
+@auth_bp.route('/impersonate')
+def impersonate_consume():
+    """Sistem panelinden gelen kisa omurlu token'i tuketir, hedef
+    kullaniciyi bu tenant'ta login eder.
+
+    Token /sistem/tenant/<id>/impersonate uretiyor ve sadece bu tenant
+    icin gecerlidir; max 2 dakika.
+    """
+    from flask import current_app, g
+    from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+
+    token = request.args.get('t', '')
+    if not token:
+        flash('Geçersiz impersonate isteği.', 'danger')
+        return redirect(url_for('auth.giris'))
+
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'],
+                                salt='sistem-impersonate-v1')
+    try:
+        data = s.loads(token, max_age=120)
+    except SignatureExpired:
+        flash('Impersonate bağlantısı süresi doldu (2dk). '
+              'Sistem panelden tekrar deneyin.', 'warning')
+        return redirect(url_for('auth.giris'))
+    except BadSignature:
+        flash('Geçersiz impersonate imzası.', 'danger')
+        return redirect(url_for('auth.giris'))
+
+    # Mevcut tenant'i kontrol et — token sadece kendi tenant'inda gecerli
+    tenant_obj = getattr(g, 'tenant', None)
+    beklenen_slug = data.get('tenant_slug')
+    if tenant_obj is not None and beklenen_slug and tenant_obj.slug != beklenen_slug:
+        flash('Token bu tenant icin geçerli değil.', 'danger')
+        return redirect(url_for('auth.giris'))
+
+    user = User.query.filter_by(id=data.get('user_id'), aktif=True).first()
+    if not user:
+        flash('Hedef kullanıcı bulunamadı veya pasif.', 'danger')
+        return redirect(url_for('auth.giris'))
+
+    if current_user.is_authenticated:
+        logout_user()
+    login_user(user, remember=False)
+    flash(f'Sistem yöneticisi olarak "{user.tam_ad}" hesabıyla '
+          f'giriş yapıldı (impersonate).', 'info')
+    return redirect(_giris_sonrasi_hedef(user))

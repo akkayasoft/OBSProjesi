@@ -1,0 +1,128 @@
+{% extends "sistem/_layout.html" %}
+
+{% block title %}Yeni Tenant{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('sistem.dashboard') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Tenant'lar
+    </a>
+    <span class="text-muted">/</span>
+    <strong>Yeni Tenant</strong>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="sistem-card">
+            <h5 class="mb-1"><i class="bi bi-plus-circle me-2 text-success"></i>Yeni Dershane Oluştur</h5>
+            <p class="text-muted small mb-4">
+                Yeni bir tenant kaydı, Postgres veritabanı, tüm migrationlar ve
+                ilk yönetici kullanıcısı tek seferde oluşturulur.
+            </p>
+
+            {% if hata %}
+            <div class="alert alert-danger small" style="white-space:pre-wrap;">{{ hata }}</div>
+            {% endif %}
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <h6 class="mb-2"><i class="bi bi-building me-1"></i>Kurum Bilgileri</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label small">Kurum Adı *</label>
+                        <input type="text" name="ad" class="form-control form-control-sm"
+                               value="{{ form.ad }}" required
+                               placeholder="X Dershanesi">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small">Slug (subdomain)</label>
+                        <input type="text" name="slug" class="form-control form-control-sm"
+                               value="{{ form.slug }}"
+                               placeholder="otomatik (kurum adından)">
+                        <small class="text-muted">Boş bırakılırsa addan üretilir.</small>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label small">İletişim E-posta</label>
+                        <input type="email" name="iletisim_email" class="form-control form-control-sm"
+                               value="{{ form.iletisim_email }}"
+                               placeholder="ornek@dershane.com">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small">Plan *</label>
+                        <select name="plan" class="form-select form-select-sm">
+                            {% for kod, p in planlar.items() %}
+                            <option value="{{ kod }}" {% if form.plan == kod %}selected{% endif %}>
+                                {{ p.ad }}
+                                {% if p.fiyat_tl_aylik %} — {{ p.fiyat_tl_aylik }}₺/ay{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <hr style="border-color:#334155;">
+
+                <h6 class="mb-2 mt-3"><i class="bi bi-person-badge me-1"></i>İlk Yönetici Hesabı</h6>
+                <p class="small text-muted">Tenant DB'sinde ilk <code>yonetici</code> rolünde
+                    kullanıcı oluşturulur ve tüm modül izinleri açılır.</p>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small">Kullanıcı Adı *</label>
+                        <input type="text" name="yonetici_username" class="form-control form-control-sm"
+                               value="{{ form.yonetici_username }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Ad *</label>
+                        <input type="text" name="yonetici_ad" class="form-control form-control-sm"
+                               value="{{ form.yonetici_ad }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Soyad *</label>
+                        <input type="text" name="yonetici_soyad" class="form-control form-control-sm"
+                               value="{{ form.yonetici_soyad }}" required>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label small">E-posta</label>
+                        <input type="email" name="yonetici_email" class="form-control form-control-sm"
+                               value="{{ form.yonetici_email }}">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small">Şifre * (en az 6)</label>
+                        <input type="password" name="yonetici_sifre" class="form-control form-control-sm"
+                               required minlength="6">
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Tenant Oluştur
+                    </button>
+                    <a href="{{ url_for('sistem.dashboard') }}" class="btn btn-outline-secondary">
+                        Vazgeç
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="sistem-card">
+            <h6 class="mb-2"><i class="bi bi-info-circle me-1"></i>Süreç</h6>
+            <ol class="small text-muted mb-0" style="padding-left:1rem;">
+                <li>Master DB'de <code>tenants</code> kaydı oluşturulur.</li>
+                <li>Postgres'te <code>obs_&lt;slug&gt;</code> veritabanı oluşturulur.</li>
+                <li><code>flask db upgrade</code> tüm tablolari yaratır.</li>
+                <li>İlk <code>yonetici</code> kullanıcısı eklenir.</li>
+                <li>Modül izinleri tam açılır.</li>
+            </ol>
+            <hr style="border-color:#334155;">
+            <p class="small text-muted mb-0">
+                Bu işlem ~30 saniye sürebilir. Migration başarısız olursa
+                tenant kaydı oluşturulmaz, DB temizlenir.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -169,6 +169,40 @@ def migrate_all_cmd():
         raise click.ClickException(f'{hata} tenant migration basarisiz.')
 
 
+@tenant_cli.command('create-all-tables')
+def create_all_tables_cmd():
+    """Tum aktif tenant DB'lerinde db.metadata.create_all() kosar.
+
+    Idempotent — eksik tablolari ekler, mevcutlari dokunmaz. Yeni
+    model eklendiginde Alembic migration yazilana kadar hizli kapatma
+    olarak deploy.sh'da kullanilir.
+    """
+    # Flask uygulama context'i icinde olmaliyiz ki db.metadata tum
+    # modelleri tanisin (create_app modelleri import ediyor).
+    from app.extensions import db
+    from .engines import get_tenant_engine
+
+    with master_session() as s:
+        tenantler = s.execute(
+            select(Tenant).where(Tenant.durum == 'aktif')
+        ).scalars().all()
+        for t in tenantler:
+            s.expunge(t)
+
+    hata = 0
+    for t in tenantler:
+        try:
+            engine = get_tenant_engine(t.db_name)
+            db.metadata.create_all(bind=engine)
+            click.echo(f'  ok  {t.slug} ({t.db_name})')
+        except Exception as e:
+            hata += 1
+            click.echo(f'  ERR {t.slug}: {e}', err=True)
+    if hata:
+        raise click.ClickException(f'{hata} tenant icin create_all basarisiz.')
+    click.echo(f'\n{len(tenantler)} tenant DB icin create_all tamamlandi.')
+
+
 @tenant_cli.command('seed-all')
 def seed_all_cmd():
     """Tum aktif tenant'lar icin `flask seed` calistir (idempotent)."""

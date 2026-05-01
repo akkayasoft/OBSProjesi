@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Sınav Oturumu{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('surucu_kursu.sinav_harc_liste') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Sınav Oturumları
+    </a>
+    <span class="text-muted">/</span>
+    <strong>Yeni</strong>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-3">
+                    <i class="bi bi-receipt me-2 text-warning"></i>Yeni Sınav Oturumu
+                </h5>
+
+                {% if hata %}
+                <div class="alert alert-danger small">{{ hata }}</div>
+                {% endif %}
+
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Sınav Tarihi *</label>
+                            <input type="date" name="sinav_tarihi" required
+                                   class="form-control form-control-sm"
+                                   value="{{ form.sinav_tarihi }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Sınav Tipi *</label>
+                            <select name="sinav_tipi" class="form-select form-select-sm">
+                                {% for kod, ad in sinav_tipleri %}
+                                <option value="{{ kod }}" {% if form.sinav_tipi == kod %}selected{% endif %}>
+                                    {{ ad }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Notlar (opsiyonel)</label>
+                        <textarea name="notlar" rows="2" class="form-control form-control-sm"
+                                  placeholder="örn. 'Mart dönemi yazılı sınavı'">{{ form.notlar }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-lg me-1"></i>Oturumu Oluştur
+                        </button>
+                        <a href="{{ url_for('surucu_kursu.sinav_harc_liste') }}"
+                           class="btn btn-outline-secondary">Vazgeç</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="mb-2"><i class="bi bi-info-circle me-1"></i>Nasıl Çalışır</h6>
+                <ol class="small text-muted mb-0" style="padding-left:1rem;">
+                    <li>Sınav tarihini ve tipini gir, oturumu oluştur.</li>
+                    <li>Sonraki ekranda <strong>kalan adayları</strong> seçip
+                        oturuma ekle (ücretle birlikte).</li>
+                    <li>Aday harcı yatırınca <strong>"Tahsil Edildi"</strong>
+                        butonuna bas — tek tıkla durum değişir.</li>
+                </ol>
+                <hr>
+                <small class="text-muted">
+                    Bu modülde tutulan tüm tutarlar kursiyerlerin
+                    <strong>eğitim ücretine YANSIMAZ</strong>; ayrı bir
+                    hesap olarak izlenir.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

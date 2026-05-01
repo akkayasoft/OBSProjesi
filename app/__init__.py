@@ -468,6 +468,14 @@ def create_app(config_class=Config):
                     {'label': 'Yeni Kursiyer', 'icon': 'bi-person-plus',
                      'url': '/surucu-kursu/kursiyer/yeni'},
                  ], 'renk_kat': 'mavi'},
+                {'label': 'Sınav Harç', 'icon': 'bi-receipt',
+                 'url': '/surucu-kursu/sinav-harc/', 'modul_key': None,
+                 'children': [
+                    {'label': 'Sınav Oturumları', 'icon': 'bi-list-ul',
+                     'url': '/surucu-kursu/sinav-harc/'},
+                    {'label': 'Yeni Sınav Oturumu', 'icon': 'bi-plus-circle',
+                     'url': '/surucu-kursu/sinav-harc/yeni'},
+                 ], 'renk_kat': 'sari'},
                 {'label': 'Muhasebe', 'icon': 'bi-cash-stack', 'url': '/muhasebe/',
                  'modul_key': None, 'children': [
                     {'label': 'Gelir / Gider', 'icon': 'bi-arrow-left-right',

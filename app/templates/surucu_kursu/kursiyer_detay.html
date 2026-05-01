@@ -3,6 +3,17 @@
 {% block title %}{{ kursiyer.tam_ad }}{% endblock %}
 
 {% block content %}
+{% set taksitler = kursiyer.taksitler.all() %}
+{% set odenen_taksit = taksitler|selectattr('odendi_mi')|list %}
+{% set toplam_odenen = odenen_taksit|sum(attribute='tutar') %}
+{% set egitim_kalan = (kursiyer.fiyat or 0) - toplam_odenen %}
+
+{% set sinav_harclari = kursiyer.sinav_harclari.all() %}
+{% set tahsil_edilen_harc = sinav_harclari|selectattr('durum', 'equalto', 'tahsil_edildi')|list %}
+{% set borclu_harc = sinav_harclari|selectattr('durum', 'equalto', 'aday_borclu')|list %}
+{% set toplam_harc_tahsil = tahsil_edilen_harc|sum(attribute='ucret') %}
+{% set toplam_harc_borc = borclu_harc|sum(attribute='ucret') %}
+
 <div class="d-flex align-items-center mb-3 gap-2">
     <a href="{{ url_for('surucu_kursu.kursiyer_liste') }}" class="text-decoration-none">
         <i class="bi bi-arrow-left"></i> Kursiyerler
@@ -11,98 +22,300 @@
     <strong>{{ kursiyer.tam_ad }}</strong>
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-8">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-                    <div>
-                        <h4 class="mb-0">{{ kursiyer.tam_ad }}</h4>
-                        <small class="text-muted">
-                            {% if kursiyer.aktif %}
-                            <span class="badge bg-success">Aktif</span>
-                            {% else %}
-                            <span class="badge bg-secondary">Pasif</span>
-                            {% endif %}
-                            · Kayıt: {{ kursiyer.kayit_tarihi.strftime('%d.%m.%Y') if kursiyer.kayit_tarihi }}
-                        </small>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="{{ url_for('surucu_kursu.kursiyer_duzenle', kursiyer_id=kursiyer.id) }}"
-                           class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-pencil me-1"></i>Düzenle
-                        </a>
-                        <form method="POST"
-                              action="{{ url_for('surucu_kursu.kursiyer_durum', kursiyer_id=kursiyer.id) }}"
-                              class="d-inline">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm btn-outline-{% if kursiyer.aktif %}warning{% else %}success{% endif %}">
-                                {% if kursiyer.aktif %}
-                                <i class="bi bi-pause-circle me-1"></i>Pasifleştir
-                                {% else %}
-                                <i class="bi bi-play-circle me-1"></i>Aktifleştir
-                                {% endif %}
-                            </button>
-                        </form>
-                    </div>
+<!-- Kimlik karti -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+            <div>
+                <h4 class="mb-0">{{ kursiyer.tam_ad }}</h4>
+                <small class="text-muted">
+                    {% if kursiyer.aktif %}
+                    <span class="badge bg-success">Aktif</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Pasif</span>
+                    {% endif %}
+                    · Kayıt: {{ kursiyer.kayit_tarihi.strftime('%d.%m.%Y') if kursiyer.kayit_tarihi }}
+                </small>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('surucu_kursu.kursiyer_duzenle', kursiyer_id=kursiyer.id) }}"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i>Düzenle
+                </a>
+                <form method="POST"
+                      action="{{ url_for('surucu_kursu.kursiyer_durum', kursiyer_id=kursiyer.id) }}"
+                      class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-{% if kursiyer.aktif %}warning{% else %}success{% endif %}">
+                        {% if kursiyer.aktif %}
+                        <i class="bi bi-pause-circle me-1"></i>Pasifleştir
+                        {% else %}
+                        <i class="bi bi-play-circle me-1"></i>Aktifleştir
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <small class="text-muted">Telefon</small>
+                <div>{{ kursiyer.telefon or '—' }}</div>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted">Ehliyet Sınıfı</small>
+                <div>
+                    <span class="badge bg-info text-dark">
+                        {{ ehliyet_dict.get(kursiyer.ehliyet_sinifi, kursiyer.ehliyet_sinifi) }}
+                    </span>
                 </div>
+            </div>
+            <div class="col-md-2">
+                <small class="text-muted">Ders Sayısı</small>
+                <div>{{ kursiyer.ders_sayisi if kursiyer.ders_sayisi is not none else '—' }}</div>
+            </div>
+            <div class="col-md-2">
+                <small class="text-muted">Eğitim Ücreti</small>
+                <div><strong>{{ '%.2f'|format(kursiyer.fiyat or 0) }} ₺</strong></div>
+            </div>
+            <div class="col-md-2">
+                <small class="text-muted">Eğitmen</small>
+                <div>{{ kursiyer.egitmen.tam_ad if kursiyer.egitmen else '—' }}</div>
+            </div>
+            {% if kursiyer.notlar %}
+            <div class="col-12">
+                <small class="text-muted">Notlar</small>
+                <div style="white-space:pre-wrap;">{{ kursiyer.notlar }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-                <hr>
+<!-- Iki sutun: taksitler + sinav harci -->
+<div class="row g-3">
+    <!-- SOL: Egitim ucreti taksitleri -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-cash-stack me-1"></i>Eğitim Ücreti Taksitleri
+                </h6>
+                <small class="text-muted">
+                    Ödenen <strong class="text-success">{{ '%.2f'|format(toplam_odenen) }} ₺</strong>
+                    · Kalan <strong class="text-danger">{{ '%.2f'|format(egitim_kalan) }} ₺</strong>
+                </small>
+            </div>
+            <div class="card-body p-0">
+                {% if taksitler %}
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width:50px;">#</th>
+                            <th>Vade</th>
+                            <th>Tutar</th>
+                            <th>Durum</th>
+                            <th class="text-end">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in taksitler %}
+                        {% set geciken = (not t.odendi_mi) and t.vade_tarihi and t.vade_tarihi < now_yil_ay_kontrol if false else (not t.odendi_mi) %}
+                        <tr>
+                            <td>{{ t.sira }}</td>
+                            <td>
+                                <small>{{ t.vade_tarihi.strftime('%d.%m.%Y') }}</small>
+                            </td>
+                            <td><strong>{{ '%.2f'|format(t.tutar) }} ₺</strong></td>
+                            <td>
+                                {% if t.odendi_mi %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Ödendi
+                                    {% if t.odeme_tarihi %}
+                                    <small>· {{ t.odeme_tarihi.strftime('%d.%m.%Y') }}</small>
+                                    {% endif %}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Bekliyor</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <form method="POST"
+                                      action="{{ url_for('surucu_kursu.taksit_odendi', kursiyer_id=kursiyer.id, taksit_id=t.id) }}"
+                                      class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-{% if t.odendi_mi %}secondary{% else %}success{% endif %}"
+                                            title="{% if t.odendi_mi %}Ödenmedi yap{% else %}Ödendi işaretle{% endif %}">
+                                        {% if t.odendi_mi %}
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                        {% else %}
+                                        <i class="bi bi-check-lg"></i>
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                <form method="POST"
+                                      action="{{ url_for('surucu_kursu.taksit_sil', kursiyer_id=kursiyer.id, taksit_id=t.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Bu taksit silinecek. Devam?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-danger" title="Sil">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <small>Henüz taksit planı yok.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <small class="text-muted">Telefon</small>
-                        <div>{{ kursiyer.telefon or '—' }}</div>
-                    </div>
-                    <div class="col-md-6">
-                        <small class="text-muted">Ehliyet Sınıfı</small>
-                        <div>
-                            <span class="badge bg-info text-dark">
-                                {{ ehliyet_dict.get(kursiyer.ehliyet_sinifi, kursiyer.ehliyet_sinifi) }}
-                            </span>
+        <!-- Yeni taksit ekleme formu (dinamik satir) -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-plus-circle me-1"></i>Taksit Ekle</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST"
+                      action="{{ url_for('surucu_kursu.taksit_plan_olustur', kursiyer_id=kursiyer.id) }}"
+                      id="taksit-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <small class="text-muted d-block mb-2">
+                        Her satır için ayrı vade tarihi ve tutar girin. Yeni satır
+                        eklemek için aşağıdaki butonu kullanın.
+                    </small>
+                    <div id="taksit-satirlari">
+                        <div class="row g-2 align-items-end mb-2 taksit-satir">
+                            <div class="col-md-5">
+                                <label class="form-label small">Vade Tarihi</label>
+                                <input type="date" name="vade_tarihi[1]"
+                                       class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small">Tutar (₺)</label>
+                                <input type="text" name="tutar[1]"
+                                       class="form-control form-control-sm" required
+                                       placeholder="örn. 2500.00">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-sm btn-outline-danger w-100 taksit-sil-btn"
+                                        title="Bu satırı kaldır">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <small class="text-muted">Ders Sayısı</small>
-                        <div>{{ kursiyer.ders_sayisi if kursiyer.ders_sayisi is not none else '—' }}</div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mb-3"
+                            id="taksit-ekle-satir">
+                        <i class="bi bi-plus me-1"></i>Yeni Satır
+                    </button>
+                    <div>
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="bi bi-save me-1"></i>Taksitleri Kaydet
+                        </button>
                     </div>
-                    <div class="col-md-4">
-                        <small class="text-muted">Eğitim Ücreti</small>
-                        <div><strong>{{ '%.2f'|format(kursiyer.fiyat or 0) }} ₺</strong></div>
-                    </div>
-                    <div class="col-md-4">
-                        <small class="text-muted">Eğitmen</small>
-                        <div>{{ kursiyer.egitmen.tam_ad if kursiyer.egitmen else '—' }}</div>
-                    </div>
-                    {% if kursiyer.notlar %}
-                    <div class="col-12">
-                        <small class="text-muted">Notlar</small>
-                        <div style="white-space:pre-wrap;">{{ kursiyer.notlar }}</div>
-                    </div>
-                    {% endif %}
-                </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
+    <!-- SAG: Sinav harci -->
+    <div class="col-lg-5">
         <div class="card shadow-sm">
-            <div class="card-body">
-                <h6 class="mb-3"><i class="bi bi-info-circle me-1"></i>Sonraki Adımlar</h6>
-                <p class="small text-muted mb-2">
-                    Kursiyer eklendikten sonra:
-                </p>
-                <ul class="small text-muted mb-0">
-                    <li>Taksit planı oluşturun (manuel tarihli)</li>
-                    <li>Eğitim ücretini takip edin</li>
-                    <li>Sınav harç işlemleri ayrı ekrandan</li>
-                </ul>
-                <hr>
+            <div class="card-header bg-warning bg-opacity-25">
+                <h6 class="mb-0">
+                    <i class="bi bi-receipt me-1"></i>Sınav Harç Kayıtları
+                </h6>
                 <small class="text-muted">
-                    Taksit ve sınav harç ekranları Faz 2.C'de gelecek.
+                    <i class="bi bi-info-circle me-1"></i>
+                    Bu tutarlar eğitim ücretine <strong>dahil değildir</strong>.
                 </small>
+            </div>
+            <div class="card-body p-0">
+                {% if sinav_harclari %}
+                <table class="table table-sm mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Sınav</th>
+                            <th>Ücret</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in sinav_harclari %}
+                        <tr>
+                            <td>
+                                <small>
+                                    {{ h.sinav_oturum.sinav_tarihi.strftime('%d.%m.%Y') }}<br>
+                                    <span class="text-muted">{{ h.sinav_oturum.sinav_tipi_str }}</span>
+                                </small>
+                            </td>
+                            <td><strong>{{ '%.2f'|format(h.ucret or 0) }} ₺</strong></td>
+                            <td>
+                                {% if h.durum == 'tahsil_edildi' %}
+                                <span class="badge bg-success">Tahsil edildi</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Borçlu</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <small>Henüz sınav harç kaydı yok.</small>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <small class="text-muted d-block">
+                    Borçlu: <strong class="text-warning">{{ '%.2f'|format(toplam_harc_borc) }} ₺</strong>
+                    · Tahsil: <strong class="text-success">{{ '%.2f'|format(toplam_harc_tahsil) }} ₺</strong>
+                </small>
+                <a href="{{ url_for('surucu_kursu.sinav_harc_liste') }}"
+                   class="btn btn-sm btn-outline-warning mt-2">
+                    <i class="bi bi-list me-1"></i>Sınav Oturumları
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    var sayac = 1;
+    document.getElementById('taksit-ekle-satir').addEventListener('click', function() {
+        sayac += 1;
+        var idx = document.querySelectorAll('.taksit-satir').length + 1;
+        var html = (
+            '<div class="row g-2 align-items-end mb-2 taksit-satir">' +
+            '<div class="col-md-5"><label class="form-label small">Vade Tarihi</label>' +
+            '<input type="date" name="vade_tarihi[' + sayac + ']" class="form-control form-control-sm" required></div>' +
+            '<div class="col-md-5"><label class="form-label small">Tutar (₺)</label>' +
+            '<input type="text" name="tutar[' + sayac + ']" class="form-control form-control-sm" required placeholder="örn. 2500.00"></div>' +
+            '<div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger w-100 taksit-sil-btn"><i class="bi bi-x"></i></button></div>' +
+            '</div>'
+        );
+        document.getElementById('taksit-satirlari').insertAdjacentHTML('beforeend', html);
+    });
+    document.getElementById('taksit-satirlari').addEventListener('click', function(e) {
+        if (e.target.closest('.taksit-sil-btn')) {
+            var sat = e.target.closest('.taksit-satir');
+            if (document.querySelectorAll('.taksit-satir').length > 1) {
+                sat.remove();
+            } else {
+                sat.querySelectorAll('input').forEach(function(i) { i.value = ''; });
+            }
+        }
+    });
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Sınav Oturumu {{ oturum.sinav_tarihi.strftime('%d.%m.%Y') }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('surucu_kursu.sinav_harc_liste') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Sınav Oturumları
+    </a>
+    <span class="text-muted">/</span>
+    <strong>{{ oturum.sinav_tarihi.strftime('%d.%m.%Y') }} {{ oturum.sinav_tipi_str }}</strong>
+</div>
+
+<!-- Oturum bilgi karti -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h5 class="mb-1">
+                    {{ oturum.sinav_tarihi.strftime('%d.%m.%Y') }} —
+                    <span class="badge bg-info text-dark">{{ oturum.sinav_tipi_str }}</span>
+                </h5>
+                {% if oturum.notlar %}
+                <small class="text-muted">{{ oturum.notlar }}</small>
+                {% endif %}
+            </div>
+            <div>
+                <small class="d-block text-end">
+                    Borçlu: <strong class="text-warning">{{ '%.2f'|format(toplam_borc) }} ₺</strong>
+                </small>
+                <small class="d-block text-end">
+                    Tahsil: <strong class="text-success">{{ '%.2f'|format(toplam_tahsil) }} ₺</strong>
+                </small>
+                <form method="POST"
+                      action="{{ url_for('surucu_kursu.sinav_harc_oturum_sil', oturum_id=oturum.id) }}"
+                      class="mt-1"
+                      onsubmit="return confirm('Bu sınav oturumu ve tüm harç kayıtları silinecek. Devam?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i>Oturumu Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- SOL: kayitlar tablosu -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-people me-1"></i>Bu Oturumdaki Adaylar</h6>
+            </div>
+            {% if harc_kayitlari %}
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Aday</th>
+                        <th>Ehliyet Sınıfı</th>
+                        <th>Harç</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in harc_kayitlari %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=h.kursiyer_id) }}"
+                               class="text-decoration-none">
+                                <strong>{{ h.kursiyer.tam_ad }}</strong>
+                            </a>
+                            {% if h.kursiyer.telefon %}
+                            <small class="text-muted d-block">{{ h.kursiyer.telefon }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ h.kursiyer.ehliyet_sinifi_str }}</small>
+                        </td>
+                        <td><strong>{{ '%.2f'|format(h.ucret or 0) }} ₺</strong></td>
+                        <td>
+                            {% if h.durum == 'tahsil_edildi' %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i>Tahsil edildi
+                                {% if h.tahsil_tarihi %}
+                                <small>· {{ h.tahsil_tarihi.strftime('%d.%m.%Y') }}</small>
+                                {% endif %}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Borçlu</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <form method="POST"
+                                  action="{{ url_for('surucu_kursu.sinav_harc_tahsil', oturum_id=oturum.id, harc_id=h.id) }}"
+                                  class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-{% if h.durum == 'tahsil_edildi' %}outline-secondary{% else %}success{% endif %}"
+                                        title="{% if h.durum == 'tahsil_edildi' %}Geri al{% else %}Tahsil Edildi{% endif %}">
+                                    {% if h.durum == 'tahsil_edildi' %}
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                    {% else %}
+                                    <i class="bi bi-cash-coin me-1"></i>Tahsil
+                                    {% endif %}
+                                </button>
+                            </form>
+                            <form method="POST"
+                                  action="{{ url_for('surucu_kursu.sinav_harc_kayit_sil', oturum_id=oturum.id, harc_id=h.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Bu kayıt silinecek. Devam?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-outline-danger" title="Sil">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="card-body text-center text-muted py-3">
+                <small>Henüz aday eklenmemiş. Sağdaki formdan ekleyin.</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SAG: aday ekleme formu -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-plus-circle me-1"></i>Aday Ekle (Borçlu)</h6>
+            </div>
+            <div class="card-body">
+                {% if eklenebilir %}
+                <form method="POST"
+                      action="{{ url_for('surucu_kursu.sinav_harc_aday_ekle', oturum_id=oturum.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-2">
+                        <label class="form-label small">Harç Tutarı (₺) *</label>
+                        <input type="text" name="ucret" class="form-control form-control-sm"
+                               required placeholder="örn. 750.00">
+                        <small class="text-muted">
+                            Tüm seçilen adaylara aynı tutar uygulanır.
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Adaylar (çoklu seçim)</label>
+                        <select name="kursiyer_id" multiple
+                                class="form-select form-select-sm" size="10" required>
+                            {% for k in eklenebilir %}
+                            <option value="{{ k.id }}">
+                                {{ k.tam_ad }} ({{ k.ehliyet_sinifi_str }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">
+                            Ctrl/Cmd basılı tut, çoklu seç.
+                        </small>
+                    </div>
+                    <button class="btn btn-warning btn-sm w-100">
+                        <i class="bi bi-plus-lg me-1"></i>Borçlu Olarak Ekle
+                    </button>
+                </form>
+                {% else %}
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-check-circle me-1 text-success"></i>
+                    Tüm aktif kursiyerler bu oturuma eklenmiş.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

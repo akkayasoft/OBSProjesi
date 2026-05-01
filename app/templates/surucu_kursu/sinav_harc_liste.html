@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Sınav Harç Oturumları{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-receipt me-2"></i>Sınav Harç Oturumları
+        </h4>
+        <small class="text-muted">
+            Sınavdan kalan adayların 2. harç takibi. Bu tutarlar
+            kursiyerlerin <strong>eğitim ücretine yansımaz</strong>.
+        </small>
+    </div>
+    <a href="{{ url_for('surucu_kursu.sinav_harc_yeni') }}"
+       class="btn btn-warning">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Sınav Oturumu
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    {% if oturumlar %}
+    <table class="table table-hover mb-0 align-middle">
+        <thead>
+            <tr>
+                <th>Tarih</th>
+                <th>Sınav Tipi</th>
+                <th>Borçlu Sayısı</th>
+                <th>Tahsil Edilen</th>
+                <th>Notlar</th>
+                <th class="text-end">İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for o in oturumlar %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('surucu_kursu.sinav_harc_detay', oturum_id=o.id) }}"
+                       class="text-decoration-none">
+                        <strong>{{ o.sinav_tarihi.strftime('%d.%m.%Y') }}</strong>
+                    </a>
+                </td>
+                <td>
+                    <span class="badge bg-info text-dark">
+                        {{ o.sinav_tipi_str }}
+                    </span>
+                </td>
+                <td>
+                    {% set b = ozet.get(o.id, {}).get('borclu', 0) %}
+                    {% if b > 0 %}
+                    <span class="badge bg-warning text-dark">{{ b }}</span>
+                    {% else %}
+                    <small class="text-muted">—</small>
+                    {% endif %}
+                </td>
+                <td>
+                    {% set t = ozet.get(o.id, {}).get('tahsil', 0) %}
+                    {% if t > 0 %}
+                    <span class="badge bg-success">{{ t }}</span>
+                    {% else %}
+                    <small class="text-muted">—</small>
+                    {% endif %}
+                </td>
+                <td><small class="text-muted">{{ o.notlar or '—' }}</small></td>
+                <td class="text-end">
+                    <a href="{{ url_for('surucu_kursu.sinav_harc_detay', oturum_id=o.id) }}"
+                       class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-arrow-right"></i> Aç
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+        Henüz sınav oturumu yok.
+        <div class="mt-2">
+            <a href="{{ url_for('surucu_kursu.sinav_harc_yeni') }}"
+               class="btn btn-sm btn-warning">
+                <i class="bi bi-plus-circle me-1"></i>İlk oturumu oluştur
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

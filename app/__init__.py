@@ -104,6 +104,10 @@ def create_app(config_class=Config):
     from app.tenancy.sistem_routes import bp as sistem_bp
     app.register_blueprint(sistem_bp)
 
+    # Surucu kursu modulu — kurum_tipi='surucu_kursu' tenant'lar icin
+    from app.surucu_kursu import surucu_kursu_bp
+    app.register_blueprint(surucu_kursu_bp, url_prefix='/surucu-kursu')
+
     # /sistem/* templatelerine admin objesini enjekte et
     @app.context_processor
     def _inject_platform_admin():
@@ -200,6 +204,26 @@ def create_app(config_class=Config):
             now_yil=date.today().year,
             obs_surum=app.config.get('OBS_SURUM', '1.0'),
             asset_v=_asset_versiyonu(),
+        )
+
+    # Tenant'in kurum_tipi'ine gore branding bilgilerini template'e ver
+    @app.context_processor
+    def inject_kurum_tipi():
+        from flask import g
+        tenant = getattr(g, 'tenant', None)
+        kurum_tipi = getattr(tenant, 'kurum_tipi', 'dershane') if tenant else 'dershane'
+        if kurum_tipi == 'surucu_kursu':
+            return dict(
+                kurum_tipi=kurum_tipi,
+                kurum_tipi_baslik='Sürücü Kursu Yönetim Sistemi',
+                kurum_tipi_kisa='Sürücü Kursu',
+                kurum_tipi_ikon='bi-car-front-fill',
+            )
+        return dict(
+            kurum_tipi=kurum_tipi,
+            kurum_tipi_baslik='OBS — Öğrenci Bilgi Sistemi',
+            kurum_tipi_kisa='OBS',
+            kurum_tipi_ikon='bi-mortarboard-fill',
         )
 
     # Context processor - sidebar menü
@@ -424,6 +448,42 @@ def create_app(config_class=Config):
                  'roller': ['admin']},
             ]},
         ]
+
+        # === Surucu kursu tenant'i ise tamamen farkli (sadeleştirilmiş) menü ===
+        from flask import g as _g
+        _tenant = getattr(_g, 'tenant', None)
+        _kurum_tipi = getattr(_tenant, 'kurum_tipi', 'dershane') if _tenant else 'dershane'
+
+        if _kurum_tipi == 'surucu_kursu' and current_user.is_authenticated:
+            # OBS'in zengin menusunu tamamen by-pass et — sadece surucu kursu icin
+            # gerekli menuleri goster.
+            surucu_menu = [
+                {'label': 'Ana Sayfa', 'icon': 'bi-house-door', 'url': '/',
+                 'modul_key': None, 'children': [], 'renk_kat': 'gri'},
+                {'label': 'Kursiyerler', 'icon': 'bi-people-fill',
+                 'url': '/surucu-kursu/kursiyer/', 'modul_key': None,
+                 'children': [
+                    {'label': 'Tüm Kursiyerler', 'icon': 'bi-list-ul',
+                     'url': '/surucu-kursu/kursiyer/'},
+                    {'label': 'Yeni Kursiyer', 'icon': 'bi-person-plus',
+                     'url': '/surucu-kursu/kursiyer/yeni'},
+                 ], 'renk_kat': 'mavi'},
+                {'label': 'Muhasebe', 'icon': 'bi-cash-stack', 'url': '/muhasebe/',
+                 'modul_key': None, 'children': [
+                    {'label': 'Gelir / Gider', 'icon': 'bi-arrow-left-right',
+                     'url': '/muhasebe/gelir-gider/'},
+                    {'label': 'Banka Hesapları', 'icon': 'bi-bank',
+                     'url': '/muhasebe/banka/'},
+                 ], 'renk_kat': 'yesil'},
+                {'label': 'Kullanıcı Yönetimi', 'icon': 'bi-shield-lock',
+                 'url': '/kullanici/', 'modul_key': None, 'children': [
+                    {'label': 'Kullanıcı Listesi', 'icon': 'bi-people',
+                     'url': '/kullanici/liste'},
+                    {'label': 'Yeni Kullanıcı', 'icon': 'bi-person-plus',
+                     'url': '/kullanici/yeni'},
+                 ], 'renk_kat': 'mor'},
+            ]
+            return dict(menu_items=surucu_menu, aktif_renk='mavi')
 
         # Dinamik izin kontrolü ile menü filtrele
         if current_user.is_authenticated:

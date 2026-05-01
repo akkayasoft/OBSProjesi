@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}{{ kursiyer.tam_ad }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('surucu_kursu.kursiyer_liste') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Kursiyerler
+    </a>
+    <span class="text-muted">/</span>
+    <strong>{{ kursiyer.tam_ad }}</strong>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                    <div>
+                        <h4 class="mb-0">{{ kursiyer.tam_ad }}</h4>
+                        <small class="text-muted">
+                            {% if kursiyer.aktif %}
+                            <span class="badge bg-success">Aktif</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Pasif</span>
+                            {% endif %}
+                            · Kayıt: {{ kursiyer.kayit_tarihi.strftime('%d.%m.%Y') if kursiyer.kayit_tarihi }}
+                        </small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('surucu_kursu.kursiyer_duzenle', kursiyer_id=kursiyer.id) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil me-1"></i>Düzenle
+                        </a>
+                        <form method="POST"
+                              action="{{ url_for('surucu_kursu.kursiyer_durum', kursiyer_id=kursiyer.id) }}"
+                              class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-{% if kursiyer.aktif %}warning{% else %}success{% endif %}">
+                                {% if kursiyer.aktif %}
+                                <i class="bi bi-pause-circle me-1"></i>Pasifleştir
+                                {% else %}
+                                <i class="bi bi-play-circle me-1"></i>Aktifleştir
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">Telefon</small>
+                        <div>{{ kursiyer.telefon or '—' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">Ehliyet Sınıfı</small>
+                        <div>
+                            <span class="badge bg-info text-dark">
+                                {{ ehliyet_dict.get(kursiyer.ehliyet_sinifi, kursiyer.ehliyet_sinifi) }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Ders Sayısı</small>
+                        <div>{{ kursiyer.ders_sayisi if kursiyer.ders_sayisi is not none else '—' }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Eğitim Ücreti</small>
+                        <div><strong>{{ '%.2f'|format(kursiyer.fiyat or 0) }} ₺</strong></div>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Eğitmen</small>
+                        <div>{{ kursiyer.egitmen.tam_ad if kursiyer.egitmen else '—' }}</div>
+                    </div>
+                    {% if kursiyer.notlar %}
+                    <div class="col-12">
+                        <small class="text-muted">Notlar</small>
+                        <div style="white-space:pre-wrap;">{{ kursiyer.notlar }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="mb-3"><i class="bi bi-info-circle me-1"></i>Sonraki Adımlar</h6>
+                <p class="small text-muted mb-2">
+                    Kursiyer eklendikten sonra:
+                </p>
+                <ul class="small text-muted mb-0">
+                    <li>Taksit planı oluşturun (manuel tarihli)</li>
+                    <li>Eğitim ücretini takip edin</li>
+                    <li>Sınav harç işlemleri ayrı ekrandan</li>
+                </ul>
+                <hr>
+                <small class="text-muted">
+                    Taksit ve sınav harç ekranları Faz 2.C'de gelecek.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

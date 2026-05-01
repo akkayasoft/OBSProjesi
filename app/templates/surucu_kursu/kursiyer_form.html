@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('surucu_kursu.kursiyer_liste') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Kursiyerler
+    </a>
+    <span class="text-muted">/</span>
+    <strong>{{ baslik }}</strong>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if hata %}
+        <div class="alert alert-danger small">{{ hata }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <h6 class="mb-3"><i class="bi bi-person-badge me-1"></i>Kimlik Bilgileri</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small">Ad *</label>
+                    <input type="text" name="ad" class="form-control form-control-sm"
+                           value="{{ form.ad }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">Soyad *</label>
+                    <input type="text" name="soyad" class="form-control form-control-sm"
+                           value="{{ form.soyad }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">Telefon</label>
+                    <input type="tel" name="telefon" class="form-control form-control-sm"
+                           value="{{ form.telefon }}" placeholder="0555 555 55 55">
+                </div>
+            </div>
+
+            <h6 class="mb-3 mt-4"><i class="bi bi-car-front me-1"></i>Eğitim Bilgileri</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small">Kayıt Tarihi *</label>
+                    <input type="date" name="kayit_tarihi" class="form-control form-control-sm"
+                           value="{{ form.kayit_tarihi }}" required>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label small">Ehliyet Sınıfı *</label>
+                    <select name="ehliyet_sinifi" class="form-select form-select-sm" required>
+                        <option value="">— Seçiniz —</option>
+                        {% for kod, ad in ehliyet_siniflari %}
+                        <option value="{{ kod }}" {% if form.ehliyet_sinifi == kod %}selected{% endif %}>
+                            {{ ad }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Ders Sayısı</label>
+                    <input type="number" name="ders_sayisi" min="0" class="form-control form-control-sm"
+                           value="{{ form.ders_sayisi }}" placeholder="örn. 32">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">Toplam Eğitim Ücreti (₺)</label>
+                    <input type="text" name="fiyat" class="form-control form-control-sm"
+                           value="{{ form.fiyat }}" placeholder="örn. 12500.00">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small">Eğitmen</label>
+                    <select name="egitmen_id" class="form-select form-select-sm">
+                        <option value="">— Seçiniz —</option>
+                        {% for e in egitmenler %}
+                        <option value="{{ e.id }}" {% if form.egitmen_id == e.id|string %}selected{% endif %}>
+                            {{ e.tam_ad }} ({{ e.rol }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small">Notlar</label>
+                <textarea name="notlar" rows="2" class="form-control form-control-sm">{{ form.notlar }}</textarea>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-lg me-1"></i>Kaydet
+                </button>
+                {% if kursiyer %}
+                <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=kursiyer.id) }}"
+                   class="btn btn-outline-secondary">Vazgeç</a>
+                {% else %}
+                <a href="{{ url_for('surucu_kursu.kursiyer_liste') }}"
+                   class="btn btn-outline-secondary">Vazgeç</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<small class="text-muted d-block mt-2">
+    <i class="bi bi-info-circle me-1"></i>
+    <strong>Not:</strong> Toplam eğitim ücreti adaya özeldir; sınav harçları
+    bu hesaba dahil değildir, ayrı tutulur.
+</small>
+{% endblock %}

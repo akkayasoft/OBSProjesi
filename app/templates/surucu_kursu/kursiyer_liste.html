@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Kursiyerler{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-people-fill me-2"></i>Kursiyerler
+        </h4>
+        <small class="text-muted">Toplam {{ toplam_aktif }} aktif kursiyer</small>
+    </div>
+    <a href="{{ url_for('surucu_kursu.kursiyer_yeni') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Kursiyer
+    </a>
+</div>
+
+<form method="GET" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="search" name="arama" value="{{ arama }}"
+               class="form-control form-control-sm"
+               placeholder="Ad, soyad veya telefon ara…">
+    </div>
+    <div class="col-md-3">
+        <select name="sinif" class="form-select form-select-sm">
+            <option value="">Tüm Ehliyet Sınıfları</option>
+            {% for kod, ad in ehliyet_siniflari %}
+            <option value="{{ kod }}" {% if sinif == kod %}selected{% endif %}>{{ ad }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="durum" class="form-select form-select-sm">
+            <option value="aktif" {% if durum == 'aktif' %}selected{% endif %}>Aktif</option>
+            <option value="pasif" {% if durum == 'pasif' %}selected{% endif %}>Pasif</option>
+            <option value="" {% if not durum %}selected{% endif %}>Tümü</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-sm btn-primary w-100">
+            <i class="bi bi-funnel me-1"></i>Filtrele
+        </button>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    {% if kursiyerler %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th>
+                    <th>Telefon</th>
+                    <th>Ehliyet Sınıfı</th>
+                    <th>Kayıt Tarihi</th>
+                    <th>Eğitmen</th>
+                    <th>Ders / Fiyat</th>
+                    <th>Durum</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kursiyerler %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=k.id) }}"
+                           class="text-decoration-none">
+                            <strong>{{ k.tam_ad }}</strong>
+                        </a>
+                    </td>
+                    <td><small>{{ k.telefon or '—' }}</small></td>
+                    <td>
+                        <span class="badge bg-info text-dark">
+                            {{ ehliyet_dict.get(k.ehliyet_sinifi, k.ehliyet_sinifi) }}
+                        </span>
+                    </td>
+                    <td><small>{{ k.kayit_tarihi.strftime('%d.%m.%Y') if k.kayit_tarihi }}</small></td>
+                    <td><small>{{ k.egitmen.tam_ad if k.egitmen else '—' }}</small></td>
+                    <td>
+                        <small>
+                            {% if k.ders_sayisi %}{{ k.ders_sayisi }} ders{% endif %}
+                            {% if k.fiyat %}<br><strong>{{ '%.2f'|format(k.fiyat) }} ₺</strong>{% endif %}
+                        </small>
+                    </td>
+                    <td>
+                        {% if k.aktif %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=k.id) }}"
+                           class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-arrow-right"></i> Aç
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+        Kursiyer bulunamadı.
+        <div class="mt-2">
+            <a href="{{ url_for('surucu_kursu.kursiyer_yeni') }}" class="btn btn-sm btn-success">
+                <i class="bi bi-plus-circle me-1"></i>İlk kursiyeri ekle
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

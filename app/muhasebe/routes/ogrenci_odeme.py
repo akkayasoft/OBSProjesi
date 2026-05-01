@@ -9,7 +9,8 @@ from app.models.muhasebe import (
     Ogrenci, OdemePlani, Taksit, Odeme, BankaHesabi
 )
 from app.muhasebe.forms import OdemePlaniForm, OdemeForm, TaksitDuzenleForm
-from app.muhasebe.utils import makbuz_no_uret, banka_hareketi_olustur
+from app.muhasebe.utils import (makbuz_no_uret, banka_hareketi_olustur,
+                                  odeme_icin_gelir_kaydi_olustur)
 from app.toplu_yukleme import (
     excel_sablonu_olustur, excel_oku,
     dogrula_str, dogrula_sayi, dogrula_tarih
@@ -166,6 +167,7 @@ def odeme_yap(taksit_id):
             olusturan_id=current_user.id
         )
         db.session.add(odeme)
+        db.session.flush()  # odeme.id ve makbuz_no'nun kaydi icin
 
         # Taksit güncelle
         taksit.odenen_tutar = Decimal(str(taksit.odenen_tutar)) + odeme_tutari
@@ -178,6 +180,9 @@ def odeme_yap(taksit_id):
                 form.banka_hesap_id.data, 'giris', form.tutar.data,
                 aciklama=f'Öğrenci ödemesi: {ogrenci.tam_ad}'
             )
+
+        # Otomatik 'Ogrenci Aidati' gelir kaydi
+        odeme_icin_gelir_kaydi_olustur(odeme)
 
         db.session.commit()
         flash(f'Ödeme başarıyla kaydedildi. Makbuz No: {odeme.makbuz_no}', 'success')

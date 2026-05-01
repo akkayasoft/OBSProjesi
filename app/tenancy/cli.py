@@ -188,6 +188,8 @@ def create_all_tables_cmd():
     TENANT_KOLON_BACKFILL = [
         # surucu kursu
         ('surucu_sinav_harci_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
+        # OBS muhasebe — odeme alinca otomatik gelir kaydi linklemesi
+        ('odemeler', 'gelir_gider_kayit_id', 'INTEGER'),
     ]
 
     with master_session() as s:

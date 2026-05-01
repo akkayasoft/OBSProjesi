@@ -1,6 +1,71 @@
 from datetime import datetime, date
 from app.extensions import db
-from app.models.muhasebe import Odeme, BankaHesabi, BankaHareketi
+from app.models.muhasebe import (Odeme, BankaHesabi, BankaHareketi,
+                                  GelirGiderKategorisi, GelirGiderKaydi)
+
+
+OGRENCI_AIDAT_KATEGORI_ADI = 'Öğrenci Aidatı'
+
+
+def _aidat_kategorisi_getir():
+    """Ogrenci odemesi icin gelir kategorisini getir; yoksa olustur."""
+    kat = GelirGiderKategorisi.query.filter_by(
+        ad=OGRENCI_AIDAT_KATEGORI_ADI, tur='gelir',
+    ).first()
+    if kat is None:
+        kat = GelirGiderKategorisi(
+            ad=OGRENCI_AIDAT_KATEGORI_ADI, tur='gelir', aktif=True,
+        )
+        db.session.add(kat)
+        db.session.flush()
+    return kat
+
+
+def odeme_icin_gelir_kaydi_olustur(odeme):
+    """Ogrenci odemesi icin otomatik 'Ogrenci Aidati' gelir kaydi olustur
+    ve odeme.gelir_gider_kayit_id'i set et.
+
+    Idempotent: zaten link varsa hicbir sey yapmaz.
+    """
+    if odeme.gelir_gider_kayit_id:
+        return None
+    kat = _aidat_kategorisi_getir()
+    taksit = odeme.taksit
+    ogrenci = taksit.odeme_plani.ogrenci if taksit and taksit.odeme_plani else None
+    if ogrenci is None:
+        return None  # baglanmamis bir odeme, atla
+    aciklama = (
+        f'{ogrenci.tam_ad} — '
+        f'{taksit.taksit_no}. taksit ödemesi '
+        f'(Makbuz: {odeme.makbuz_no})'
+    )
+    kayit = GelirGiderKaydi(
+        tur='gelir',
+        kategori_id=kat.id,
+        tutar=odeme.tutar,
+        aciklama=aciklama,
+        tarih=odeme.tarih.date() if hasattr(odeme.tarih, 'date') else odeme.tarih,
+        belge_no=odeme.makbuz_no,
+        banka_hesap_id=odeme.banka_hesap_id,
+        olusturan_id=odeme.olusturan_id,
+    )
+    db.session.add(kayit)
+    db.session.flush()
+    odeme.gelir_gider_kayit_id = kayit.id
+    return kayit
+
+
+def odeme_gelir_kaydini_temizle(odeme):
+    """Odemeye bagli gelir kaydi varsa sil ve linki kopar.
+    Muhasebe ekraninda elle silinmis olabilir — guvenli."""
+    if not odeme.gelir_gider_kayit_id:
+        return
+    kayit = GelirGiderKaydi.query.filter_by(
+        id=odeme.gelir_gider_kayit_id,
+    ).first()
+    if kayit:
+        db.session.delete(kayit)
+    odeme.gelir_gider_kayit_id = None
 
 
 def makbuz_no_uret():

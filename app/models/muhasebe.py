@@ -200,6 +200,16 @@ class Odeme(db.Model):
     iptal_nedeni = db.Column(db.String(200), nullable=True)
     iptal_eden_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
 
+    # Otomatik olusturulan muhasebe gelir kaydina link. Odeme alindiginda
+    # 'Ogrenci Aidati' kategorisinde otomatik gelir kaydi olusur.
+    # Iptal edilirse linkli kayit da silinir. ondelete='SET NULL':
+    # muhasebe ekraninda elle silinirse de bizimki bozulmaz.
+    gelir_gider_kayit_id = db.Column(
+        db.Integer,
+        db.ForeignKey('gelir_gider_kayitlari.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+
     olusturan = db.relationship('User', foreign_keys=[olusturan_id], backref='odemeler')
     iptal_eden = db.relationship('User', foreign_keys=[iptal_eden_id])
     banka_hesap = db.relationship('BankaHesabi', backref='odemeler')

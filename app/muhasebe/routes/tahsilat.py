@@ -8,7 +8,8 @@ from sqlalchemy import func, or_
 from app.models.muhasebe import (
     Odeme, Taksit, OdemePlani, Ogrenci, BankaHesabi, BankaHareketi
 )
-from app.muhasebe.utils import banka_hareketi_olustur
+from app.muhasebe.utils import (banka_hareketi_olustur,
+                                  odeme_gelir_kaydini_temizle)
 
 bp = Blueprint('tahsilat', __name__)
 
@@ -179,6 +180,9 @@ def odeme_iptal(odeme_id):
         odeme.iptal_tarihi = datetime.utcnow()
         odeme.iptal_nedeni = neden[:200]
         odeme.iptal_eden_id = current_user.id
+
+        # Bagli muhasebe gelir kaydini da sil (varsa)
+        odeme_gelir_kaydini_temizle(odeme)
 
         db.session.commit()
         flash(f'{odeme.makbuz_no} numaralı ödeme iptal edildi ve {float(tutar):,.2f} ₺ iade işlemi yapıldı.',

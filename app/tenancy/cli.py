@@ -171,16 +171,24 @@ def migrate_all_cmd():
 
 @tenant_cli.command('create-all-tables')
 def create_all_tables_cmd():
-    """Tum aktif tenant DB'lerinde db.metadata.create_all() kosar.
+    """Tum aktif tenant DB'lerinde db.metadata.create_all() + bilinen
+    ALTER TABLE backfill'lerini calistirir.
 
-    Idempotent — eksik tablolari ekler, mevcutlari dokunmaz. Yeni
-    model eklendiginde Alembic migration yazilana kadar hizli kapatma
-    olarak deploy.sh'da kullanilir.
+    Idempotent. Yeni model eklendiginde Alembic migration yazilana
+    kadar hizli kapatma olarak deploy.sh'da kullanilir.
     """
     # Flask uygulama context'i icinde olmaliyiz ki db.metadata tum
     # modelleri tanisin (create_app modelleri import ediyor).
     from app.extensions import db
     from .engines import get_tenant_engine
+
+    # Mevcut tablolara sonradan eklenen kolonlar — idempotent ALTER.
+    # Postgres 9.6+ ADD COLUMN IF NOT EXISTS destekler. Tablo yoksa
+    # exception silently atlanir.
+    TENANT_KOLON_BACKFILL = [
+        # surucu kursu
+        ('surucu_sinav_harci_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
+    ]
 
     with master_session() as s:
         tenantler = s.execute(
@@ -194,13 +202,26 @@ def create_all_tables_cmd():
         try:
             engine = get_tenant_engine(t.db_name)
             db.metadata.create_all(bind=engine)
+            # ALTER TABLE backfill — tablonun mevcut oldugu durumlarda
+            # eksik kolonlari ekler. Yoksa tablo, except'e dusup atlanir.
+            with engine.begin() as conn:
+                for tablo, kolon, tip in TENANT_KOLON_BACKFILL:
+                    try:
+                        conn.execute(text(
+                            f'ALTER TABLE {tablo} '
+                            f'ADD COLUMN IF NOT EXISTS {kolon} {tip}'
+                        ))
+                    except Exception as alter_err:
+                        # tablo henuz yoksa veya baska beklenmedik durum
+                        # — sessizce gec
+                        pass
             click.echo(f'  ok  {t.slug} ({t.db_name})')
         except Exception as e:
             hata += 1
             click.echo(f'  ERR {t.slug}: {e}', err=True)
     if hata:
         raise click.ClickException(f'{hata} tenant icin create_all basarisiz.')
-    click.echo(f'\n{len(tenantler)} tenant DB icin create_all tamamlandi.')
+    click.echo(f'\n{len(tenantler)} tenant DB icin create_all + backfill tamamlandi.')
 
 
 @tenant_cli.command('seed-all')

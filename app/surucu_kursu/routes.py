@@ -19,6 +19,71 @@ from app.models.surucu_kursu import (
     Kursiyer, EHLIYET_SINIFLARI, EHLIYET_SINIF_DICT,
     KursiyerTaksit, SurucuSinavOturumu, SurucuSinavHarciKaydi,
 )
+from app.models.muhasebe import (
+    GelirGiderKaydi, GelirGiderKategorisi, BankaHesabi,
+)
+
+
+# === Sinav harci -> Muhasebe otomatik baglanti ===
+
+SINAV_HARC_KATEGORI_ADI = 'Sınav Harç Tahsilatı'
+
+
+def _sinav_harc_kategorisi_getir():
+    """Sinav harci icin gelir kategorisini getir; yoksa olustur."""
+    kat = GelirGiderKategorisi.query.filter_by(
+        ad=SINAV_HARC_KATEGORI_ADI, tur='gelir',
+    ).first()
+    if kat is None:
+        kat = GelirGiderKategorisi(
+            ad=SINAV_HARC_KATEGORI_ADI, tur='gelir', aktif=True,
+        )
+        db.session.add(kat)
+        db.session.flush()
+    return kat
+
+
+def _muhasebe_kaydi_olustur(harc):
+    """Sinav harci tahsil edildiginde otomatik gelir kaydi olustur ve
+    harc'a baglantiyi kaydet. Eger zaten bagli bir kayit varsa hicbir
+    sey yapma."""
+    if harc.gelir_gider_kayit_id:
+        return  # zaten bagli
+    kat = _sinav_harc_kategorisi_getir()
+    banka = BankaHesabi.query.order_by(BankaHesabi.id.asc()).first()
+    kursiyer = harc.kursiyer
+    oturum = harc.sinav_oturum
+    aciklama = (
+        f'{kursiyer.tam_ad} — '
+        f'{oturum.sinav_tarihi.strftime("%d.%m.%Y")} '
+        f'{oturum.sinav_tipi_str} 2. harç'
+    )
+    kayit = GelirGiderKaydi(
+        tur='gelir',
+        kategori_id=kat.id,
+        tutar=harc.ucret or 0,
+        aciklama=aciklama,
+        tarih=harc.tahsil_tarihi or date.today(),
+        belge_no=f'SHARC-{harc.id}',
+        banka_hesap_id=banka.id if banka else None,
+        olusturan_id=current_user.id,
+    )
+    db.session.add(kayit)
+    db.session.flush()
+    harc.gelir_gider_kayit_id = kayit.id
+
+
+def _muhasebe_kaydi_temizle(harc):
+    """Eger harc'a bagli muhasebe kaydi varsa sil ve baglantiyi kopar.
+    Muhasebe ekraninda elle silinmisse de guvenli — None doner."""
+    if not harc.gelir_gider_kayit_id:
+        return
+    kayit = GelirGiderKaydi.query.filter_by(
+        id=harc.gelir_gider_kayit_id,
+    ).first()
+    if kayit:
+        db.session.delete(kayit)
+    harc.gelir_gider_kayit_id = None
 
 
 def _surucu_kursu_tenant_required():
@@ -493,13 +558,19 @@ def sinav_harc_tahsil(oturum_id, harc_id):
         id=harc_id, sinav_oturum_id=oturum_id
     ).first_or_404()
     if h.durum == 'tahsil_edildi':
+        # Geri al — durumu degistir + bagli muhasebe kaydini sil
         h.durum = 'aday_borclu'
         h.tahsil_tarihi = None
-        flash('Tahsilat geri alındı.', 'info')
+        _muhasebe_kaydi_temizle(h)
+        flash('Tahsilat geri alındı, muhasebe kaydı da silindi.', 'info')
     else:
+        # Tahsil et — durumu degistir + otomatik muhasebe kaydi olustur
         h.durum = 'tahsil_edildi'
         h.tahsil_tarihi = date.today()
-        flash(f'{h.kursiyer.tam_ad} sınav harcı tahsil edildi.', 'success')
+        db.session.flush()  # h.id ve degerlerin gorunmesi icin
+        _muhasebe_kaydi_olustur(h)
+        flash(f'{h.kursiyer.tam_ad} sınav harcı tahsil edildi. '
+              f'Muhasebeye otomatik gelir kaydı eklendi.', 'success')
     db.session.commit()
     return redirect(url_for('surucu_kursu.sinav_harc_detay',
                              oturum_id=oturum_id))
@@ -514,9 +585,11 @@ def sinav_harc_kayit_sil(oturum_id, harc_id):
     h = SurucuSinavHarciKaydi.query.filter_by(
         id=harc_id, sinav_oturum_id=oturum_id
     ).first_or_404()
+    # Bagli muhasebe kaydini once temizle
+    _muhasebe_kaydi_temizle(h)
     db.session.delete(h)
     db.session.commit()
-    flash('Kayıt silindi.', 'info')
+    flash('Kayıt silindi (varsa bağlı muhasebe kaydı da temizlendi).', 'info')
     return redirect(url_for('surucu_kursu.sinav_harc_detay',
                              oturum_id=oturum_id))
 
@@ -527,7 +600,17 @@ def sinav_harc_oturum_sil(oturum_id):
     _surucu_kursu_tenant_required()
     o = SurucuSinavOturumu.query.get_or_404(oturum_id)
     tarih = o.sinav_tarihi.strftime('%d.%m.%Y')
+    # Tum harc kayitlarinin bagli muhasebe satirlarini once temizle
+    silinen_muhasebe = 0
+    for h in list(o.harc_kayitlari):
+        if h.gelir_gider_kayit_id:
+            _muhasebe_kaydi_temizle(h)
+            silinen_muhasebe += 1
     db.session.delete(o)  # cascade ile harc_kayitlari da silinir
     db.session.commit()
-    flash(f'{tarih} sınav oturumu silindi.', 'info')
+    if silinen_muhasebe:
+        flash(f'{tarih} sınav oturumu silindi ({silinen_muhasebe} '
+              f'muhasebe kaydı da temizlendi).', 'info')
+    else:
+        flash(f'{tarih} sınav oturumu silindi.', 'info')
     return redirect(url_for('surucu_kursu.sinav_harc_liste'))

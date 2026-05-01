@@ -190,6 +190,16 @@ class SurucuSinavHarciKaydi(db.Model):
     notlar = db.Column(db.String(200), nullable=True)
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Tahsilat yapildiginda otomatik olusturulan muhasebe gelir kaydina
+    # link. Tahsilat geri alinirsa ya da kayit silinirse bagli muhasebe
+    # kaydi da silinir. ondelete='SET NULL': muhasebe ekraninda elle
+    # silinirse de bizimki bozulmaz.
+    gelir_gider_kayit_id = db.Column(
+        db.Integer,
+        db.ForeignKey('gelir_gider_kayitlari.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+
     DURUMLAR = [('aday_borclu', 'Aday Borçlu'),
                 ('tahsil_edildi', 'Tahsil Edildi')]
 

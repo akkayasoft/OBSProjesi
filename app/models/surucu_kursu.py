@@ -133,13 +133,13 @@ class KursiyerTaksit(db.Model):
                 f'vade={self.vade_tarihi} odendi={self.odendi_mi}>')
 
 
-class SinavOturumu(db.Model):
+class SurucuSinavOturumu(db.Model):
     """Bir sinav gunu — birden fazla aday icin ortak.
 
     Kursumuz ilk yazili+direksiyon harcini odiyor; kalan adaylar 2.
     harci kendileri yatiriyor. Bu oturum o ikinci harc takibini icin.
     """
-    __tablename__ = 'sinav_oturumlari'
+    __tablename__ = 'surucu_sinav_oturumlari'
 
     id = db.Column(db.Integer, primary_key=True)
     sinav_tarihi = db.Column(db.Date, nullable=False, index=True)
@@ -159,7 +159,7 @@ class SinavOturumu(db.Model):
         return f'<SinavOturumu {self.sinav_tarihi} {self.sinav_tipi}>'
 
 
-class SinavHarciKaydi(db.Model):
+class SurucuSinavHarciKaydi(db.Model):
     """Bir sinav oturumunda kalan adayin 2. harc kaydi.
 
     durum:
@@ -170,11 +170,12 @@ class SinavHarciKaydi(db.Model):
     ayri tablo, ayri toplam. Toplam odeme = sum(KursiyerTaksit.odendi)
     + bu satirlar farklı bir kategoride raporlanir.
     """
-    __tablename__ = 'sinav_harci_kayitlari'
+    __tablename__ = 'surucu_sinav_harci_kayitlari'
 
     id = db.Column(db.Integer, primary_key=True)
     sinav_oturum_id = db.Column(
-        db.Integer, db.ForeignKey('sinav_oturumlari.id', ondelete='CASCADE'),
+        db.Integer,
+        db.ForeignKey('surucu_sinav_oturumlari.id', ondelete='CASCADE'),
         nullable=False, index=True,
     )
     kursiyer_id = db.Column(
@@ -192,7 +193,7 @@ class SinavHarciKaydi(db.Model):
     DURUMLAR = [('aday_borclu', 'Aday Borçlu'),
                 ('tahsil_edildi', 'Tahsil Edildi')]
 
-    sinav_oturum = db.relationship('SinavOturumu',
+    sinav_oturum = db.relationship('SurucuSinavOturumu',
                                     backref=db.backref('harc_kayitlari',
                                                        lazy='dynamic',
                                                        cascade='all, delete-orphan'))

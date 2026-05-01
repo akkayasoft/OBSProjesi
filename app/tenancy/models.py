@@ -33,6 +33,12 @@ class Tenant(MasterBase):
     durum = Column(String(20), nullable=False, default='aktif', index=True)
     # aktif / askida / silindi
 
+    # Kurum tipi — UI ve mevcut modul setini belirler.
+    # 'dershane' (default): mevcut OBS akisi (ogrenci/sinif/devamsizlik vb.)
+    # 'surucu_kursu': sadece muhasebe + kursiyer + sinav harc menuleri
+    # 'kres', 'dans_okulu' vs. ileride eklenebilir.
+    kurum_tipi = Column(String(30), nullable=False, default='dershane', index=True)
+
     # Abonelik plani: basic / standart / premium / unlimited
     # Limitleri belirler — plan presetlerinden okunur (PLAN_LIMITLERI).
     plan = Column(String(20), nullable=False, default='standart', index=True)

@@ -35,6 +35,12 @@ bp = Blueprint('sistem', __name__, url_prefix='/sistem')
 
 ROLLER_LISTESI = ['yonetici', 'ogretmen', 'muhasebeci', 'veli', 'ogrenci']
 
+KURUM_TIPLERI = [
+    ('dershane',     'Dershane / Okul (OBS)'),
+    ('surucu_kursu', 'Sürücü Kursu'),
+]
+KURUM_TIPI_DICT = dict(KURUM_TIPLERI)
+
 
 def _slugify(s: str) -> str:
     out = []
@@ -171,12 +177,16 @@ def tenant_yeni():
         'yonetici_username': '', 'yonetici_ad': '', 'yonetici_soyad': '',
         'yonetici_email': '',
     }
+    form_data['kurum_tipi'] = 'dershane'
     if request.method == 'POST':
         form_data['ad'] = (request.form.get('ad') or '').strip()
         slug_raw = (request.form.get('slug') or '').strip()
         form_data['slug'] = _slugify(slug_raw or form_data['ad'])
         form_data['iletisim_email'] = (request.form.get('iletisim_email') or '').strip()
         form_data['plan'] = (request.form.get('plan') or 'standart').strip()
+        form_data['kurum_tipi'] = (request.form.get('kurum_tipi') or 'dershane').strip()
+        if form_data['kurum_tipi'] not in KURUM_TIPI_DICT:
+            form_data['kurum_tipi'] = 'dershane'
         form_data['yonetici_username'] = (request.form.get('yonetici_username') or '').strip()
         form_data['yonetici_ad'] = (request.form.get('yonetici_ad') or '').strip()
         form_data['yonetici_soyad'] = (request.form.get('yonetici_soyad') or '').strip()
@@ -200,7 +210,8 @@ def tenant_yeni():
         if hata:
             return render_template('sistem/tenant_yeni.html',
                                    hata=hata, form=form_data,
-                                   planlar=PLAN_LIMITLERI)
+                                   planlar=PLAN_LIMITLERI,
+                                   kurum_tipler=KURUM_TIPLERI)
 
         slug = form_data['slug']
         db_name = _default_db_name(slug)
@@ -211,11 +222,13 @@ def tenant_yeni():
             if s.query(Tenant).filter_by(slug=slug).first():
                 return render_template('sistem/tenant_yeni.html',
                                        hata=f'Bu slug zaten kullanımda: {slug}',
-                                       form=form_data, planlar=PLAN_LIMITLERI)
+                                       form=form_data, planlar=PLAN_LIMITLERI,
+                                       kurum_tipler=KURUM_TIPLERI)
             if s.query(Tenant).filter_by(db_name=db_name).first():
                 return render_template('sistem/tenant_yeni.html',
                                        hata=f'Bu DB adı zaten kullanımda: {db_name}',
-                                       form=form_data, planlar=PLAN_LIMITLERI)
+                                       form=form_data, planlar=PLAN_LIMITLERI,
+                                       kurum_tipler=KURUM_TIPLERI)
 
         # 2) Postgres'te CREATE DATABASE
         try:
@@ -231,7 +244,8 @@ def tenant_yeni():
         except Exception as e:
             return render_template('sistem/tenant_yeni.html',
                                    hata=f'DB oluşturulamadı: {e}',
-                                   form=form_data, planlar=PLAN_LIMITLERI)
+                                   form=form_data, planlar=PLAN_LIMITLERI,
+                                   kurum_tipler=KURUM_TIPLERI)
 
         # 3) Migration: subprocess ile flask db upgrade
         from app.tenancy.engines import _build_url
@@ -249,6 +263,7 @@ def tenant_yeni():
                 hata=('Migration başarısız:\n' +
                       (result.stderr or result.stdout or '')[:1500]),
                 form=form_data, planlar=PLAN_LIMITLERI,
+                kurum_tipler=KURUM_TIPLERI,
             )
 
         # 4) Master DB'ye Tenant kaydi
@@ -256,12 +271,16 @@ def tenant_yeni():
             t = Tenant(
                 slug=slug, ad=form_data['ad'], db_name=db_name,
                 durum='aktif', plan=form_data['plan'],
+                kurum_tipi=form_data['kurum_tipi'],
                 iletisim_email=form_data['iletisim_email'] or None,
             )
             s.add(t)
             s.flush()
-            audit_kaydet(s, admin, 'tenant_create', tenant=t,
-                         detay=f'plan={form_data["plan"]} db={db_name}')
+            audit_kaydet(
+                s, admin, 'tenant_create', tenant=t,
+                detay=(f'plan={form_data["plan"]} '
+                       f'tip={form_data["kurum_tipi"]} db={db_name}'),
+            )
             s.commit()
             tenant_id = t.id
 
@@ -298,7 +317,8 @@ def tenant_yeni():
 
     return render_template('sistem/tenant_yeni.html',
                            hata=None, form=form_data,
-                           planlar=PLAN_LIMITLERI)
+                           planlar=PLAN_LIMITLERI,
+                           kurum_tipler=KURUM_TIPLERI)
 
 
 # === Tenant detay & duzenleme ===

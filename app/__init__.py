@@ -33,7 +33,7 @@ def create_app(config_class=Config):
     csrf.init_app(app)
 
     # Modelleri import et (migration için gerekli)
-    from app.models import user, muhasebe, kayit, devamsizlik, personel, ders_dagitimi, not_defteri, duyurular, rehberlik, saglik, iletisim, online_sinav, kulupler, kurum, ayarlar, bildirim, denetim, belge, deneme_sinavi  # noqa: F401
+    from app.models import user, muhasebe, kayit, devamsizlik, personel, ders_dagitimi, not_defteri, duyurular, rehberlik, saglik, iletisim, online_sinav, kulupler, kurum, ayarlar, bildirim, denetim, belge, deneme_sinavi, surucu_kursu  # noqa: F401
 
     # Blueprint'leri kaydet
     from app.auth import auth_bp

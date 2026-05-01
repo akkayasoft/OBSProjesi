@@ -64,6 +64,12 @@
                        class="text-decoration-none">
                         <strong style="color:#e2e8f0;">{{ t.ad }}</strong>
                     </a>
+                    {% if t.kurum_tipi == 'surucu_kursu' %}
+                    <span class="badge ms-1"
+                          style="background: rgba(245,158,11,0.18); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); font-size:0.7rem;">
+                        <i class="bi bi-car-front"></i> Sürücü Kursu
+                    </span>
+                    {% endif %}
                     <small class="text-muted d-block">
                         <code>{{ t.slug }}</code> · {{ t.db_name }}
                     </small>

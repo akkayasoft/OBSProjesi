@@ -111,6 +111,7 @@ def _backfill_yeni_kolonlar():
         ("ogrenci_limiti", "INTEGER"),
         ("kullanici_limiti", "INTEGER"),
         ("ogretmen_limiti", "INTEGER"),
+        ("kurum_tipi", "VARCHAR(30) NOT NULL DEFAULT 'dershane'"),
     ]
 
     try:

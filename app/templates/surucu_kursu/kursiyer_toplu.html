@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Toplu Kursiyer Yükle{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('surucu_kursu.kursiyer_liste') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Kursiyerler
+    </a>
+    <span class="text-muted">/</span>
+    <strong>Toplu Yükle</strong>
+</div>
+
+<div class="row g-3">
+    <!-- SOL: Yukleme + sablon -->
+    <div class="col-lg-{% if onizleme %}12{% else %}7{% endif %}">
+        {% if not onizleme %}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-3">
+                    <i class="bi bi-cloud-upload me-2 text-primary"></i>Excel ile Toplu Kursiyer Yükle
+                </h5>
+
+                <ol class="small text-muted mb-4" style="padding-left:1.2rem;">
+                    <li>Aşağıdan Excel şablonunu indir.</li>
+                    <li>Excel'i açıp kursiyer satırlarını doldur.</li>
+                    <li>Doldurulmuş dosyayı buradan yükle.</li>
+                    <li>Önizleme ekranında hatalı satırlar varsa düzelt; yeniden yükle.</li>
+                    <li>Hatasız satırları "Onayla ve Kaydet" ile toplu ekle.</li>
+                </ol>
+
+                <a href="{{ url_for('surucu_kursu.kursiyer_toplu_sablon') }}"
+                   class="btn btn-outline-success mb-4">
+                    <i class="bi bi-download me-1"></i>Excel Şablonunu İndir
+                </a>
+
+                <hr>
+
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="eylem" value="onizle">
+                    <div class="mb-3">
+                        <label class="form-label">Doldurulmuş Excel Dosyası *</label>
+                        <input type="file" name="excel" accept=".xlsx,.xls"
+                               class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-eye me-1"></i>Önizle (Henüz Kaydedilmez)
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if onizleme %}
+        <!-- ONIZLEME -->
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="mb-0">
+                    <i class="bi bi-table me-1"></i>Önizleme
+                </h6>
+                <div>
+                    <span class="badge bg-success me-1">
+                        <i class="bi bi-check-circle me-1"></i>{{ hatalar_ozet.gecerli }} geçerli
+                    </span>
+                    {% if hatalar_ozet.hatali > 0 %}
+                    <span class="badge bg-danger">
+                        <i class="bi bi-x-circle me-1"></i>{{ hatalar_ozet.hatali }} hatalı (atlanacak)
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="table-responsive" style="max-height: 500px;">
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead style="position:sticky; top:0; background:#f8f9fa; z-index:1;">
+                        <tr>
+                            <th style="width:40px;">#</th>
+                            <th>Ad</th>
+                            <th>Soyad</th>
+                            <th>Telefon</th>
+                            <th>Ehliyet</th>
+                            <th>Ders</th>
+                            <th>Fiyat</th>
+                            <th>Eğitmen</th>
+                            <th>Tarih</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for satir in onizleme %}
+                        {% set has_error = satir._hatalar|length > 0 %}
+                        <tr class="{% if has_error %}table-danger{% else %}table-success{% endif %}">
+                            <td><small>{{ satir._satir_no or loop.index }}</small></td>
+                            <td><small>{{ satir.ad or '' }}</small></td>
+                            <td><small>{{ satir.soyad or '' }}</small></td>
+                            <td><small>{{ satir.telefon or '' }}</small></td>
+                            <td>
+                                <small>
+                                    {{ satir.ehliyet_sinifi or '' }}
+                                    {% if satir.ehliyet_sinifi in ehliyet_dict %}
+                                    <br><span class="text-muted" style="font-size:0.7rem;">
+                                        {{ ehliyet_dict[satir.ehliyet_sinifi] }}
+                                    </span>
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td><small>{{ satir.ders_sayisi or '' }}</small></td>
+                            <td><small>{{ satir.fiyat or '' }}</small></td>
+                            <td><small>{{ satir.egitmen_username or '' }}</small></td>
+                            <td><small>{{ satir.kayit_tarihi or '' }}</small></td>
+                            <td>
+                                {% if has_error %}
+                                {% for h in satir._hatalar %}
+                                <small class="d-block text-danger">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ h }}
+                                </small>
+                                {% endfor %}
+                                {% else %}
+                                <small class="text-success">
+                                    <i class="bi bi-check-circle me-1"></i>Hazır
+                                </small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+            <a href="{{ url_for('surucu_kursu.kursiyer_toplu_yukle') }}"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Yeni Dosya Yükle
+            </a>
+            {% if hatalar_ozet.gecerli > 0 %}
+            <form method="POST" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="eylem" value="kaydet">
+                {% for satir in onizleme %}
+                {% if satir._hatalar|length == 0 %}
+                <input type="hidden" name="row_ad[{{ loop.index }}]" value="{{ satir.ad or '' }}">
+                <input type="hidden" name="row_soyad[{{ loop.index }}]" value="{{ satir.soyad or '' }}">
+                <input type="hidden" name="row_telefon[{{ loop.index }}]" value="{{ satir.telefon or '' }}">
+                <input type="hidden" name="row_ehliyet[{{ loop.index }}]" value="{{ satir.ehliyet_sinifi or '' }}">
+                <input type="hidden" name="row_ders[{{ loop.index }}]" value="{{ satir.ders_sayisi or '' }}">
+                <input type="hidden" name="row_fiyat[{{ loop.index }}]" value="{{ satir.fiyat or '' }}">
+                <input type="hidden" name="row_egitmen[{{ loop.index }}]" value="{{ satir.egitmen_username or '' }}">
+                <input type="hidden" name="row_tarih[{{ loop.index }}]" value="{{ satir.kayit_tarihi or '' }}">
+                <input type="hidden" name="row_notlar[{{ loop.index }}]" value="{{ satir.notlar or '' }}">
+                {% endif %}
+                {% endfor %}
+                <button type="submit" class="btn btn-success"
+                        onclick="return confirm('{{ hatalar_ozet.gecerli }} kursiyer kaydedilecek. Devam?');">
+                    <i class="bi bi-check-lg me-1"></i>Onayla ve {{ hatalar_ozet.gecerli }} Kursiyeri Kaydet
+                </button>
+            </form>
+            {% else %}
+            <button class="btn btn-success" disabled>
+                <i class="bi bi-check-lg me-1"></i>Geçerli satır yok
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- SAG: Bilgi (sadece form'da) -->
+    {% if not onizleme %}
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="mb-2"><i class="bi bi-info-circle me-1"></i>Excel Sütunları</h6>
+                <ul class="small text-muted mb-0" style="padding-left:1rem;">
+                    <li><strong>Ad</strong> *</li>
+                    <li><strong>Soyad</strong> *</li>
+                    <li><strong>Ehliyet Sınıfı (kod)</strong> * — örn. <code>B_manuel</code>, <code>A2</code>, <code>C</code></li>
+                    <li>Telefon</li>
+                    <li>Ders Sayısı (sayı)</li>
+                    <li>Toplam Fiyat (₺)</li>
+                    <li>Eğitmen Kullanıcı Adı (örn. <code>ahmet_egitmen</code>)</li>
+                    <li>Kayıt Tarihi (YYYY-MM-DD; boş = bugün)</li>
+                    <li>Notlar</li>
+                </ul>
+                <hr>
+                <small class="text-muted d-block">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Hatalı satırlar tespit edilirse <strong>kaydedilmez</strong>;
+                    önce düzelt, yeniden yükle.
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

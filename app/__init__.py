@@ -468,6 +468,8 @@ def create_app(config_class=Config):
                      'url': '/surucu-kursu/kursiyer/'},
                     {'label': 'Yeni Kursiyer', 'icon': 'bi-person-plus',
                      'url': '/surucu-kursu/kursiyer/yeni'},
+                    {'label': 'Toplu Yükle (Excel)', 'icon': 'bi-cloud-upload',
+                     'url': '/surucu-kursu/kursiyer/toplu'},
                  ], 'renk_kat': 'mavi'},
                 {'label': 'Sınav Harç', 'icon': 'bi-receipt',
                  'url': '/surucu-kursu/sinav-harc/', 'modul_key': None,

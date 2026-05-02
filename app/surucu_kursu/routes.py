@@ -1141,3 +1141,215 @@ def dashboard():
         sinav_borclu_sayi=sinav_borclu_sayi,
         sinav_borclu_top=sinav_borclu_top,
     )
+
+
+# === Toplu Kursiyer Yukleme (Faz 3.C) ===
+
+KURSIYER_TOPLU_BASLIKLARI = [
+    {'key': 'ad', 'label': 'Ad', 'zorunlu': True},
+    {'key': 'soyad', 'label': 'Soyad', 'zorunlu': True},
+    {'key': 'telefon', 'label': 'Telefon'},
+    {'key': 'ehliyet_sinifi', 'label': 'Ehliyet Sınıfı (kod)', 'zorunlu': True},
+    {'key': 'ders_sayisi', 'label': 'Ders Sayısı'},
+    {'key': 'fiyat', 'label': 'Toplam Fiyat (₺)'},
+    {'key': 'egitmen_username', 'label': 'Eğitmen Kullanıcı Adı'},
+    {'key': 'kayit_tarihi', 'label': 'Kayıt Tarihi (YYYY-MM-DD)'},
+    {'key': 'notlar', 'label': 'Notlar'},
+]
+
+
+@surucu_kursu_bp.route('/kursiyer/toplu/sablon')
+@login_required
+def kursiyer_toplu_sablon():
+    """Toplu kursiyer yukleme Excel sablonunu indir."""
+    _surucu_kursu_tenant_required()
+    from app.toplu_yukleme import excel_sablonu_olustur
+    from flask import send_file
+
+    ehliyet_kodlari = ', '.join(kod for kod, _ in EHLIYET_SINIFLARI[:6]) + '…'
+    aciklama = (
+        'Zorunlu alanlar: Ad, Soyad, Ehliyet Sınıfı (kod). '
+        f'Ehliyet kodları: {ehliyet_kodlari} (tüm liste için '
+        'yeni kursiyer formundaki seçeneklere bakın). '
+        'Telefon, ders sayısı, fiyat, eğitmen, kayıt tarihi opsiyoneldir. '
+        'Eğitmen kullanıcı adı geçerli bir aktif öğretmen/yönetici olmalı; '
+        'yoksa eğitmensiz kayıt yapılır.'
+    )
+    ornek = [
+        ['Ali', 'Yılmaz', '0532 111 22 33', 'B_manuel', '32', '12500.00',
+         'ahmet_egitmen', '2026-05-01', 'Acemi sürücü'],
+        ['Ayşe', 'Kaya', '0534 222 33 44', 'A2', '16', '7500.00',
+         '', '', 'Hafta sonları'],
+    ]
+    output = excel_sablonu_olustur(
+        KURSIYER_TOPLU_BASLIKLARI,
+        ornek_satirlar=ornek,
+        aciklama_satiri=aciklama,
+        sayfa_adi='Kursiyerler',
+    )
+    return send_file(
+        output, as_attachment=True,
+        download_name='surucu_kursu_toplu_kursiyer_sablonu.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+
+
+@surucu_kursu_bp.route('/kursiyer/toplu', methods=['GET', 'POST'])
+@login_required
+def kursiyer_toplu_yukle():
+    """Toplu kursiyer yukleme: GET=form, POST=onizleme veya kaydet."""
+    _surucu_kursu_tenant_required()
+    onizleme = None
+    hatalar_ozet = []
+
+    if request.method == 'POST':
+        eylem = request.form.get('eylem', 'onizle')
+
+        if eylem == 'kaydet':
+            # Onizlemeden gelen veriyi kaydet (form alanlari hidden olarak donmus)
+            kayit_sayisi = _kursiyer_toplu_kaydet_post()
+            if kayit_sayisi is None:
+                # Hata flash icinde verildi
+                return redirect(url_for('surucu_kursu.kursiyer_toplu_yukle'))
+            flash(f'{kayit_sayisi} kursiyer başarıyla eklendi.', 'success')
+            return redirect(url_for('surucu_kursu.kursiyer_liste'))
+
+        # eylem == 'onizle' (default) — Excel'i parse et ve dogrula
+        dosya = request.files.get('excel')
+        if not dosya or not dosya.filename:
+            flash('Lütfen bir Excel dosyası seçin.', 'danger')
+            return redirect(url_for('surucu_kursu.kursiyer_toplu_yukle'))
+
+        try:
+            from app.toplu_yukleme import excel_oku
+            satirlar = excel_oku(dosya, KURSIYER_TOPLU_BASLIKLARI)
+        except Exception as e:
+            flash(f'Excel okunamadı: {e}', 'danger')
+            return redirect(url_for('surucu_kursu.kursiyer_toplu_yukle'))
+
+        # Aktif egitmenleri username -> id map'le
+        egitmenler = {
+            u.username: u.id for u in User.query.filter(
+                User.aktif.is_(True),
+                User.rol.in_(['admin', 'yonetici', 'ogretmen']),
+            ).all()
+        }
+
+        onizleme = []
+        gecerli_sayi = 0
+        hatalar_genel = 0
+        for row in satirlar:
+            satir = dict(row)
+            satir['_hatalar'] = list(satir.get('_hatalar') or [])
+
+            ad = (satir.get('ad') or '').strip() if satir.get('ad') else ''
+            soyad = (satir.get('soyad') or '').strip() if satir.get('soyad') else ''
+            sinif = (satir.get('ehliyet_sinifi') or '').strip() if satir.get('ehliyet_sinifi') else ''
+
+            if not ad:
+                satir['_hatalar'].append('Ad zorunlu.')
+            if not soyad:
+                satir['_hatalar'].append('Soyad zorunlu.')
+            if not sinif:
+                satir['_hatalar'].append('Ehliyet sınıfı zorunlu.')
+            elif sinif not in EHLIYET_SINIF_DICT:
+                satir['_hatalar'].append(f'Geçersiz ehliyet kodu: {sinif!r}.')
+
+            # Sayisal alan dogrulamalari
+            ders_raw = satir.get('ders_sayisi')
+            if ders_raw not in (None, ''):
+                if _int_or_none(ders_raw) is None:
+                    satir['_hatalar'].append(f'Ders sayısı sayı olmalı: {ders_raw!r}.')
+
+            fiyat_raw = satir.get('fiyat')
+            if fiyat_raw not in (None, ''):
+                if _decimal_or_none(fiyat_raw) is None:
+                    satir['_hatalar'].append(f'Fiyat geçersiz: {fiyat_raw!r}.')
+
+            tarih_raw = satir.get('kayit_tarihi')
+            if tarih_raw not in (None, ''):
+                # Excel datetime objesi de gelebilir
+                if isinstance(tarih_raw, datetime):
+                    pass
+                elif isinstance(tarih_raw, date):
+                    pass
+                elif isinstance(tarih_raw, str) and _date_or_none(tarih_raw) is None:
+                    satir['_hatalar'].append(f'Kayıt tarihi geçersiz: {tarih_raw!r} (YYYY-MM-DD).')
+
+            egitmen_username = (satir.get('egitmen_username') or '').strip() if satir.get('egitmen_username') else ''
+            if egitmen_username and egitmen_username not in egitmenler:
+                satir['_hatalar'].append(f'Eğitmen bulunamadı: {egitmen_username!r}.')
+
+            if satir['_hatalar']:
+                hatalar_genel += 1
+            else:
+                gecerli_sayi += 1
+
+            onizleme.append(satir)
+
+        hatalar_ozet = {'gecerli': gecerli_sayi, 'hatali': hatalar_genel,
+                        'toplam': len(onizleme)}
+
+    return render_template(
+        'surucu_kursu/kursiyer_toplu.html',
+        onizleme=onizleme,
+        hatalar_ozet=hatalar_ozet,
+        ehliyet_dict=EHLIYET_SINIF_DICT,
+    )
+
+
+def _kursiyer_toplu_kaydet_post():
+    """Onizleme sonrasi 'Kaydet' eylemi — form'dan hidden olarak gelen
+    satirlari Kursiyer olarak insert et. Sadece hatasiz olanlar
+    kaydedilir; hatalilar atlanir.
+
+    Donus: kaydedilen sayi (None = hata).
+    """
+    egitmenler = {
+        u.username: u.id for u in User.query.filter(
+            User.aktif.is_(True),
+            User.rol.in_(['admin', 'yonetici', 'ogretmen']),
+        ).all()
+    }
+
+    indeksler = sorted({
+        int(key.split('[')[1].rstrip(']'))
+        for key in request.form.keys()
+        if key.startswith('row_ad[')
+    })
+    if not indeksler:
+        flash('Kaydedilecek satır yok.', 'warning')
+        return None
+
+    eklenen = 0
+    for idx in indeksler:
+        ad = (request.form.get(f'row_ad[{idx}]') or '').strip()
+        soyad = (request.form.get(f'row_soyad[{idx}]') or '').strip()
+        sinif = (request.form.get(f'row_ehliyet[{idx}]') or '').strip()
+        if not ad or not soyad or sinif not in EHLIYET_SINIF_DICT:
+            continue  # gecersiz, atla
+        telefon = (request.form.get(f'row_telefon[{idx}]') or '').strip() or None
+        ders_sayisi = _int_or_none(request.form.get(f'row_ders[{idx}]'))
+        fiyat = _decimal_or_none(request.form.get(f'row_fiyat[{idx}]'))
+        eg_username = (request.form.get(f'row_egitmen[{idx}]') or '').strip()
+        eg_id = egitmenler.get(eg_username) if eg_username else None
+        tarih = _date_or_none(request.form.get(f'row_tarih[{idx}]'))
+        if tarih is None:
+            tarih = date.today()
+        notlar = (request.form.get(f'row_notlar[{idx}]') or '').strip() or None
+
+        k = Kursiyer(
+            ad=ad, soyad=soyad, telefon=telefon,
+            kayit_tarihi=tarih,
+            ehliyet_sinifi=sinif,
+            ders_sayisi=ders_sayisi,
+            fiyat=fiyat or 0,
+            egitmen_id=eg_id,
+            notlar=notlar,
+            aktif=True,
+        )
+        db.session.add(k)
+        eklenen += 1
+
+    db.session.commit()
+    return eklenen

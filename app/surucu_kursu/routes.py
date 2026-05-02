@@ -1053,7 +1053,7 @@ def dashboard():
 
     bugun = date.today()
     ay_basi = bugun.replace(day=1)
-    hafta_sonu = bugun + timedelta(days=7)
+    yaklasan_son = bugun + timedelta(days=30)
 
     # KPI'lar
     aktif_kursiyer = Kursiyer.query.filter_by(aktif=True).count()
@@ -1095,11 +1095,11 @@ def dashboard():
         KursiyerTaksit.vade_tarihi < bugun,
     ).scalar() or 0)
 
-    # Yaklasan 7 gun
+    # Yaklasan 30 gun
     yaklasan_taksitler = KursiyerTaksit.query.filter(
         KursiyerTaksit.odendi_mi.is_(False),
         KursiyerTaksit.vade_tarihi >= bugun,
-        KursiyerTaksit.vade_tarihi <= hafta_sonu,
+        KursiyerTaksit.vade_tarihi <= yaklasan_son,
     ).order_by(KursiyerTaksit.vade_tarihi.asc()).all()
     yaklasan_top = sum(float(t.tutar) for t in yaklasan_taksitler)
 

@@ -82,19 +82,26 @@
     </div>
 </div>
 
-<!-- GECIKEN TAKSITLER (acil) -->
-{% if geciken_taksitler %}
+<!-- GECIKEN TAKSITLER -->
 <div class="card shadow-sm mb-3">
-    <div class="card-header bg-danger bg-opacity-10 d-flex justify-content-between align-items-center">
+    <div class="card-header {% if geciken_taksitler %}bg-danger bg-opacity-10{% else %}bg-success bg-opacity-10{% endif %} d-flex justify-content-between align-items-center">
         <h6 class="mb-0">
+            {% if geciken_taksitler %}
             <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i>
             Vadesi Geçen Taksitler
             <span class="badge bg-danger ms-2">{{ geciken_sayi }}</span>
+            {% else %}
+            <i class="bi bi-check-circle-fill me-1 text-success"></i>
+            Vadesi Geçen Taksitler
+            {% endif %}
         </h6>
+        {% if geciken_taksitler %}
         <small class="text-muted">
             Toplam <strong>{{ '%.2f'|format(geciken_top) }} ₺</strong>
         </small>
+        {% endif %}
     </div>
+    {% if geciken_taksitler %}
     <div class="table-responsive">
         <table class="table table-sm table-hover mb-0 align-middle">
             <thead>
@@ -140,8 +147,14 @@
         <small class="text-muted">İlk 10 gösteriliyor — toplam {{ geciken_sayi }} kayıt</small>
     </div>
     {% endif %}
+    {% else %}
+    <div class="card-body text-center text-muted py-4">
+        <i class="bi bi-emoji-smile fs-3 d-block mb-2 text-success"></i>
+        <strong class="text-success">Vadesi geçen taksit yok 🎉</strong>
+        <small class="d-block mt-1">Tüm taksitler güncel.</small>
+    </div>
+    {% endif %}
 </div>
-{% endif %}
 
 <div class="row g-3">
     <!-- YAKLAŞAN VADELER -->
@@ -150,7 +163,7 @@
             <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">
                     <i class="bi bi-calendar-week me-1 text-warning"></i>
-                    Yaklaşan 7 Gün Vadeler
+                    Yaklaşan 30 Gün Vadeler
                     {% if yaklasan_taksitler %}
                     <span class="badge bg-warning text-dark ms-2">{{ yaklasan_taksitler|length }}</span>
                     {% endif %}

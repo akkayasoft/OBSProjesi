@@ -19,6 +19,7 @@ from app.models.user import User
 from app.models.surucu_kursu import (
     Kursiyer, EHLIYET_SINIFLARI, EHLIYET_SINIF_DICT,
     KursiyerTaksit, SurucuSinavOturumu, SurucuSinavHarciKaydi,
+    KursiyerEhliyet,
 )
 from app.models.muhasebe import (
     GelirGiderKaydi, GelirGiderKategorisi, BankaHesabi,
@@ -320,10 +321,21 @@ def kursiyer_yeni():
 def kursiyer_detay(kursiyer_id):
     _surucu_kursu_tenant_required()
     k = Kursiyer.query.get_or_404(kursiyer_id)
+    egitmenler = User.query.filter(
+        User.aktif.is_(True),
+        User.rol.in_(['admin', 'yonetici', 'ogretmen']),
+    ).order_by(User.ad, User.soyad).all()
+    # Mevcut ehliyet kodlari (cakisma onleme icin)
+    mevcut_ehliyet_kodlari = {k.ehliyet_sinifi}
+    for e in k.ek_ehliyetler:
+        mevcut_ehliyet_kodlari.add(e.ehliyet_sinifi)
     return render_template(
         'surucu_kursu/kursiyer_detay.html',
         kursiyer=k,
         ehliyet_dict=EHLIYET_SINIF_DICT,
+        ehliyet_siniflari=EHLIYET_SINIFLARI,
+        egitmenler=egitmenler,
+        mevcut_ehliyet_kodlari=mevcut_ehliyet_kodlari,
         bugun=date.today(),
     )
 
@@ -1353,3 +1365,98 @@ def _kursiyer_toplu_kaydet_post():
 
     db.session.commit()
     return eklenen
+
+
+# === Kursiyer ek ehliyetleri (Faz 3.D) ===
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/ehliyet-ekle', methods=['POST'])
+@login_required
+def kursiyer_ehliyet_ekle(kursiyer_id):
+    """Kursiyer'a ek ehliyet ata (B + A2 gibi). Ana ehliyet ve mevcut
+    ek ehliyetlerle ayni olamaz."""
+    _surucu_kursu_tenant_required()
+    k = Kursiyer.query.get_or_404(kursiyer_id)
+
+    sinif = (request.form.get('ehliyet_sinifi') or '').strip()
+    ders_sayisi = _int_or_none(request.form.get('ders_sayisi'))
+    fiyat = _decimal_or_none(request.form.get('fiyat'))
+    egitmen_id = _int_or_none(request.form.get('egitmen_id'))
+    notlar = (request.form.get('notlar') or '').strip()
+
+    if sinif not in EHLIYET_SINIF_DICT:
+        flash('Geçerli bir ehliyet sınıfı seçin.', 'danger')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    # Ana ehliyet veya mevcut ek ile cakisma kontrolu
+    if k.ehliyet_sinifi == sinif:
+        flash('Bu ehliyet zaten ana ehliyet olarak atanmış.', 'warning')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    mevcut = KursiyerEhliyet.query.filter_by(
+        kursiyer_id=k.id, ehliyet_sinifi=sinif,
+    ).first()
+    if mevcut:
+        flash('Bu ehliyet kursiyere zaten eklenmiş.', 'warning')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    e = KursiyerEhliyet(
+        kursiyer_id=k.id,
+        ehliyet_sinifi=sinif,
+        ders_sayisi=ders_sayisi,
+        fiyat=fiyat or 0,
+        egitmen_id=egitmen_id,
+        notlar=notlar or None,
+        durum='aktif',
+    )
+    db.session.add(e)
+    db.session.commit()
+    flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi.', 'success')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/ehliyet/<int:ehliyet_id>/duzenle',
+    methods=['POST'])
+@login_required
+def kursiyer_ehliyet_duzenle(kursiyer_id, ehliyet_id):
+    """Ek ehliyetin fiyat/ders/egitmen/durum bilgisini guncelle."""
+    _surucu_kursu_tenant_required()
+    e = KursiyerEhliyet.query.filter_by(
+        id=ehliyet_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+
+    e.ders_sayisi = _int_or_none(request.form.get('ders_sayisi'))
+    e.fiyat = _decimal_or_none(request.form.get('fiyat')) or 0
+    e.egitmen_id = _int_or_none(request.form.get('egitmen_id'))
+    yeni_durum = (request.form.get('durum') or '').strip()
+    if yeni_durum in ('aktif', 'tamamlandi', 'iptal'):
+        e.durum = yeni_durum
+    e.notlar = (request.form.get('notlar') or '').strip() or None
+
+    db.session.commit()
+    flash(f'"{e.ehliyet_sinifi_str}" ehliyeti güncellendi.', 'success')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/ehliyet/<int:ehliyet_id>/sil',
+    methods=['POST'])
+@login_required
+def kursiyer_ehliyet_sil(kursiyer_id, ehliyet_id):
+    """Ek ehliyeti sil."""
+    _surucu_kursu_tenant_required()
+    e = KursiyerEhliyet.query.filter_by(
+        id=ehliyet_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+    sinif_str = e.ehliyet_sinifi_str
+    db.session.delete(e)
+    db.session.commit()
+    flash(f'"{sinif_str}" ehliyeti silindi.', 'info')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))

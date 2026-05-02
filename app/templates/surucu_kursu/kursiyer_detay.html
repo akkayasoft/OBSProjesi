@@ -94,6 +94,79 @@
     </div>
 </div>
 
+<!-- Ek Ehliyetler (cogu kursiyer tek ehliyet alir, ama bazilari B+A2 gibi coklu) -->
+<div class="card shadow-sm mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-stack me-1 text-info"></i>Ek Ehliyetler
+            {% set ek_ehliyetler = kursiyer.ek_ehliyetler.all() %}
+            {% if ek_ehliyetler %}
+            <span class="badge bg-info text-dark ms-2">{{ ek_ehliyetler|length }}</span>
+            {% endif %}
+        </h6>
+        <button type="button" class="btn btn-sm btn-outline-primary"
+                data-bs-toggle="modal" data-bs-target="#ehliyetEkleModal">
+            <i class="bi bi-plus-lg me-1"></i>Ek Ehliyet Ata
+        </button>
+    </div>
+    <div class="card-body p-0">
+        {% if ek_ehliyetler %}
+        <table class="table table-sm table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Ehliyet Sınıfı</th>
+                    <th>Ders</th>
+                    <th>Fiyat</th>
+                    <th>Eğitmen</th>
+                    <th>Durum</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in ek_ehliyetler %}
+                <tr>
+                    <td>
+                        <span class="badge bg-info text-dark">{{ e.ehliyet_sinifi }}</span>
+                        <small class="text-muted ms-1">{{ e.ehliyet_sinifi_str }}</small>
+                    </td>
+                    <td><small>{{ e.ders_sayisi if e.ders_sayisi is not none else '—' }}</small></td>
+                    <td><strong>{{ '%.2f'|format(e.fiyat or 0) }} ₺</strong></td>
+                    <td><small>{{ e.egitmen.tam_ad if e.egitmen else '—' }}</small></td>
+                    <td>
+                        {% if e.durum == 'aktif' %}<span class="badge bg-success">Aktif</span>
+                        {% elif e.durum == 'tamamlandi' %}<span class="badge bg-primary">Tamamlandı</span>
+                        {% else %}<span class="badge bg-secondary">İptal</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#ehliyetDuzenleModal{{ e.id }}"
+                                title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST"
+                              action="{{ url_for('surucu_kursu.kursiyer_ehliyet_sil', kursiyer_id=kursiyer.id, ehliyet_id=e.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('{{ e.ehliyet_sinifi_str }} ehliyeti silinecek. Devam?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-3">
+            <small>Bu kursiyere ek ehliyet atanmamış. Ana ehliyet:
+                <strong>{{ kursiyer.ehliyet_sinifi_str }}</strong></small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
 <!-- Iki sutun: taksitler + sinav harci -->
 <div class="row g-3">
     <!-- SOL: Egitim ucreti taksitleri -->
@@ -469,6 +542,143 @@
             </div>
         </div>
     </div>
+{% endfor %}
+
+<!-- Ek Ehliyet Ekleme modali (tek tane) -->
+<div class="modal fade" id="ehliyetEkleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST"
+                  action="{{ url_for('surucu_kursu.kursiyer_ehliyet_ekle', kursiyer_id=kursiyer.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="bi bi-plus-circle me-1"></i>{{ kursiyer.tam_ad }} — Ek Ehliyet Ata
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small">Ehliyet Sınıfı *</label>
+                        <select name="ehliyet_sinifi" class="form-select form-select-sm" required>
+                            <option value="">— Seçiniz —</option>
+                            {% for kod, ad in ehliyet_siniflari %}
+                            {% if kod not in mevcut_ehliyet_kodlari %}
+                            <option value="{{ kod }}">{{ ad }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">
+                            Kursiyerin zaten sahip olduğu sınıflar listede görünmez.
+                        </small>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Ders Sayısı</label>
+                            <input type="number" name="ders_sayisi" min="0"
+                                   class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Fiyat (₺)</label>
+                            <input type="text" name="fiyat"
+                                   class="form-control form-control-sm"
+                                   placeholder="örn. 7500.00">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label small">Eğitmen</label>
+                        <select name="egitmen_id" class="form-select form-select-sm">
+                            <option value="">— Seçiniz (opsiyonel) —</option>
+                            {% for eg in egitmenler %}
+                            <option value="{{ eg.id }}">{{ eg.tam_ad }} ({{ eg.rol }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label small">Notlar</label>
+                        <input type="text" name="notlar"
+                               class="form-control form-control-sm" maxlength="200">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-check-lg me-1"></i>Ehliyet Ekle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Ek Ehliyet Duzenleme modallari (her ek ehliyet icin) -->
+{% for e in kursiyer.ek_ehliyetler %}
+<div class="modal fade" id="ehliyetDuzenleModal{{ e.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST"
+                  action="{{ url_for('surucu_kursu.kursiyer_ehliyet_duzenle', kursiyer_id=kursiyer.id, ehliyet_id=e.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="bi bi-pencil-square me-1"></i>
+                        {{ e.ehliyet_sinifi_str }} — Düzenle
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Ders Sayısı</label>
+                            <input type="number" name="ders_sayisi" min="0"
+                                   class="form-control form-control-sm"
+                                   value="{{ e.ders_sayisi if e.ders_sayisi is not none else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Fiyat (₺)</label>
+                            <input type="text" name="fiyat"
+                                   class="form-control form-control-sm"
+                                   value="{{ '%.2f'|format(e.fiyat or 0) }}">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label small">Eğitmen</label>
+                        <select name="egitmen_id" class="form-select form-select-sm">
+                            <option value="">— Seçiniz —</option>
+                            {% for eg in egitmenler %}
+                            <option value="{{ eg.id }}" {% if e.egitmen_id == eg.id %}selected{% endif %}>
+                                {{ eg.tam_ad }} ({{ eg.rol }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label small">Durum</label>
+                        <select name="durum" class="form-select form-select-sm">
+                            <option value="aktif" {% if e.durum == 'aktif' %}selected{% endif %}>Aktif</option>
+                            <option value="tamamlandi" {% if e.durum == 'tamamlandi' %}selected{% endif %}>Tamamlandı</option>
+                            <option value="iptal" {% if e.durum == 'iptal' %}selected{% endif %}>İptal</option>
+                        </select>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label small">Notlar</label>
+                        <input type="text" name="notlar"
+                               class="form-control form-control-sm" maxlength="200"
+                               value="{{ e.notlar or '' }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-save me-1"></i>Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endfor %}
 
 <script>

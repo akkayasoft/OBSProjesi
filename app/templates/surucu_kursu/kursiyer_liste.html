@@ -73,6 +73,18 @@
                         <span class="badge bg-info text-dark">
                             {{ ehliyet_dict.get(k.ehliyet_sinifi, k.ehliyet_sinifi) }}
                         </span>
+                        {% set ekler = k.ek_ehliyetler.all() %}
+                        {% if ekler %}
+                        <div class="mt-1">
+                            {% for e in ekler %}
+                            <span class="badge bg-secondary"
+                                  title="{{ e.ehliyet_sinifi_str }}"
+                                  style="font-size:0.7rem;">
+                                + {{ e.ehliyet_sinifi }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </td>
                     <td><small>{{ k.kayit_tarihi.strftime('%d.%m.%Y') if k.kayit_tarihi }}</small></td>
                     <td><small>{{ k.egitmen.tam_ad if k.egitmen else '—' }}</small></td>

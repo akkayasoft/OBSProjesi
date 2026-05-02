@@ -98,6 +98,48 @@ class Kursiyer(db.Model):
         return f'<Kursiyer {self.tam_ad} {self.ehliyet_sinifi}>'
 
 
+class KursiyerEhliyet(db.Model):
+    """Kursiyerin ek ehliyetleri — bir kursiyer ayni anda birden fazla
+    ehliyet sinifi alabilir (orn. B + A2). Kursiyer.ehliyet_sinifi
+    'ana' ehliyet olarak korunur (geriye uyumlu); bu tablo ek olanlari
+    tutar. Her ehliyet icin ayri fiyat, ders sayisi, egitmen olabilir.
+    """
+    __tablename__ = 'kursiyer_ehliyetleri'
+
+    id = db.Column(db.Integer, primary_key=True)
+    kursiyer_id = db.Column(db.Integer,
+                            db.ForeignKey('kursiyerler.id', ondelete='CASCADE'),
+                            nullable=False, index=True)
+    ehliyet_sinifi = db.Column(db.String(20), nullable=False, index=True)
+    ders_sayisi = db.Column(db.Integer, nullable=True)
+    fiyat = db.Column(db.Numeric(10, 2), nullable=True, default=0)
+    egitmen_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    durum = db.Column(db.String(20), nullable=False, default='aktif')
+    # aktif | tamamlandi | iptal
+    notlar = db.Column(db.String(200), nullable=True)
+    olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
+
+    egitmen = db.relationship('User', foreign_keys=[egitmen_id], lazy='joined')
+    kursiyer = db.relationship(
+        'Kursiyer',
+        backref=db.backref('ek_ehliyetler', lazy='dynamic',
+                           cascade='all, delete-orphan',
+                           order_by='KursiyerEhliyet.id'),
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint('kursiyer_id', 'ehliyet_sinifi',
+                            name='uq_kursiyer_ehliyet'),
+    )
+
+    @property
+    def ehliyet_sinifi_str(self) -> str:
+        return EHLIYET_SINIF_DICT.get(self.ehliyet_sinifi, self.ehliyet_sinifi)
+
+    def __repr__(self) -> str:
+        return f'<KursiyerEhliyet kursiyer={self.kursiyer_id} sinif={self.ehliyet_sinifi}>'
+
+
 class KursiyerTaksit(db.Model):
     """Kursiyerin egitim ucreti taksitleri — manuel tarihli.
 

@@ -157,6 +157,77 @@ def test_taksit_duzenleme_muhasebe_kaydini_senkronize_eder(
             'Taksit tutari degisti ama muhasebe kaydi senkron olmadi!'
 
 
+def test_kursiyer_ek_ehliyet_eklenebilir_ve_silinebilir(
+    app, db_session, admin_user,
+):
+    """Bir kursiyer'a ek ehliyet eklenir, listelenir ve silinir.
+    Ana ehliyet ve mevcut ek ehliyetlerle cakisma engellenmeli."""
+    from app.models.surucu_kursu import KursiyerEhliyet
+    from decimal import Decimal as _D
+
+    kursiyer = _surucu_test_kursiyer(db_session)
+    # Ana ehliyet B_otomatik (fixture'dan)
+    assert kursiyer.ehliyet_sinifi == 'B_otomatik'
+    assert kursiyer.ek_ehliyetler.count() == 0
+
+    # Ek ehliyet ekle
+    e1 = KursiyerEhliyet(
+        kursiyer_id=kursiyer.id,
+        ehliyet_sinifi='A2', ders_sayisi=16,
+        fiyat=_D('7500'), durum='aktif',
+    )
+    db_session.add(e1)
+    db_session.commit()
+
+    # Liste cek
+    db_session.refresh(kursiyer)
+    ekler = kursiyer.ek_ehliyetler.all()
+    assert len(ekler) == 1
+    assert ekler[0].ehliyet_sinifi == 'A2'
+    assert ekler[0].ehliyet_sinifi_str.startswith('A2')
+
+    # Cakisma: ayni kursiyer + ayni ehliyet -> UniqueConstraint hata vermeli
+    import pytest
+    from sqlalchemy.exc import IntegrityError
+    e2 = KursiyerEhliyet(
+        kursiyer_id=kursiyer.id, ehliyet_sinifi='A2',
+        fiyat=_D('8000'), durum='aktif',
+    )
+    db_session.add(e2)
+    with pytest.raises(IntegrityError):
+        db_session.commit()
+    db_session.rollback()
+
+    # Sil
+    db_session.delete(ekler[0])
+    db_session.commit()
+    db_session.refresh(kursiyer)
+    assert kursiyer.ek_ehliyetler.count() == 0
+
+
+def test_kursiyer_silinince_ek_ehliyetler_de_cascade_silinir(
+    app, db_session, admin_user,
+):
+    """Kursiyer silinirse onun ek ehliyetleri de silinmeli."""
+    from app.models.surucu_kursu import KursiyerEhliyet
+    from decimal import Decimal as _D
+
+    kursiyer = _surucu_test_kursiyer(db_session)
+    e = KursiyerEhliyet(
+        kursiyer_id=kursiyer.id,
+        ehliyet_sinifi='A1', fiyat=_D('5000'), durum='aktif',
+    )
+    db_session.add(e)
+    db_session.commit()
+    eid = e.id
+
+    db_session.delete(kursiyer)
+    db_session.commit()
+
+    # Cascade ile ek ehliyet de silinmis olmali
+    assert KursiyerEhliyet.query.get(eid) is None
+
+
 def test_kursiyer_makbuz_no_uretici_format(app, db_session, admin_user):
     """KSR-YYYYMMDD-NNNN formatinda artan numara uretmeli."""
     from app.surucu_kursu.routes import _kursiyer_makbuz_no_uret

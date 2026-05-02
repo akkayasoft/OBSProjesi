@@ -12,7 +12,7 @@ bp = Blueprint('banka', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     hesaplar = BankaHesabi.query.filter_by(aktif=True).all()
     toplam_bakiye = sum(float(h.bakiye) for h in hesaplar)
@@ -22,7 +22,7 @@ def liste():
 
 @bp.route('/ekle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def ekle():
     form = BankaHesapForm()
     if form.validate_on_submit():
@@ -44,7 +44,7 @@ def ekle():
 
 @bp.route('/<int:hesap_id>')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def detay(hesap_id):
     hesap = BankaHesabi.query.get_or_404(hesap_id)
     page = request.args.get('page', 1, type=int)
@@ -61,7 +61,7 @@ def detay(hesap_id):
 
 @bp.route('/transfer', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def transfer():
     form = TransferForm()
 

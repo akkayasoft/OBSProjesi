@@ -11,7 +11,7 @@ bp = Blueprint('gelir_gider', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     page = request.args.get('page', 1, type=int)
     tur_filtre = request.args.get('tur', '')
@@ -39,7 +39,7 @@ def liste():
 
 @bp.route('/ekle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def ekle():
     form = GelirGiderForm()
 
@@ -80,7 +80,7 @@ def ekle():
 
 @bp.route('/<int:id>/duzenle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def duzenle(id):
     kayit = GelirGiderKaydi.query.get_or_404(id)
     form = GelirGiderForm(obj=kayit)
@@ -110,7 +110,7 @@ def duzenle(id):
 
 @bp.route('/<int:id>/sil', methods=['POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def sil(id):
     kayit = GelirGiderKaydi.query.get_or_404(id)
     db.session.delete(kayit)
@@ -121,7 +121,7 @@ def sil(id):
 
 @bp.route('/kategoriler', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def kategoriler():
     form = KategoriForm()
 
@@ -141,7 +141,7 @@ def kategoriler():
 
 @bp.route('/kategoriler/<int:id>/sil', methods=['POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def kategori_sil(id):
     kategori = GelirGiderKategorisi.query.get_or_404(id)
     if kategori.kayitlar.count() > 0:

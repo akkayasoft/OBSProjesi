@@ -16,7 +16,7 @@ bp = Blueprint('tahsilat', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     """Tum tahsilatlar - filtreleme ve kasa ozeti ile."""
     from app.muhasebe.utils import geciken_taksitleri_guncelle
@@ -144,7 +144,7 @@ def liste():
 
 @bp.route('/odeme/<int:odeme_id>/iptal', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def odeme_iptal(odeme_id):
     """Odemeyi iptal et - taksit odenen tutarini geri al, banka bakiyesini guncelle."""
     odeme = Odeme.query.get_or_404(odeme_id)
@@ -194,7 +194,7 @@ def odeme_iptal(odeme_id):
 
 @bp.route('/taksit/<int:taksit_id>/ertele', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def taksit_ertele(taksit_id):
     """Taksit vade tarihini ileri al."""
     taksit = Taksit.query.get_or_404(taksit_id)
@@ -237,7 +237,7 @@ def taksit_ertele(taksit_id):
 
 @bp.route('/plan/<int:plan_id>/yeniden-yapilandir', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def plan_yeniden_yapilandir(plan_id):
     """Mevcut planin kalan borcunu kapat, yeni plan olustur."""
     plan = OdemePlani.query.get_or_404(plan_id)
@@ -337,7 +337,7 @@ def plan_yeniden_yapilandir(plan_id):
 
 @bp.route('/hatirlatma', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def toplu_hatirlatma():
     """Geciken/yaklaşan ödemeler icin toplu bildirim gonder."""
     from app.muhasebe.utils import geciken_taksitleri_guncelle

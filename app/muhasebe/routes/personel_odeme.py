@@ -12,7 +12,7 @@ bp = Blueprint('personel_odeme', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     page = request.args.get('page', 1, type=int)
     personeller = Personel.query.filter_by(aktif=True).order_by(
@@ -25,7 +25,7 @@ def liste():
 
 @bp.route('/personel-ekle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def personel_ekle():
     form = PersonelForm()
     if form.validate_on_submit():
@@ -47,7 +47,7 @@ def personel_ekle():
 
 @bp.route('/<int:personel_id>')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def detay(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     odemeler = PersonelOdemeKaydi.query.filter_by(
@@ -60,7 +60,7 @@ def detay(personel_id):
 
 @bp.route('/<int:personel_id>/odeme-ekle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def odeme_ekle(personel_id):
     personel = Personel.query.get_or_404(personel_id)
     form = PersonelOdemeForm()

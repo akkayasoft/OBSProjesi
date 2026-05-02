@@ -34,7 +34,7 @@ bp = Blueprint('ogrenci_odeme', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def liste():
     from app.muhasebe.utils import geciken_taksitleri_guncelle
     geciken_taksitleri_guncelle()
@@ -63,7 +63,7 @@ def liste():
 
 @bp.route('/<int:ogrenci_id>')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def detay(ogrenci_id):
     from app.muhasebe.utils import geciken_taksitleri_guncelle
     geciken_taksitleri_guncelle()
@@ -79,7 +79,7 @@ def detay(ogrenci_id):
 
 @bp.route('/<int:ogrenci_id>/plan-olustur', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def plan_olustur(ogrenci_id):
     ogrenci = Ogrenci.query.get_or_404(ogrenci_id)
     form = OdemePlaniForm()
@@ -138,7 +138,7 @@ def plan_olustur(ogrenci_id):
 
 @bp.route('/taksit/<int:taksit_id>/odeme', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def odeme_yap(taksit_id):
     taksit = Taksit.query.get_or_404(taksit_id)
     ogrenci = taksit.odeme_plani.ogrenci
@@ -194,7 +194,7 @@ def odeme_yap(taksit_id):
 
 @bp.route('/taksit/<int:taksit_id>/duzenle', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def taksit_duzenle(taksit_id):
     """Tek bir taksitin tutar ve vade tarihini guncelle.
 
@@ -270,7 +270,7 @@ def taksit_duzenle(taksit_id):
 
 @bp.route('/odeme/<int:odeme_id>/makbuz')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def makbuz(odeme_id):
     odeme = Odeme.query.get_or_404(odeme_id)
     ogrenci = odeme.taksit.odeme_plani.ogrenci
@@ -280,7 +280,7 @@ def makbuz(odeme_id):
 
 @bp.route('/plan/<int:plan_id>/sil', methods=['POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def plan_sil(plan_id):
     """
     Odeme planini tamamen siler. Sadece HIC odeme alinmamis planlar silinebilir.
@@ -320,7 +320,7 @@ def plan_sil(plan_id):
 
 @bp.route('/plan/<int:plan_id>/iptal', methods=['POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def plan_iptal(plan_id):
     """
     Planı iptal eder (soft delete). Odenmis taksitler korunur, odenmemisler
@@ -365,7 +365,7 @@ def plan_iptal(plan_id):
 
 @bp.route('/toplu-plan/sablon')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def toplu_plan_sablon():
     """Odeme plani toplu yukleme Excel sablonunu indirir."""
     ornek = [
@@ -384,7 +384,7 @@ def toplu_plan_sablon():
 
 @bp.route('/toplu-plan', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def toplu_plan_yukle():
     """Excel dosyasi uzerinden ogrenci odeme planlarini toplu olusturur."""
     onizleme = None
@@ -554,7 +554,7 @@ def toplu_plan_yukle():
 
 @bp.route('/geciken')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def geciken():
     from app.muhasebe.utils import geciken_taksitleri_guncelle
     geciken_taksitleri_guncelle()

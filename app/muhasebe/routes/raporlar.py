@@ -16,7 +16,7 @@ bp = Blueprint('raporlar', __name__)
 
 @bp.route('/')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def genel():
     from app.muhasebe.utils import geciken_taksitleri_guncelle
     geciken_taksitleri_guncelle()
@@ -175,7 +175,7 @@ def genel():
 
 @bp.route('/export/<rapor_turu>')
 @login_required
-@role_required('admin', 'muhasebeci')
+@role_required('admin', 'muhasebeci', 'yonetici')
 def export(rapor_turu):
     try:
         from openpyxl import Workbook

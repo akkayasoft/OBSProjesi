@@ -82,12 +82,13 @@ def yoklama_al():
             sube_id=sube_id, tarih=tarih, ders_saati=ders_saati
         ).delete()
 
+        yeni_kayitlar = []
         kayit_sayisi = 0
         for ogrenci in ogrenciler:
             durum = request.form.get(f'durum_{ogrenci.id}')
             if durum and durum != 'mevcut':
                 aciklama = request.form.get(f'aciklama_{ogrenci.id}', '').strip()
-                db.session.add(Devamsizlik(
+                d = Devamsizlik(
                     ogrenci_id=ogrenci.id,
                     sube_id=sube_id,
                     tarih=tarih,
@@ -95,12 +96,26 @@ def yoklama_al():
                     durum=durum,
                     aciklama=aciklama or None,
                     olusturan_id=current_user.id
-                ))
+                )
+                db.session.add(d)
+                yeni_kayitlar.append(d)
                 kayit_sayisi += 1
 
+        db.session.flush()  # ogrenci/sube relationship'leri canlansin
+
+        # Otomatik bildirim — sadece YENI 'devamsiz' isaretleri icin
+        from app.devamsizlik.bildirim import (
+            devamsizlik_bildirimleri_gonder, yeni_devamsiz_kayitlari_filtrele,
+        )
+        bildirilecek = yeni_devamsiz_kayitlari_filtrele(yeni_kayitlar, mevcut)
+        bildirim_sayisi = devamsizlik_bildirimleri_gonder(bildirilecek)
+
         db.session.commit()
+        ek = (f' {bildirim_sayisi} bildirim gönderildi.'
+              if bildirim_sayisi else '')
         flash(f'{sube.tam_ad} - {ders_saati}. ders yoklaması kaydedildi. '
-              f'{kayit_sayisi} devamsızlık kaydı oluşturuldu.', 'success')
+              f'{kayit_sayisi} devamsızlık kaydı oluşturuldu.{ek}',
+              'success')
         return redirect(url_for('devamsizlik.yoklama.index'))
 
     return render_template('devamsizlik/yoklama/yoklama_al.html',
@@ -173,6 +188,14 @@ def toplu_yoklama_kaydet():
     ).all()
     ogrenciler = [k.ogrenci for k in aktif_kayitlar]
 
+    # Onceki devamsizlik kayitlarini topla — bildirim spam'ini onlemek icin
+    # ayni ders saatinde zaten 'devamsiz' isaretliydiyse atlayacagiz
+    onceki = {}  # (ders_saati, ogrenci_id) -> Devamsizlik
+    for d in Devamsizlik.query.filter_by(sube_id=sube_id, tarih=tarih).filter(
+            Devamsizlik.ders_saati.in_(ders_saatleri)).all():
+        onceki[(d.ders_saati, d.ogrenci_id)] = d
+
+    yeni_kayitlar = []
     toplam_kayit = 0
     for ds in ders_saatleri:
         # Mevcut kayıtları temizle
@@ -184,7 +207,7 @@ def toplu_yoklama_kaydet():
             durum = request.form.get(f'durum_{ds}_{ogrenci.id}')
             if durum and durum != 'mevcut':
                 aciklama = request.form.get(f'aciklama_{ds}_{ogrenci.id}', '').strip()
-                db.session.add(Devamsizlik(
+                d = Devamsizlik(
                     ogrenci_id=ogrenci.id,
                     sube_id=sube_id,
                     tarih=tarih,
@@ -192,12 +215,29 @@ def toplu_yoklama_kaydet():
                     durum=durum,
                     aciklama=aciklama or None,
                     olusturan_id=current_user.id
-                ))
+                )
+                db.session.add(d)
+                yeni_kayitlar.append(d)
                 toplam_kayit += 1
 
+    db.session.flush()
+
+    # Otomatik bildirim — sadece YENI 'devamsiz' isaretleri icin (spam'i onle)
+    from app.devamsizlik.bildirim import devamsizlik_bildirimleri_gonder
+    bildirilecek = []
+    for k in yeni_kayitlar:
+        if k.durum != 'devamsiz':
+            continue
+        eski = onceki.get((k.ders_saati, k.ogrenci_id))
+        if eski is not None and eski.durum == 'devamsiz':
+            continue
+        bildirilecek.append(k)
+    bildirim_sayisi = devamsizlik_bildirimleri_gonder(bildirilecek)
+
     db.session.commit()
+    ek = (f' {bildirim_sayisi} bildirim gönderildi.' if bildirim_sayisi else '')
     flash(f'{sube.tam_ad} - {len(ders_saatleri)} ders saati yoklaması kaydedildi. '
-          f'{toplam_kayit} devamsızlık kaydı oluşturuldu.', 'success')
+          f'{toplam_kayit} devamsızlık kaydı oluşturuldu.{ek}', 'success')
     return redirect(url_for('devamsizlik.yoklama.index'))
 
 

@@ -458,7 +458,8 @@ def create_app(config_class=Config):
             # OBS'in zengin menusunu tamamen by-pass et — sadece surucu kursu icin
             # gerekli menuleri goster.
             surucu_menu = [
-                {'label': 'Ana Sayfa', 'icon': 'bi-house-door', 'url': '/',
+                {'label': 'Ana Sayfa', 'icon': 'bi-house-door',
+                 'url': '/surucu-kursu/',
                  'modul_key': None, 'children': [], 'renk_kat': 'gri'},
                 {'label': 'Kursiyerler', 'icon': 'bi-people-fill',
                  'url': '/surucu-kursu/kursiyer/', 'modul_key': None,

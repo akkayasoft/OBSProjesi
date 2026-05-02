@@ -1036,3 +1036,108 @@ def rapor_dashboard():
         # Yardimcilar
         bugun=bugun,
     )
+
+
+# === Surucu Kursu Anasayfa ===
+
+@surucu_kursu_bp.route('/')
+@login_required
+def dashboard():
+    """Surucu kursu icin gunluk operasyon dashboard'u.
+
+    Rapor sayfasindan farkli olarak: 'bugun ne yapmam lazim?' odakli.
+    KPI ozet + geciken taksitler (acil) + yaklasan 7 gun vadeler +
+    hizli eylem butonlari.
+    """
+    _surucu_kursu_tenant_required()
+
+    bugun = date.today()
+    ay_basi = bugun.replace(day=1)
+    hafta_sonu = bugun + timedelta(days=7)
+
+    # KPI'lar
+    aktif_kursiyer = Kursiyer.query.filter_by(aktif=True).count()
+    bu_ay_yeni = Kursiyer.query.filter(
+        Kursiyer.kayit_tarihi >= ay_basi,
+    ).count()
+
+    bu_ay_gelir = float(db.session.query(
+        func.coalesce(func.sum(GelirGiderKaydi.tutar), 0)
+    ).filter(
+        GelirGiderKaydi.tur == 'gelir',
+        GelirGiderKaydi.tarih >= ay_basi,
+    ).scalar() or 0)
+    bu_ay_gider = float(db.session.query(
+        func.coalesce(func.sum(GelirGiderKaydi.tutar), 0)
+    ).filter(
+        GelirGiderKaydi.tur == 'gider',
+        GelirGiderKaydi.tarih >= ay_basi,
+    ).scalar() or 0)
+    bu_ay_net = bu_ay_gelir - bu_ay_gider
+
+    bekleyen_top = float(db.session.query(
+        func.coalesce(func.sum(KursiyerTaksit.tutar), 0)
+    ).filter(KursiyerTaksit.odendi_mi.is_(False)).scalar() or 0)
+
+    # Geciken taksitler (top 10)
+    geciken_taksitler = KursiyerTaksit.query.filter(
+        KursiyerTaksit.odendi_mi.is_(False),
+        KursiyerTaksit.vade_tarihi < bugun,
+    ).order_by(KursiyerTaksit.vade_tarihi.asc()).limit(10).all()
+    geciken_sayi = KursiyerTaksit.query.filter(
+        KursiyerTaksit.odendi_mi.is_(False),
+        KursiyerTaksit.vade_tarihi < bugun,
+    ).count()
+    geciken_top = float(db.session.query(
+        func.coalesce(func.sum(KursiyerTaksit.tutar), 0)
+    ).filter(
+        KursiyerTaksit.odendi_mi.is_(False),
+        KursiyerTaksit.vade_tarihi < bugun,
+    ).scalar() or 0)
+
+    # Yaklasan 7 gun
+    yaklasan_taksitler = KursiyerTaksit.query.filter(
+        KursiyerTaksit.odendi_mi.is_(False),
+        KursiyerTaksit.vade_tarihi >= bugun,
+        KursiyerTaksit.vade_tarihi <= hafta_sonu,
+    ).order_by(KursiyerTaksit.vade_tarihi.asc()).all()
+    yaklasan_top = sum(float(t.tutar) for t in yaklasan_taksitler)
+
+    # Bekleyen sinav harci
+    sinav_borclu_sayi = SurucuSinavHarciKaydi.query.filter_by(
+        durum='aday_borclu',
+    ).count()
+    sinav_borclu_top = float(db.session.query(
+        func.coalesce(func.sum(SurucuSinavHarciKaydi.ucret), 0)
+    ).filter(
+        SurucuSinavHarciKaydi.durum == 'aday_borclu',
+    ).scalar() or 0)
+
+    # Bugun yapilan tahsilatlar (bugune ozel)
+    bugun_tahsilat = float(db.session.query(
+        func.coalesce(func.sum(KursiyerTaksit.tutar), 0)
+    ).filter(
+        KursiyerTaksit.odendi_mi.is_(True),
+        KursiyerTaksit.odeme_tarihi == bugun,
+    ).scalar() or 0)
+
+    return render_template(
+        'surucu_kursu/dashboard.html',
+        bugun=bugun,
+        # KPI
+        aktif_kursiyer=aktif_kursiyer,
+        bu_ay_yeni=bu_ay_yeni,
+        bu_ay_gelir=bu_ay_gelir,
+        bu_ay_gider=bu_ay_gider,
+        bu_ay_net=bu_ay_net,
+        bekleyen_top=bekleyen_top,
+        bugun_tahsilat=bugun_tahsilat,
+        # Tablolar
+        geciken_taksitler=geciken_taksitler,
+        geciken_sayi=geciken_sayi,
+        geciken_top=geciken_top,
+        yaklasan_taksitler=yaklasan_taksitler,
+        yaklasan_top=yaklasan_top,
+        sinav_borclu_sayi=sinav_borclu_sayi,
+        sinav_borclu_top=sinav_borclu_top,
+    )

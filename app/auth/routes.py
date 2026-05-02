@@ -18,6 +18,11 @@ def _giris_sonrasi_hedef(user):
     """Role gore giris sonrasi yonlendirilecek URL'i dondur."""
     if user.rol in ('ogrenci', 'veli'):
         return url_for('ogrenci_portal.dashboard.index')
+    # Surucu kursu tenant'i ise OBS dashboard yerine kendi anasayfasi
+    from flask import g
+    tenant = getattr(g, 'tenant', None)
+    if tenant is not None and getattr(tenant, 'kurum_tipi', None) == 'surucu_kursu':
+        return url_for('surucu_kursu.dashboard')
     return url_for('main.dashboard')
 
 

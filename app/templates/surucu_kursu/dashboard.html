@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Ana Sayfa{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-house-door-fill me-2 text-warning"></i>
+            Hoş geldiniz{% if current_user.ad %}, {{ current_user.ad }}{% endif %}
+        </h4>
+        <small class="text-muted">
+            {{ bugun.strftime('%d.%m.%Y') }} · Bu sayfa günlük operasyon özetidir
+        </small>
+    </div>
+    <a href="{{ url_for('surucu_kursu.rapor_dashboard') }}"
+       class="btn btn-outline-warning btn-sm">
+        <i class="bi bi-graph-up-arrow me-1"></i>Detaylı Raporlar
+    </a>
+</div>
+
+<!-- KPI KARTLARI -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #0d6efd;">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                    <i class="bi bi-people-fill me-1"></i>Aktif Kursiyer
+                </small>
+                <div class="fs-2 fw-bold mt-1">{{ aktif_kursiyer }}</div>
+                <small class="text-muted">
+                    Bu ay <strong class="text-success">+{{ bu_ay_yeni }}</strong> yeni kayıt
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid {% if bu_ay_net < 0 %}#dc3545{% else %}#198754{% endif %};">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                    <i class="bi bi-cash-coin me-1"></i>Bu Ay Net
+                </small>
+                <div class="fs-2 fw-bold mt-1 {% if bu_ay_net < 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ '%.0f'|format(bu_ay_net) }} ₺
+                </div>
+                <small class="text-muted">
+                    Gelir <strong class="text-success">{{ '%.0f'|format(bu_ay_gelir) }}</strong> /
+                    Gider <strong class="text-danger">{{ '%.0f'|format(bu_ay_gider) }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #0dcaf0;">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                    <i class="bi bi-cash-stack me-1"></i>Bugün Tahsil
+                </small>
+                <div class="fs-2 fw-bold mt-1 text-info">
+                    {{ '%.0f'|format(bugun_tahsilat) }} ₺
+                </div>
+                <small class="text-muted">
+                    {{ bugun.strftime('%d.%m') }} tarihinde alınan ödemeler
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #dc3545;">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Geciken
+                </small>
+                <div class="fs-2 fw-bold mt-1 text-danger">
+                    {{ geciken_sayi }}
+                </div>
+                <small class="text-muted">
+                    Vade tutarı <strong>{{ '%.0f'|format(geciken_top) }} ₺</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GECIKEN TAKSITLER (acil) -->
+{% if geciken_taksitler %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-danger bg-opacity-10 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i>
+            Vadesi Geçen Taksitler
+            <span class="badge bg-danger ms-2">{{ geciken_sayi }}</span>
+        </h6>
+        <small class="text-muted">
+            Toplam <strong>{{ '%.2f'|format(geciken_top) }} ₺</strong>
+        </small>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Kursiyer</th>
+                    <th>Telefon</th>
+                    <th>Taksit</th>
+                    <th>Vade</th>
+                    <th class="text-end">Tutar</th>
+                    <th class="text-end">Gecikme</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in geciken_taksitler %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=t.kursiyer_id) }}"
+                           class="text-decoration-none">
+                            <strong>{{ t.kursiyer.tam_ad }}</strong>
+                        </a>
+                    </td>
+                    <td><small class="text-muted">{{ t.kursiyer.telefon or '—' }}</small></td>
+                    <td><small>{{ t.sira }}. taksit</small></td>
+                    <td><small>{{ t.vade_tarihi.strftime('%d.%m.%Y') }}</small></td>
+                    <td class="text-end"><strong>{{ '%.2f'|format(t.tutar) }} ₺</strong></td>
+                    <td class="text-end">
+                        <span class="badge bg-danger">{{ (bugun - t.vade_tarihi).days }} gün</span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=t.kursiyer_id) }}"
+                           class="btn btn-sm btn-outline-success" title="Ödeme almak için aç">
+                            <i class="bi bi-cash-coin me-1"></i>Aç
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if geciken_sayi > 10 %}
+    <div class="card-footer text-center">
+        <small class="text-muted">İlk 10 gösteriliyor — toplam {{ geciken_sayi }} kayıt</small>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="row g-3">
+    <!-- YAKLAŞAN VADELER -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-calendar-week me-1 text-warning"></i>
+                    Yaklaşan 7 Gün Vadeler
+                    {% if yaklasan_taksitler %}
+                    <span class="badge bg-warning text-dark ms-2">{{ yaklasan_taksitler|length }}</span>
+                    {% endif %}
+                </h6>
+                {% if yaklasan_taksitler %}
+                <small class="text-muted">
+                    Toplam <strong>{{ '%.0f'|format(yaklasan_top) }} ₺</strong>
+                </small>
+                {% endif %}
+            </div>
+            <div class="card-body p-0" style="max-height: 320px; overflow-y: auto;">
+                {% if yaklasan_taksitler %}
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead style="position:sticky; top:0; background:white; z-index:1;">
+                        <tr>
+                            <th>Kursiyer</th>
+                            <th>Vade</th>
+                            <th class="text-end">Tutar</th>
+                            <th class="text-end">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in yaklasan_taksitler %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=t.kursiyer_id) }}"
+                                   class="text-decoration-none">
+                                    <small><strong>{{ t.kursiyer.tam_ad }}</strong></small>
+                                </a>
+                                <small class="text-muted d-block">{{ t.sira }}. taksit</small>
+                            </td>
+                            <td>
+                                <small>{{ t.vade_tarihi.strftime('%d.%m.%Y') }}</small>
+                                {% set kalan = (t.vade_tarihi - bugun).days %}
+                                <small class="text-muted d-block">
+                                    {% if kalan == 0 %}<span class="text-warning fw-bold">Bugün!</span>
+                                    {% elif kalan == 1 %}Yarın
+                                    {% else %}{{ kalan }} gün sonra{% endif %}
+                                </small>
+                            </td>
+                            <td class="text-end"><strong>{{ '%.2f'|format(t.tutar) }} ₺</strong></td>
+                            <td class="text-end">
+                                <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=t.kursiyer_id) }}"
+                                   class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i>
+                    <small>7 gün içinde vade gelen taksit yok.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- HIZLI EYLEMLER + KOSE BILGILER -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-lightning-fill me-1 text-primary"></i>Hızlı Eylemler</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('surucu_kursu.kursiyer_yeni') }}"
+                       class="btn btn-success">
+                        <i class="bi bi-person-plus me-1"></i>Yeni Kursiyer Ekle
+                    </a>
+                    <a href="{{ url_for('surucu_kursu.kursiyer_liste') }}"
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-people me-1"></i>Tüm Kursiyerler
+                    </a>
+                    <a href="{{ url_for('surucu_kursu.sinav_harc_yeni') }}"
+                       class="btn btn-outline-warning">
+                        <i class="bi bi-receipt me-1"></i>Yeni Sınav Oturumu
+                    </a>
+                    <a href="{{ url_for('muhasebe.gelir_gider.liste') }}"
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-cash-stack me-1"></i>Gelir / Gider
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if sinav_borclu_sayi > 0 %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-info bg-opacity-10">
+                <h6 class="mb-0">
+                    <i class="bi bi-receipt me-1 text-info"></i>Bekleyen Sınav Harcı
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fs-4 fw-bold">{{ sinav_borclu_sayi }} aday</div>
+                        <small class="text-muted">
+                            Toplam <strong>{{ '%.2f'|format(sinav_borclu_top) }} ₺</strong> tahsil bekliyor
+                        </small>
+                    </div>
+                    <a href="{{ url_for('surucu_kursu.sinav_harc_liste') }}"
+                       class="btn btn-info btn-sm">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<small class="text-muted d-block mt-3 text-center">
+    <i class="bi bi-info-circle me-1"></i>
+    Detaylı analiz için sağ üstteki <strong>Detaylı Raporlar</strong> bağlantısını kullanın.
+</small>
+{% endblock %}

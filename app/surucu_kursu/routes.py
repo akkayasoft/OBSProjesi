@@ -86,6 +86,64 @@ def _muhasebe_kaydi_temizle(harc):
     harc.gelir_gider_kayit_id = None
 
 
+# === Kursiyer egitim ucreti taksiti -> Muhasebe otomatik baglanti ===
+
+KURSIYER_GELIRI_KATEGORI_ADI = 'Sürücü Kursu Geliri'
+
+
+def _kursiyer_geliri_kategorisi_getir():
+    kat = GelirGiderKategorisi.query.filter_by(
+        ad=KURSIYER_GELIRI_KATEGORI_ADI, tur='gelir',
+    ).first()
+    if kat is None:
+        kat = GelirGiderKategorisi(
+            ad=KURSIYER_GELIRI_KATEGORI_ADI, tur='gelir', aktif=True,
+        )
+        db.session.add(kat)
+        db.session.flush()
+    return kat
+
+
+def _kursiyer_taksit_gelir_kaydi_olustur(taksit):
+    """Kursiyer taksiti odendi olarak isaretlendiginde otomatik gelir
+    kaydi olustur. Idempotent — zaten linkli ise atla."""
+    if taksit.gelir_gider_kayit_id:
+        return None
+    kat = _kursiyer_geliri_kategorisi_getir()
+    kursiyer = taksit.kursiyer
+    aciklama = (
+        f'{kursiyer.tam_ad} — {taksit.sira}. taksit ödemesi '
+        f'({kursiyer.ehliyet_sinifi_str})'
+    )
+    kayit = GelirGiderKaydi(
+        tur='gelir',
+        kategori_id=kat.id,
+        tutar=taksit.tutar,
+        aciklama=aciklama,
+        tarih=taksit.odeme_tarihi or date.today(),
+        belge_no=f'KT-{taksit.id}',
+        banka_hesap_id=None,  # surucu kursu kursiyer odemesi nakit varsayim
+        olusturan_id=current_user.id,
+    )
+    db.session.add(kayit)
+    db.session.flush()
+    taksit.gelir_gider_kayit_id = kayit.id
+    return kayit
+
+
+def _kursiyer_taksit_gelir_kaydi_temizle(taksit):
+    """Taksit odendi'den geri alindiginda veya silindiginde bagli
+    gelir kaydini temizle."""
+    if not taksit.gelir_gider_kayit_id:
+        return
+    kayit = GelirGiderKaydi.query.filter_by(
+        id=taksit.gelir_gider_kayit_id,
+    ).first()
+    if kayit:
+        db.session.delete(kayit)
+    taksit.gelir_gider_kayit_id = None
+
+
 def _surucu_kursu_tenant_required():
     """Tenant kurum_tipi 'surucu_kursu' degilse 404. Bu blueprint sadece
     surucu kursu tenant'larinda kullanilmali."""
@@ -376,7 +434,9 @@ def taksit_plan_olustur(kursiyer_id):
     methods=['POST'])
 @login_required
 def taksit_odendi(kursiyer_id, taksit_id):
-    """Taksiti odendi (toggle) olarak isaretle."""
+    """Taksiti odendi (toggle) olarak isaretle.
+    Tahsil edildiyse otomatik 'Sürücü Kursu Geliri' kaydi olusur;
+    geri alindiysa kayit silinir."""
     _surucu_kursu_tenant_required()
     t = KursiyerTaksit.query.filter_by(
         id=taksit_id, kursiyer_id=kursiyer_id
@@ -384,11 +444,17 @@ def taksit_odendi(kursiyer_id, taksit_id):
     t.odendi_mi = not t.odendi_mi
     if t.odendi_mi:
         t.odeme_tarihi = date.today()
+        db.session.flush()
+        _kursiyer_taksit_gelir_kaydi_olustur(t)
+        ek = ' Muhasebeye otomatik gelir kaydı eklendi.'
     else:
         t.odeme_tarihi = None
+        _kursiyer_taksit_gelir_kaydi_temizle(t)
+        ek = ' Bağlı muhasebe kaydı silindi.'
     db.session.commit()
     flash(
-        f'{t.sira}. taksit {"ödendi olarak işaretlendi" if t.odendi_mi else "ödenmedi yapıldı"}.',
+        f'{t.sira}. taksit '
+        f'{"ödendi olarak işaretlendi" if t.odendi_mi else "ödenmedi yapıldı"}.{ek}',
         'success',
     )
     return redirect(url_for('surucu_kursu.kursiyer_detay',
@@ -405,9 +471,12 @@ def taksit_sil(kursiyer_id, taksit_id):
         id=taksit_id, kursiyer_id=kursiyer_id
     ).first_or_404()
     sira = t.sira
+    # Bagli muhasebe kaydini once temizle
+    _kursiyer_taksit_gelir_kaydi_temizle(t)
     db.session.delete(t)
     db.session.commit()
-    flash(f'{sira}. taksit silindi.', 'success')
+    flash(f'{sira}. taksit silindi (varsa bağlı muhasebe kaydı da temizlendi).',
+          'success')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
                              kursiyer_id=kursiyer_id))
 

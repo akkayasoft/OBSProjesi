@@ -121,6 +121,14 @@ class KursiyerTaksit(db.Model):
 
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Tahsil edildiginde otomatik 'Sürücü Kursu Geliri' kategorisinde
+    # GelirGiderKaydi olusur. Geri alinirsa kayit silinir.
+    gelir_gider_kayit_id = db.Column(
+        db.Integer,
+        db.ForeignKey('gelir_gider_kayitlari.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+
     kursiyer = db.relationship(
         'Kursiyer',
         backref=db.backref('taksitler', lazy='dynamic',

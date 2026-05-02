@@ -73,6 +73,89 @@ def test_sinav_harci_tahsil_edildiginde_gelir_kaydi_olusur(
         assert kayit.belge_no == f'SHARC-{harc.id}'
 
 
+def test_kursiyer_taksiti_odendiginde_gelir_kaydi_olusur(
+    app, db_session, admin_user,
+):
+    """Bug regresyonu: kursiyer egitim ucreti taksiti odendi
+    isaretlendiginde Surucu Kursu Geliri kategorisinde otomatik kayit
+    olusmali."""
+    from app.models.surucu_kursu import KursiyerTaksit
+    from app.models.muhasebe import GelirGiderKaydi
+    from datetime import date as _d
+    from decimal import Decimal as _D
+
+    with app.test_request_context():
+        from flask_login import login_user
+        login_user(admin_user)
+
+        kursiyer = _surucu_test_kursiyer(db_session)
+        t = KursiyerTaksit(
+            kursiyer_id=kursiyer.id, sira=1,
+            vade_tarihi=_d(2026, 6, 1), tutar=_D('3000'),
+            odendi_mi=False,
+        )
+        db_session.add(t)
+        db_session.commit()
+
+        # Toggle: odendi yap
+        from app.surucu_kursu.routes import (
+            _kursiyer_taksit_gelir_kaydi_olustur,
+        )
+        t.odendi_mi = True
+        t.odeme_tarihi = _d.today()
+        _kursiyer_taksit_gelir_kaydi_olustur(t)
+        db_session.commit()
+
+        assert t.gelir_gider_kayit_id is not None, \
+            'Kursiyer taksiti odendi ama gelir kaydi olusturulmadi!'
+        kayit = GelirGiderKaydi.query.get(t.gelir_gider_kayit_id)
+        assert kayit.tur == 'gelir'
+        assert kayit.tutar == _D('3000')
+        assert kayit.kategori.ad == 'Sürücü Kursu Geliri'
+        assert kayit.belge_no == f'KT-{t.id}'
+
+
+def test_kursiyer_taksiti_geri_alindiginda_gelir_silinir(
+    app, db_session, admin_user,
+):
+    """Toggle off — bagli kayit temizlenmeli."""
+    from app.models.surucu_kursu import KursiyerTaksit
+    from app.models.muhasebe import GelirGiderKaydi
+    from datetime import date as _d
+    from decimal import Decimal as _D
+
+    with app.test_request_context():
+        from flask_login import login_user
+        login_user(admin_user)
+
+        kursiyer = _surucu_test_kursiyer(db_session)
+        t = KursiyerTaksit(
+            kursiyer_id=kursiyer.id, sira=1,
+            vade_tarihi=_d(2026, 6, 1), tutar=_D('3000'),
+            odendi_mi=True, odeme_tarihi=_d.today(),
+        )
+        db_session.add(t)
+        db_session.commit()
+
+        from app.surucu_kursu.routes import (
+            _kursiyer_taksit_gelir_kaydi_olustur,
+            _kursiyer_taksit_gelir_kaydi_temizle,
+        )
+        _kursiyer_taksit_gelir_kaydi_olustur(t)
+        db_session.commit()
+        kayit_id = t.gelir_gider_kayit_id
+        assert kayit_id is not None
+
+        # Geri al
+        _kursiyer_taksit_gelir_kaydi_temizle(t)
+        t.odendi_mi = False
+        t.odeme_tarihi = None
+        db_session.commit()
+
+        assert t.gelir_gider_kayit_id is None
+        assert GelirGiderKaydi.query.get(kayit_id) is None
+
+
 def test_sinav_harci_tahsil_geri_alindiginda_gelir_silinir(
     app, db_session, admin_user,
 ):

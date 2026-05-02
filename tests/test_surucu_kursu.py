@@ -157,6 +157,34 @@ def test_taksit_duzenleme_muhasebe_kaydini_senkronize_eder(
             'Taksit tutari degisti ama muhasebe kaydi senkron olmadi!'
 
 
+def test_kursiyer_makbuz_no_uretici_format(app, db_session, admin_user):
+    """KSR-YYYYMMDD-NNNN formatinda artan numara uretmeli."""
+    from app.surucu_kursu.routes import _kursiyer_makbuz_no_uret
+    from app.models.surucu_kursu import KursiyerTaksit
+    from datetime import date as _d, datetime as _dt
+    from decimal import Decimal as _D
+
+    with app.test_request_context():
+        kursiyer = _surucu_test_kursiyer(db_session)
+        # Ilk numara 0001 olmali
+        no1 = _kursiyer_makbuz_no_uret()
+        bugun_yyyymmdd = _dt.now().strftime('%Y%m%d')
+        assert no1 == f'KSR-{bugun_yyyymmdd}-0001'
+
+        # Var olan bir kayit oldugunda artir
+        t = KursiyerTaksit(
+            kursiyer_id=kursiyer.id, sira=1,
+            vade_tarihi=_d(2026, 6, 1), tutar=_D('3000'),
+            odendi_mi=True, odeme_tarihi=_d.today(),
+            makbuz_no=no1,
+        )
+        db_session.add(t)
+        db_session.commit()
+
+        no2 = _kursiyer_makbuz_no_uret()
+        assert no2 == f'KSR-{bugun_yyyymmdd}-0002'
+
+
 def test_kursiyer_taksiti_geri_alindiginda_gelir_silinir(
     app, db_session, admin_user,
 ):

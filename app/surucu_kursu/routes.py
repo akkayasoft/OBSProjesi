@@ -324,6 +324,7 @@ def kursiyer_detay(kursiyer_id):
         'surucu_kursu/kursiyer_detay.html',
         kursiyer=k,
         ehliyet_dict=EHLIYET_SINIF_DICT,
+        bugun=date.today(),
     )
 
 
@@ -453,36 +454,128 @@ def taksit_plan_olustur(kursiyer_id):
     return redirect(url_for('surucu_kursu.kursiyer_detay', kursiyer_id=k.id))
 
 
+def _kursiyer_makbuz_no_uret():
+    """KSR-YYYYMMDD-NNNN formatinda benzersiz makbuz numarasi."""
+    bugun = datetime.now().strftime('%Y%m%d')
+    prefix = f'KSR-{bugun}-'
+    son = KursiyerTaksit.query.filter(
+        KursiyerTaksit.makbuz_no.like(f'{prefix}%'),
+    ).order_by(KursiyerTaksit.makbuz_no.desc()).first()
+    if son and son.makbuz_no:
+        try:
+            son_no = int(son.makbuz_no.split('-')[-1])
+            yeni = son_no + 1
+        except (ValueError, IndexError):
+            yeni = 1
+    else:
+        yeni = 1
+    return f'{prefix}{yeni:04d}'
+
+
 @surucu_kursu_bp.route(
-    '/kursiyer/<int:kursiyer_id>/taksit/<int:taksit_id>/odendi',
+    '/kursiyer/<int:kursiyer_id>/taksit/<int:taksit_id>/odeme-al',
     methods=['POST'])
 @login_required
-def taksit_odendi(kursiyer_id, taksit_id):
-    """Taksiti odendi (toggle) olarak isaretle.
-    Tahsil edildiyse otomatik 'Sürücü Kursu Geliri' kaydi olusur;
-    geri alindiysa kayit silinir."""
+def taksit_odeme_al(kursiyer_id, taksit_id):
+    """Bir taksit icin odeme al — modal'dan tarih, yontem, odeyen ad alir,
+    makbuz numarasi uretir, otomatik gelir kaydi olusturur."""
     _surucu_kursu_tenant_required()
     t = KursiyerTaksit.query.filter_by(
         id=taksit_id, kursiyer_id=kursiyer_id
     ).first_or_404()
-    t.odendi_mi = not t.odendi_mi
+
     if t.odendi_mi:
-        t.odeme_tarihi = date.today()
-        db.session.flush()
-        _kursiyer_taksit_gelir_kaydi_olustur(t)
-        ek = ' Muhasebeye otomatik gelir kaydı eklendi.'
-    else:
-        t.odeme_tarihi = None
-        _kursiyer_taksit_gelir_kaydi_temizle(t)
-        ek = ' Bağlı muhasebe kaydı silindi.'
+        flash('Bu taksit zaten ödenmiş.', 'warning')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    odeme_tarihi = _date_or_none(request.form.get('odeme_tarihi')) or date.today()
+    odeme_turu = (request.form.get('odeme_turu') or '').strip()
+    odeyen_ad = (request.form.get('odeyen_ad') or '').strip()
+    yeni_tutar = _decimal_or_none(request.form.get('tutar'))
+
+    valid_turler = {kod for kod, _ in t.ODEME_TURLERI}
+    if odeme_turu not in valid_turler:
+        flash('Geçerli bir ödeme yöntemi seçin (Nakit / EFT / Kredi Kartı).',
+              'danger')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    # Tutar override (kismi odeme degil — taksit tutarini guncelle)
+    if yeni_tutar is not None and yeni_tutar > 0:
+        t.tutar = yeni_tutar
+
+    t.odendi_mi = True
+    t.odeme_tarihi = odeme_tarihi
+    t.odeme_turu = odeme_turu
+    t.odeyen_ad = odeyen_ad or t.kursiyer.tam_ad
+    t.teslim_alan_id = current_user.id
+    t.makbuz_no = _kursiyer_makbuz_no_uret()
+
+    db.session.flush()
+    _kursiyer_taksit_gelir_kaydi_olustur(t)
     db.session.commit()
-    flash(
-        f'{t.sira}. taksit '
-        f'{"ödendi olarak işaretlendi" if t.odendi_mi else "ödenmedi yapıldı"}.{ek}',
-        'success',
-    )
+
+    flash(f'{t.sira}. taksit ödemesi alındı (Makbuz: {t.makbuz_no}). '
+          f'Muhasebeye otomatik gelir kaydı eklendi.', 'success')
+    # Direkt makbuz sayfasina yonlendir — yazdirilabilsin
+    return redirect(url_for('surucu_kursu.taksit_makbuz',
+                             kursiyer_id=kursiyer_id, taksit_id=taksit_id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/taksit/<int:taksit_id>/odeme-iptal',
+    methods=['POST'])
+@login_required
+def taksit_odeme_iptal(kursiyer_id, taksit_id):
+    """Odenmis taksiti tekrar 'odenmedi' yap. Odeme detaylari + makbuz
+    no temizlenir, bagli muhasebe kaydi silinir."""
+    _surucu_kursu_tenant_required()
+    t = KursiyerTaksit.query.filter_by(
+        id=taksit_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+    if not t.odendi_mi:
+        flash('Bu taksit zaten ödenmemiş.', 'warning')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    # Muhasebe kaydini temizle
+    _kursiyer_taksit_gelir_kaydi_temizle(t)
+    eski_makbuz = t.makbuz_no
+
+    t.odendi_mi = False
+    t.odeme_tarihi = None
+    t.odeme_turu = None
+    t.odeyen_ad = None
+    t.teslim_alan_id = None
+    t.makbuz_no = None
+    db.session.commit()
+
+    flash(f'{t.sira}. taksit ödemesi iptal edildi '
+          f'(makbuz {eski_makbuz} geçersiz). Muhasebe kaydı da silindi.',
+          'info')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
                              kursiyer_id=kursiyer_id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/taksit/<int:taksit_id>/makbuz')
+@login_required
+def taksit_makbuz(kursiyer_id, taksit_id):
+    """Print-friendly makbuz sayfasi (A4)."""
+    _surucu_kursu_tenant_required()
+    t = KursiyerTaksit.query.filter_by(
+        id=taksit_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+    if not t.odendi_mi or not t.makbuz_no:
+        flash('Bu taksit henüz ödenmemiş; makbuz oluşturulamaz.', 'warning')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+    tenant_obj = getattr(g, 'tenant', None)
+    return render_template(
+        'surucu_kursu/taksit_makbuz.html',
+        taksit=t, kursiyer=t.kursiyer, tenant=tenant_obj,
+    )
 
 
 @surucu_kursu_bp.route(

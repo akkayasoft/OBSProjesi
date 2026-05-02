@@ -137,11 +137,44 @@
                                     <small>· {{ t.odeme_tarihi.strftime('%d.%m.%Y') }}</small>
                                     {% endif %}
                                 </span>
+                                {% if t.odeme_turu %}
+                                <small class="d-block text-muted mt-1">
+                                    <i class="bi bi-credit-card-2-front me-1"></i>{{ t.odeme_turu_str }}
+                                    {% if t.makbuz_no %}
+                                    <br><span style="font-family:monospace; font-size:0.7rem;">{{ t.makbuz_no }}</span>
+                                    {% endif %}
+                                </small>
+                                {% endif %}
                                 {% else %}
                                 <span class="badge bg-warning text-dark">Bekliyor</span>
                                 {% endif %}
                             </td>
                             <td class="text-end">
+                                {% if t.odendi_mi %}
+                                <a href="{{ url_for('surucu_kursu.taksit_makbuz', kursiyer_id=kursiyer.id, taksit_id=t.id) }}"
+                                   class="btn btn-sm btn-outline-success"
+                                   title="Makbuz">
+                                    <i class="bi bi-receipt"></i>
+                                </a>
+                                <form method="POST"
+                                      action="{{ url_for('surucu_kursu.taksit_odeme_iptal', kursiyer_id=kursiyer.id, taksit_id=t.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Bu ödeme iptal edilecek. Makbuz geçersiz olur, muhasebe kaydı silinir. Devam?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            title="Ödemeyi İptal Et">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <button type="button"
+                                        class="btn btn-sm btn-success"
+                                        title="Ödeme Al"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#odemeAlModal{{ t.id }}">
+                                    <i class="bi bi-cash-coin me-1"></i>Ödeme Al
+                                </button>
+                                {% endif %}
                                 <button type="button"
                                         class="btn btn-sm btn-outline-primary"
                                         title="Düzenle"
@@ -149,19 +182,6 @@
                                         data-bs-target="#duzenleModal{{ t.id }}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <form method="POST"
-                                      action="{{ url_for('surucu_kursu.taksit_odendi', kursiyer_id=kursiyer.id, taksit_id=t.id) }}"
-                                      class="d-inline">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button class="btn btn-sm btn-outline-{% if t.odendi_mi %}secondary{% else %}success{% endif %}"
-                                            title="{% if t.odendi_mi %}Ödenmedi yap{% else %}Ödendi işaretle{% endif %}">
-                                        {% if t.odendi_mi %}
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                        {% else %}
-                                        <i class="bi bi-check-lg"></i>
-                                        {% endif %}
-                                    </button>
-                                </form>
                                 <form method="POST"
                                       action="{{ url_for('surucu_kursu.taksit_sil', kursiyer_id=kursiyer.id, taksit_id=t.id) }}"
                                       class="d-inline"
@@ -173,6 +193,101 @@
                                 </form>
                             </td>
                         </tr>
+
+                        <!-- Odeme Al modali (sadece odenmemis taksitlerde) -->
+                        {% if not t.odendi_mi %}
+                        <tr class="d-none"><td colspan="5">
+                        <div class="modal fade" id="odemeAlModal{{ t.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <form method="POST"
+                                          action="{{ url_for('surucu_kursu.taksit_odeme_al', kursiyer_id=kursiyer.id, taksit_id=t.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="modal-header bg-success bg-opacity-25">
+                                            <h6 class="modal-title">
+                                                <i class="bi bi-cash-coin me-1"></i>
+                                                {{ kursiyer.tam_ad }} — {{ t.sira }}. Taksit Ödemesi
+                                            </h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small">Ödeme Tarihi *</label>
+                                                    <input type="date" name="odeme_tarihi"
+                                                           class="form-control form-control-sm"
+                                                           value="{{ bugun.isoformat() }}"
+                                                           required>
+                                                    <small class="text-muted">
+                                                        Önceki/sonraki bir tarih seçebilirsiniz.
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small">Tutar (₺) *</label>
+                                                    <input type="text" name="tutar"
+                                                           class="form-control form-control-sm"
+                                                           value="{{ '%.2f'|format(t.tutar) }}" required>
+                                                    <small class="text-muted">
+                                                        Vade: {{ t.vade_tarihi.strftime('%d.%m.%Y') }}
+                                                    </small>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label small d-block">Ödeme Yöntemi *</label>
+                                                    <div class="btn-group" role="group">
+                                                        <input type="radio" class="btn-check"
+                                                               name="odeme_turu" id="odTuru_nakit_{{ t.id }}"
+                                                               value="nakit" checked>
+                                                        <label class="btn btn-outline-success btn-sm"
+                                                               for="odTuru_nakit_{{ t.id }}">
+                                                            <i class="bi bi-cash me-1"></i>Nakit
+                                                        </label>
+                                                        <input type="radio" class="btn-check"
+                                                               name="odeme_turu" id="odTuru_eft_{{ t.id }}"
+                                                               value="eft">
+                                                        <label class="btn btn-outline-primary btn-sm"
+                                                               for="odTuru_eft_{{ t.id }}">
+                                                            <i class="bi bi-bank me-1"></i>EFT / Havale
+                                                        </label>
+                                                        <input type="radio" class="btn-check"
+                                                               name="odeme_turu" id="odTuru_kk_{{ t.id }}"
+                                                               value="kredi_karti">
+                                                        <label class="btn btn-outline-warning btn-sm"
+                                                               for="odTuru_kk_{{ t.id }}">
+                                                            <i class="bi bi-credit-card me-1"></i>Kredi Kartı
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label small">Ödemeyi Yapan</label>
+                                                    <input type="text" name="odeyen_ad"
+                                                           class="form-control form-control-sm"
+                                                           placeholder="{{ kursiyer.tam_ad }} (boş bırakılırsa kursiyer)"
+                                                           maxlength="150">
+                                                    <small class="text-muted">
+                                                        Örn. anne, baba, kursiyer kendi.
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info small mt-3 mb-0">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Kaydet'e basınca makbuz numarası üretilir,
+                                                muhasebeye otomatik gelir kaydı eklenir ve
+                                                makbuz sayfası açılır.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary btn-sm"
+                                                    data-bs-dismiss="modal">Vazgeç</button>
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="bi bi-check-lg me-1"></i>Tahsilatı Kaydet
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        </td></tr>
+                        {% endif %}
 
                         <!-- Duzenleme modali -->
                         <tr class="d-none"><td colspan="5">

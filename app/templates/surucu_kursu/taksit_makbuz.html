@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Makbuz {{ taksit.makbuz_no }}{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    @page { size: A4; margin: 1.5cm; }
+    nav, .app-footer, .makbuz-no-print, .sidebar { display: none !important; }
+    body { background: white !important; padding: 0 !important; }
+    .makbuz { box-shadow: none !important; border: none !important; }
+}
+.makbuz {
+    background: white;
+    max-width: 800px;
+    margin: 1rem auto;
+    padding: 2rem;
+    border: 1px solid #ddd;
+    color: #1a1a1a;
+}
+.makbuz h2 { margin-bottom: 0.25rem; }
+.makbuz hr { border-color: #888; }
+.makbuz .row-info {
+    display: flex; justify-content: space-between;
+    padding: 0.4rem 0; border-bottom: 1px solid #eee;
+}
+.makbuz .row-info > span:first-child { color: #666; min-width: 180px; }
+.makbuz .row-info > span:last-child { font-weight: 600; }
+.makbuz .toplam {
+    background: #f8f9fa; padding: 1rem; margin: 1.5rem 0;
+    border-left: 4px solid #198754; font-size: 1.4rem;
+}
+.makbuz .imza {
+    margin-top: 3rem; display: flex; justify-content: space-between;
+}
+.makbuz .imza > div {
+    width: 45%; text-align: center;
+}
+.makbuz .imza .satir {
+    border-top: 1px solid #888; margin-top: 3rem; padding-top: 0.5rem;
+    font-size: 0.85rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="makbuz-no-print mb-3 d-flex justify-content-between flex-wrap gap-2">
+    <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=kursiyer.id) }}"
+       class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Kursiyer Detay
+    </a>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">
+        <i class="bi bi-printer me-1"></i>Yazdır / PDF Olarak Kaydet
+    </button>
+</div>
+
+<div class="makbuz">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+            <h2>{{ tenant.ad if tenant else 'Sürücü Kursu' }}</h2>
+            <small style="color:#666;">Sürücü Kursu Yönetim Sistemi</small>
+        </div>
+        <div class="text-end">
+            <div style="font-size:0.85rem; color:#666;">Makbuz No</div>
+            <div style="font-family:monospace; font-size:1.1rem; font-weight:bold;">
+                {{ taksit.makbuz_no }}
+            </div>
+            <div style="font-size:0.8rem; color:#666; margin-top:0.5rem;">
+                Düzenleme tarihi:
+                {{ taksit.odeme_tarihi.strftime('%d.%m.%Y') if taksit.odeme_tarihi }}
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <h4 class="text-center my-3" style="letter-spacing:0.05em;">TAHSİLAT MAKBUZU</h4>
+    <hr>
+
+    <!-- Kursiyer bilgileri -->
+    <h6 class="mt-3 mb-2"><strong>KURSİYER BİLGİLERİ</strong></h6>
+    <div class="row-info">
+        <span>Ad Soyad</span><span>{{ kursiyer.tam_ad }}</span>
+    </div>
+    <div class="row-info">
+        <span>Telefon</span><span>{{ kursiyer.telefon or '—' }}</span>
+    </div>
+    <div class="row-info">
+        <span>Ehliyet Sınıfı</span><span>{{ kursiyer.ehliyet_sinifi_str }}</span>
+    </div>
+    {% if kursiyer.fiyat %}
+    <div class="row-info">
+        <span>Toplam Eğitim Ücreti</span>
+        <span>{{ '%.2f'|format(kursiyer.fiyat) }} ₺</span>
+    </div>
+    {% endif %}
+
+    <!-- Ödeme bilgileri -->
+    <h6 class="mt-4 mb-2"><strong>ÖDEME BİLGİLERİ</strong></h6>
+    <div class="row-info">
+        <span>Taksit No</span>
+        <span>{{ taksit.sira }}. Taksit</span>
+    </div>
+    <div class="row-info">
+        <span>Vade Tarihi</span>
+        <span>{{ taksit.vade_tarihi.strftime('%d.%m.%Y') }}</span>
+    </div>
+    <div class="row-info">
+        <span>Ödeme Tarihi</span>
+        <span>{{ taksit.odeme_tarihi.strftime('%d.%m.%Y') if taksit.odeme_tarihi }}</span>
+    </div>
+    <div class="row-info">
+        <span>Ödeme Yöntemi</span>
+        <span>{{ taksit.odeme_turu_str }}</span>
+    </div>
+    {% if taksit.odeme_notu %}
+    <div class="row-info">
+        <span>Not</span>
+        <span style="font-weight:normal; font-style:italic;">{{ taksit.odeme_notu }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Toplam -->
+    <div class="toplam">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <strong>TAHSİL EDİLEN TUTAR</strong>
+            <span style="font-size:1.6rem; font-weight:bold; color:#198754;">
+                {{ '%.2f'|format(taksit.tutar) }} ₺
+            </span>
+        </div>
+        <div style="margin-top:0.4rem; font-size:0.85rem; color:#666;">
+            Yalnız: <em>{{ '%.0f'|format(taksit.tutar) }} TL</em>
+        </div>
+    </div>
+
+    <!-- İmza alanları -->
+    <div class="imza">
+        <div>
+            <div style="font-size:0.85rem; color:#666;">ÖDEMEYİ YAPAN</div>
+            <div class="satir">{{ taksit.odeyen_ad or kursiyer.tam_ad }}</div>
+        </div>
+        <div>
+            <div style="font-size:0.85rem; color:#666;">TESLİM ALAN</div>
+            <div class="satir">{{ taksit.teslim_alan.tam_ad if taksit.teslim_alan else '—' }}</div>
+        </div>
+    </div>
+
+    <hr style="margin-top:2rem;">
+    <p class="text-center" style="font-size:0.75rem; color:#888; margin-top:1rem;">
+        Bu makbuz dijital olarak düzenlenmiştir.
+        Doğrulama için makbuz numarası ile sistemden sorgulayabilirsiniz.
+    </p>
+</div>
+{% endblock %}

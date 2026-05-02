@@ -189,6 +189,11 @@ def create_all_tables_cmd():
         # surucu kursu
         ('surucu_sinav_harci_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
         ('kursiyer_taksitleri', 'gelir_gider_kayit_id', 'INTEGER'),
+        # Faz 3.A — odeme detaylari + makbuz
+        ('kursiyer_taksitleri', 'odeme_turu', 'VARCHAR(20)'),
+        ('kursiyer_taksitleri', 'odeyen_ad', 'VARCHAR(150)'),
+        ('kursiyer_taksitleri', 'teslim_alan_id', 'INTEGER'),
+        ('kursiyer_taksitleri', 'makbuz_no', 'VARCHAR(50)'),
         # OBS muhasebe — odeme alinca otomatik gelir kaydi linklemesi
         ('odemeler', 'gelir_gider_kayit_id', 'INTEGER'),
         # Personel maas odemesi -> Gider linki

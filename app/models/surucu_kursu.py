@@ -119,6 +119,17 @@ class KursiyerTaksit(db.Model):
     odeme_tarihi = db.Column(db.Date, nullable=True)
     odeme_notu = db.Column(db.String(200), nullable=True)
 
+    # Odeme detaylari (Faz 3.A)
+    odeme_turu = db.Column(db.String(20), nullable=True)
+    # 'nakit' | 'eft' | 'kredi_karti'
+    odeyen_ad = db.Column(db.String(150), nullable=True)
+    # Kim odedi (kursiyer kendisi, baba, anne vs.)
+    teslim_alan_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                                nullable=True)
+    # Hangi user (current_user) tahsil etti
+    makbuz_no = db.Column(db.String(50), nullable=True, unique=True, index=True)
+    # Otomatik uretilir: KSR-YYYYMMDD-NNNN
+
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Tahsil edildiginde otomatik 'Sürücü Kursu Geliri' kategorisinde
@@ -128,6 +139,18 @@ class KursiyerTaksit(db.Model):
         db.ForeignKey('gelir_gider_kayitlari.id', ondelete='SET NULL'),
         nullable=True,
     )
+
+    teslim_alan = db.relationship('User', foreign_keys=[teslim_alan_id])
+
+    ODEME_TURLERI = [
+        ('nakit', 'Nakit'),
+        ('eft', 'EFT / Havale'),
+        ('kredi_karti', 'Kredi Kartı'),
+    ]
+
+    @property
+    def odeme_turu_str(self) -> str:
+        return dict(self.ODEME_TURLERI).get(self.odeme_turu, '—')
 
     kursiyer = db.relationship(
         'Kursiyer',

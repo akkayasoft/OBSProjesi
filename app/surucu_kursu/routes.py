@@ -144,6 +144,29 @@ def _kursiyer_taksit_gelir_kaydi_temizle(taksit):
     taksit.gelir_gider_kayit_id = None
 
 
+def _kursiyer_taksit_gelir_kaydi_sync(taksit):
+    """Taksit duzenlendikten sonra (tutar/tarih degisti), bagli muhasebe
+    kaydinin alanlarini guncelle. Bagli kayit yoksa hicbir sey yapma."""
+    if not taksit.gelir_gider_kayit_id:
+        return
+    kayit = GelirGiderKaydi.query.filter_by(
+        id=taksit.gelir_gider_kayit_id,
+    ).first()
+    if kayit is None:
+        # muhasebe ekraninda silinmis — link'i kopar
+        taksit.gelir_gider_kayit_id = None
+        return
+    kayit.tutar = taksit.tutar
+    if taksit.odeme_tarihi:
+        kayit.tarih = taksit.odeme_tarihi
+    kursiyer = taksit.kursiyer
+    if kursiyer is not None:
+        kayit.aciklama = (
+            f'{kursiyer.tam_ad} — {taksit.sira}. taksit ödemesi '
+            f'({kursiyer.ehliyet_sinifi_str})'
+        )
+
+
 def _surucu_kursu_tenant_required():
     """Tenant kurum_tipi 'surucu_kursu' degilse 404. Bu blueprint sadece
     surucu kursu tenant'larinda kullanilmali."""
@@ -457,6 +480,55 @@ def taksit_odendi(kursiyer_id, taksit_id):
         f'{"ödendi olarak işaretlendi" if t.odendi_mi else "ödenmedi yapıldı"}.{ek}',
         'success',
     )
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/taksit/<int:taksit_id>/duzenle',
+    methods=['POST'])
+@login_required
+def taksit_duzenle(kursiyer_id, taksit_id):
+    """Bir taksitin vade tarihi ve/veya tutarini guncelle.
+    Eger taksit odenmis ise bagli muhasebe gelir kaydi da senkronize
+    edilir (tutar/tarih/aciklama)."""
+    _surucu_kursu_tenant_required()
+    t = KursiyerTaksit.query.filter_by(
+        id=taksit_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+
+    yeni_vade = _date_or_none(request.form.get('vade_tarihi'))
+    yeni_tutar = _decimal_or_none(request.form.get('tutar'))
+    yeni_not = (request.form.get('odeme_notu') or '').strip()
+
+    if yeni_vade is None:
+        flash('Geçerli bir vade tarihi giriniz.', 'danger')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+    if yeni_tutar is None or yeni_tutar <= 0:
+        flash('Tutar 0\'dan büyük olmalı.', 'danger')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    eski_tutar = t.tutar
+    eski_vade = t.vade_tarihi
+
+    t.vade_tarihi = yeni_vade
+    t.tutar = yeni_tutar
+    t.odeme_notu = yeni_not or None
+
+    # Eger odenmisse muhasebe kaydini da senkronize et
+    if t.odendi_mi:
+        _kursiyer_taksit_gelir_kaydi_sync(t)
+
+    db.session.commit()
+    farklar = []
+    if eski_tutar != yeni_tutar:
+        farklar.append(f'tutar {eski_tutar:.2f}₺ → {yeni_tutar:.2f}₺')
+    if eski_vade != yeni_vade:
+        farklar.append(f'vade {eski_vade} → {yeni_vade}')
+    ozet = ', '.join(farklar) if farklar else 'değişiklik yok'
+    flash(f'{t.sira}. taksit güncellendi ({ozet}).', 'success')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
                              kursiyer_id=kursiyer_id))
 

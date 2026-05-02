@@ -115,6 +115,48 @@ def test_kursiyer_taksiti_odendiginde_gelir_kaydi_olusur(
         assert kayit.belge_no == f'KT-{t.id}'
 
 
+def test_taksit_duzenleme_muhasebe_kaydini_senkronize_eder(
+    app, db_session, admin_user,
+):
+    """Odenmis bir taksitin tutari degistirilirse, bagli gelir kaydinin
+    tutari da otomatik guncellenmeli."""
+    from app.models.surucu_kursu import KursiyerTaksit
+    from app.models.muhasebe import GelirGiderKaydi
+    from datetime import date as _d
+    from decimal import Decimal as _D
+
+    with app.test_request_context():
+        from flask_login import login_user
+        login_user(admin_user)
+
+        kursiyer = _surucu_test_kursiyer(db_session)
+        t = KursiyerTaksit(
+            kursiyer_id=kursiyer.id, sira=1,
+            vade_tarihi=_d(2026, 6, 1), tutar=_D('3000'),
+            odendi_mi=True, odeme_tarihi=_d.today(),
+        )
+        db_session.add(t)
+        db_session.commit()
+
+        from app.surucu_kursu.routes import (
+            _kursiyer_taksit_gelir_kaydi_olustur,
+            _kursiyer_taksit_gelir_kaydi_sync,
+        )
+        _kursiyer_taksit_gelir_kaydi_olustur(t)
+        db_session.commit()
+        kayit_id = t.gelir_gider_kayit_id
+        assert GelirGiderKaydi.query.get(kayit_id).tutar == _D('3000')
+
+        # Tutari degistir + sync
+        t.tutar = _D('3500')
+        _kursiyer_taksit_gelir_kaydi_sync(t)
+        db_session.commit()
+
+        guncel = GelirGiderKaydi.query.get(kayit_id)
+        assert guncel.tutar == _D('3500'), \
+            'Taksit tutari degisti ama muhasebe kaydi senkron olmadi!'
+
+
 def test_kursiyer_taksiti_geri_alindiginda_gelir_silinir(
     app, db_session, admin_user,
 ):

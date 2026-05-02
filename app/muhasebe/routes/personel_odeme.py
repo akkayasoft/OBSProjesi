@@ -4,7 +4,8 @@ from app.utils import role_required, current_user
 from app.extensions import db
 from app.models.muhasebe import Personel, PersonelOdemeKaydi, BankaHesabi
 from app.muhasebe.forms import PersonelForm, PersonelOdemeForm
-from app.muhasebe.utils import banka_hareketi_olustur
+from app.muhasebe.utils import (banka_hareketi_olustur,
+                                  personel_odemesi_icin_gider_kaydi_olustur)
 
 bp = Blueprint('personel_odeme', __name__)
 
@@ -79,12 +80,16 @@ def odeme_ekle(personel_id):
             olusturan_id=current_user.id
         )
         db.session.add(odeme)
+        db.session.flush()  # odeme.id'nin ve diger alanlarin gorulmesi icin
 
         if form.banka_hesap_id.data:
             banka_hareketi_olustur(
                 form.banka_hesap_id.data, 'cikis', form.tutar.data,
                 aciklama=f'Personel maaş: {personel.tam_ad} ({form.donem.data})'
             )
+
+        # Otomatik 'Personel Maaslari' gider kaydi
+        personel_odemesi_icin_gider_kaydi_olustur(odeme)
 
         db.session.commit()
         flash('Personel ödemesi başarıyla kaydedildi.', 'success')

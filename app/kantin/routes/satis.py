@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models.kantin import KantinSatis, KantinUrun
 from app.models.muhasebe import Ogrenci
 from app.kantin.forms import KantinSatisForm
+from app.muhasebe.utils import kantin_satisi_icin_gelir_kaydi_olustur
 
 bp = Blueprint('satis', __name__)
 
@@ -41,6 +42,11 @@ def yeni():
             )
             urun.stok -= form.miktar.data
             db.session.add(satis)
+            db.session.flush()  # satis.id ve relationship'lerin gorunmesi icin
+
+            # Otomatik 'Kantin Geliri' gelir kaydi
+            kantin_satisi_icin_gelir_kaydi_olustur(satis, current_user.id)
+
             db.session.commit()
             flash(f'Satis yapildi: {urun.ad} x{form.miktar.data} = {satis.toplam_fiyat:.2f} TL', 'success')
             return redirect(url_for('kantin.satis.yeni'))

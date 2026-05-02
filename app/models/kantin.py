@@ -59,6 +59,14 @@ class KantinSatis(db.Model):
     tarih = db.Column(db.DateTime, default=datetime.utcnow)
     personel_id = db.Column(db.Integer, db.ForeignKey('personeller.id'), nullable=True)
 
+    # Otomatik 'Kantin Geliri' gelir kaydi linki. Satis yapildiginda
+    # otomatik olusur, satis silinirse temizlenir.
+    gelir_gider_kayit_id = db.Column(
+        db.Integer,
+        db.ForeignKey('gelir_gider_kayitlari.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+
     ogrenci = db.relationship('Ogrenci', backref=db.backref('kantin_satislari', lazy='dynamic'))
     personel = db.relationship('Personel', backref=db.backref('kantin_satislari', lazy='dynamic'))
 

@@ -278,6 +278,14 @@ class PersonelOdemeKaydi(db.Model):
     tarih = db.Column(db.Date, nullable=False, default=date.today)
     olusturan_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
+    # Otomatik 'Personel Maaslari' gider kaydi linki. Maas odeme
+    # yapildiginda otomatik olusur, iptal/silme durumunda temizlenir.
+    gelir_gider_kayit_id = db.Column(
+        db.Integer,
+        db.ForeignKey('gelir_gider_kayitlari.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+
     olusturan = db.relationship('User', backref='personel_odeme_kayitlari')
     banka_hesap = db.relationship('BankaHesabi', backref='personel_odeme_kayitlari')
 

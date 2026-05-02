@@ -190,6 +190,10 @@ def create_all_tables_cmd():
         ('surucu_sinav_harci_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
         # OBS muhasebe — odeme alinca otomatik gelir kaydi linklemesi
         ('odemeler', 'gelir_gider_kayit_id', 'INTEGER'),
+        # Personel maas odemesi -> Gider linki
+        ('personel_odeme_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
+        # Kantin satisi -> Gelir linki
+        ('kantin_satislar', 'gelir_gider_kayit_id', 'INTEGER'),
     ]
 
     with master_session() as s:

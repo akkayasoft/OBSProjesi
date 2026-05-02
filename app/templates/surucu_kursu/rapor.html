@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Raporlar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-graph-up-arrow me-2 text-warning"></i>Sürücü Kursu Raporlama
+        </h4>
+        <small class="text-muted">
+            {{ bugun.strftime('%d.%m.%Y') }} itibarıyla mali ve operasyonel özet
+        </small>
+    </div>
+</div>
+
+<!-- KPI KARTLARI -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #0d6efd;">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                    <i class="bi bi-people-fill me-1"></i>Aktif Kursiyer
+                </small>
+                <div class="fs-2 fw-bold mt-1">{{ toplam_aktif }}</div>
+                <small class="text-muted">
+                    {{ toplam_pasif }} pasif · Bu ay <strong class="text-success">+{{ bu_ay_yeni }}</strong> yeni kayıt
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #198754;">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                    <i class="bi bi-cash-coin me-1"></i>Bu Ay Net
+                </small>
+                <div class="fs-2 fw-bold mt-1 {% if bu_ay_net < 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ '%.2f'|format(bu_ay_net) }} ₺
+                </div>
+                <small class="text-muted">
+                    Gelir <strong class="text-success">{{ '%.2f'|format(bu_ay_gelir) }}₺</strong> /
+                    Gider <strong class="text-danger">{{ '%.2f'|format(bu_ay_gider) }}₺</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #ffc107;">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                    <i class="bi bi-hourglass-split me-1"></i>Bekleyen Tahsilat
+                </small>
+                <div class="fs-2 fw-bold mt-1 text-warning">
+                    {{ '%.2f'|format(bekleyen_top) }} ₺
+                </div>
+                <small class="text-muted">
+                    Tüm ödenmemiş eğitim ücreti taksitleri
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #dc3545;">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Geciken
+                </small>
+                <div class="fs-2 fw-bold mt-1 text-danger">
+                    {{ geciken_sayi }}
+                </div>
+                <small class="text-muted">
+                    Vade tutarı <strong>{{ '%.2f'|format(geciken_top) }}₺</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- MALI TREND (Son 6 ay) -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-bar-chart-line me-1 text-success"></i>
+                    Son 6 Ay Mali Trend
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if mali_trend %}
+                <table class="table table-sm mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Ay</th>
+                            <th class="text-end text-success">Gelir</th>
+                            <th class="text-end text-danger">Gider</th>
+                            <th class="text-end">Net</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in mali_trend %}
+                        <tr>
+                            <td><small><strong>{{ m.ay }}</strong></small></td>
+                            <td class="text-end"><small>{{ '%.2f'|format(m.gelir) }} ₺</small></td>
+                            <td class="text-end"><small>{{ '%.2f'|format(m.gider) }} ₺</small></td>
+                            <td class="text-end">
+                                <small class="fw-bold {% if m.net < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {{ '%.2f'|format(m.net) }} ₺
+                                </small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3"><small>Henüz veri yok.</small></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- AYLIK YENI KAYIT TRENDI -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person-plus me-1 text-primary"></i>
+                    Aylık Yeni Kayıt (Son 12 Ay)
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if aylik_kayit %}
+                <table class="table table-sm mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Ay</th>
+                            <th>Yeni Kursiyer</th>
+                            <th>Görsel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set max_ay_sayi = aylik_kayit|map(attribute=1)|max %}
+                        {% for ay, sayi in aylik_kayit %}
+                        <tr>
+                            <td><small><strong>{{ ay }}</strong></small></td>
+                            <td><small>{{ sayi }}</small></td>
+                            <td>
+                                <div class="progress" style="height: 8px; min-width: 80px;">
+                                    <div class="progress-bar bg-primary"
+                                         style="width: {{ (sayi / max_ay_sayi * 100)|round|int }}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3"><small>Son 12 ayda kayıt yok.</small></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <!-- EHLIYET SINIFI DAGILIMI -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-diagram-3 me-1 text-info"></i>
+                    Ehliyet Sınıfı Dağılımı (Aktif Kursiyerler)
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if ehliyet_dagilim %}
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Sınıf</th>
+                            <th class="text-end">Sayı</th>
+                            <th class="text-end">Toplam Ciro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set max_sayi = ehliyet_dagilim|map(attribute='sayi')|max %}
+                        {% for e in ehliyet_dagilim %}
+                        <tr>
+                            <td>
+                                <small>
+                                    <span class="badge bg-info text-dark">{{ e.kod }}</span>
+                                    {{ e.ad }}
+                                </small>
+                            </td>
+                            <td class="text-end">
+                                <strong>{{ e.sayi }}</strong>
+                                <div class="progress" style="height: 4px;">
+                                    <div class="progress-bar bg-info"
+                                         style="width: {{ (e.sayi / max_sayi * 100)|round|int }}%"></div>
+                                </div>
+                            </td>
+                            <td class="text-end"><small>{{ '%.2f'|format(e.toplam_fiyat) }} ₺</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3"><small>Aktif kursiyer yok.</small></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- EGITMEN PERFORMANSI -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person-workspace me-1 text-secondary"></i>
+                    Eğitmen Performansı
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if egitmen_dagilim %}
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Eğitmen</th>
+                            <th class="text-end">Kursiyer</th>
+                            <th class="text-end">Toplam Ciro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in egitmen_dagilim %}
+                        <tr>
+                            <td><small><strong>{{ e.ad }}</strong></small></td>
+                            <td class="text-end">
+                                {% if e.kursiyer_sayi > 0 %}
+                                <span class="badge bg-secondary">{{ e.kursiyer_sayi }}</span>
+                                {% else %}
+                                <small class="text-muted">—</small>
+                                {% endif %}
+                            </td>
+                            <td class="text-end"><small>{{ '%.2f'|format(e.toplam_ciro) }} ₺</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3"><small>Eğitmen yok.</small></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <!-- GECIKEN TAKSITLER -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger bg-opacity-10">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-1 text-danger"></i>
+                    Geciken Taksitler ({{ geciken_sayi }})
+                </h6>
+            </div>
+            <div class="card-body p-0" style="max-height: 360px; overflow-y: auto;">
+                {% if geciken_taksitler %}
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead style="position:sticky; top:0; background:white;">
+                        <tr>
+                            <th>Kursiyer</th>
+                            <th>Vade</th>
+                            <th class="text-end">Tutar</th>
+                            <th class="text-end">Gecikme</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in geciken_taksitler %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=t.kursiyer_id) }}"
+                                   class="text-decoration-none">
+                                    <small><strong>{{ t.kursiyer.tam_ad }}</strong></small>
+                                </a>
+                                <small class="text-muted d-block">{{ t.sira }}. taksit</small>
+                            </td>
+                            <td><small>{{ t.vade_tarihi.strftime('%d.%m.%Y') }}</small></td>
+                            <td class="text-end"><strong>{{ '%.2f'|format(t.tutar) }} ₺</strong></td>
+                            <td class="text-end">
+                                <small class="badge bg-danger">
+                                    {{ (bugun - t.vade_tarihi).days }} gün
+                                </small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-success py-3">
+                    <i class="bi bi-check-circle fs-2 d-block mb-1"></i>
+                    <small>Geciken taksit yok 🎉</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- YAKLAŞAN VADELER -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h6 class="mb-0"><i class="bi bi-calendar-event me-1 text-warning"></i>
+                    Yaklaşan Vadeler (Önümüzdeki 30 Gün)
+                </h6>
+            </div>
+            <div class="card-body p-0" style="max-height: 360px; overflow-y: auto;">
+                {% if yaklasan_taksitler %}
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead style="position:sticky; top:0; background:white;">
+                        <tr>
+                            <th>Kursiyer</th>
+                            <th>Vade</th>
+                            <th class="text-end">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in yaklasan_taksitler %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=t.kursiyer_id) }}"
+                                   class="text-decoration-none">
+                                    <small><strong>{{ t.kursiyer.tam_ad }}</strong></small>
+                                </a>
+                                <small class="text-muted d-block">{{ t.sira }}. taksit</small>
+                            </td>
+                            <td><small>{{ t.vade_tarihi.strftime('%d.%m.%Y') }}</small></td>
+                            <td class="text-end"><strong>{{ '%.2f'|format(t.tutar) }} ₺</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <small>30 gün içinde vade yok.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <!-- SINAV PERFORMANSI -->
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-receipt me-1 text-info"></i>
+                        Sınav Harç Performansı
+                    </h6>
+                    <small class="text-muted">
+                        Yıl tahsil <strong class="text-success">{{ '%.2f'|format(yil_sinav_tahsil) }}₺</strong> ·
+                        Borçlu <strong class="text-warning">{{ '%.2f'|format(yil_sinav_borclu) }}₺</strong>
+                    </small>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if sinav_ozet %}
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Sınav Tipi</th>
+                            <th class="text-center">Borçlu</th>
+                            <th class="text-center">Tahsil</th>
+                            <th class="text-end">Borç Tutarı</th>
+                            <th class="text-end">Tahsil Tutarı</th>
+                            <th class="text-end">Tahsil Oranı</th>
+                            <th class="text-end">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sinav_ozet %}
+                        {% set toplam = s.borclu + s.tahsil %}
+                        {% set oran = (s.tahsil / toplam * 100)|round|int if toplam > 0 else 0 %}
+                        <tr>
+                            <td><small><strong>{{ s.oturum.sinav_tarihi.strftime('%d.%m.%Y') }}</strong></small></td>
+                            <td><small><span class="badge bg-info text-dark">{{ s.oturum.sinav_tipi_str }}</span></small></td>
+                            <td class="text-center">
+                                {% if s.borclu > 0 %}
+                                <span class="badge bg-warning text-dark">{{ s.borclu }}</span>
+                                {% else %}<small class="text-muted">—</small>{% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if s.tahsil > 0 %}
+                                <span class="badge bg-success">{{ s.tahsil }}</span>
+                                {% else %}<small class="text-muted">—</small>{% endif %}
+                            </td>
+                            <td class="text-end"><small>{{ '%.2f'|format(s.borclu_top) }} ₺</small></td>
+                            <td class="text-end"><small class="text-success">{{ '%.2f'|format(s.tahsil_top) }} ₺</small></td>
+                            <td class="text-end" style="min-width:120px;">
+                                <small><strong>%{{ oran }}</strong></small>
+                                <div class="progress" style="height:4px;">
+                                    <div class="progress-bar bg-{% if oran >= 80 %}success{% elif oran >= 50 %}warning{% else %}danger{% endif %}"
+                                         style="width: {{ oran }}%"></div>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('surucu_kursu.sinav_harc_detay', oturum_id=s.oturum.id) }}"
+                                   class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3"><small>Henüz sınav oturumu yok.</small></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<small class="text-muted d-block mt-3 text-center">
+    <i class="bi bi-info-circle me-1"></i>
+    Rapor verileri gerçek zamanlıdır; yenilemek için sayfayı tekrar yükleyin.
+</small>
+{% endblock %}

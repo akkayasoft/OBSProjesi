@@ -4,7 +4,8 @@ Sadece kurum_tipi='surucu_kursu' tenant'larinda menude gorunur,
 ama URL'ler her tenant'ta calisir (yetkili kullanici varsa). Mevcut
 OBS'i etkilememek icin /surucu-kursu/ prefix'i kullanilir.
 """
-from datetime import date, datetime
+from collections import defaultdict
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 from flask import (render_template, redirect, url_for, flash, request,
@@ -755,3 +756,190 @@ def sinav_harc_oturum_sil(oturum_id):
     else:
         flash(f'{tarih} sınav oturumu silindi.', 'info')
     return redirect(url_for('surucu_kursu.sinav_harc_liste'))
+
+
+# === Raporlama ===
+
+@surucu_kursu_bp.route('/rapor/')
+@login_required
+def rapor_dashboard():
+    """Surucu kursu icin kapsamli raporlama sayfasi.
+
+    KPI kartlari + ehliyet sinifi dagilimi + egitmen performansi +
+    geciken/yaklasan taksitler + sinav oturum ozeti + son 6 ay mali
+    trendi tek sayfada.
+    """
+    _surucu_kursu_tenant_required()
+
+    bugun = date.today()
+    ay_basi = bugun.replace(day=1)
+    # Son 6 ayin baslangici
+    ay_geriye = ay_basi.replace(day=1)
+    for _ in range(5):
+        # bir onceki ayin 1'ine kay
+        prev = ay_geriye - timedelta(days=1)
+        ay_geriye = prev.replace(day=1)
+
+    # === KPI'lar ===
+    toplam_aktif = Kursiyer.query.filter_by(aktif=True).count()
+    toplam_pasif = Kursiyer.query.filter_by(aktif=False).count()
+    bu_ay_yeni = Kursiyer.query.filter(
+        Kursiyer.kayit_tarihi >= ay_basi,
+    ).count()
+
+    bu_ay_gelir = float(db.session.query(
+        func.coalesce(func.sum(GelirGiderKaydi.tutar), 0)
+    ).filter(
+        GelirGiderKaydi.tur == 'gelir',
+        GelirGiderKaydi.tarih >= ay_basi,
+    ).scalar() or 0)
+
+    bu_ay_gider = float(db.session.query(
+        func.coalesce(func.sum(GelirGiderKaydi.tutar), 0)
+    ).filter(
+        GelirGiderKaydi.tur == 'gider',
+        GelirGiderKaydi.tarih >= ay_basi,
+    ).scalar() or 0)
+
+    bu_ay_net = bu_ay_gelir - bu_ay_gider
+
+    # Bekleyen tahsilat (egitim ucreti)
+    bekleyen_top = float(db.session.query(
+        func.coalesce(func.sum(KursiyerTaksit.tutar), 0)
+    ).filter(KursiyerTaksit.odendi_mi.is_(False)).scalar() or 0)
+
+    # Gecikmis taksit (vadesi gecmis ve odenmemis)
+    geciken_taksitler = KursiyerTaksit.query.filter(
+        KursiyerTaksit.odendi_mi.is_(False),
+        KursiyerTaksit.vade_tarihi < bugun,
+    ).order_by(KursiyerTaksit.vade_tarihi.asc()).all()
+    geciken_top = sum(float(t.tutar) for t in geciken_taksitler)
+    geciken_sayi = len(geciken_taksitler)
+
+    # Yaklasan vadeler (onumuzdeki 30 gun)
+    yaklasan_taksitler = KursiyerTaksit.query.filter(
+        KursiyerTaksit.odendi_mi.is_(False),
+        KursiyerTaksit.vade_tarihi >= bugun,
+        KursiyerTaksit.vade_tarihi <= bugun + timedelta(days=30),
+    ).order_by(KursiyerTaksit.vade_tarihi.asc()).all()
+
+    # === Ehliyet sinifi dagilimi ===
+    ehliyet_dagilim_raw = db.session.query(
+        Kursiyer.ehliyet_sinifi,
+        func.count(Kursiyer.id),
+        func.coalesce(func.sum(Kursiyer.fiyat), 0),
+    ).filter(Kursiyer.aktif.is_(True)).group_by(Kursiyer.ehliyet_sinifi).all()
+    ehliyet_dagilim = [
+        {
+            'kod': kod,
+            'ad': EHLIYET_SINIF_DICT.get(kod, kod),
+            'sayi': sayi,
+            'toplam_fiyat': float(toplam),
+        }
+        for kod, sayi, toplam in ehliyet_dagilim_raw
+    ]
+    ehliyet_dagilim.sort(key=lambda x: -x['sayi'])
+
+    # === Egitmen performansi ===
+    egitmen_dagilim_raw = db.session.query(
+        User.id, User.ad, User.soyad,
+        func.count(Kursiyer.id),
+        func.coalesce(func.sum(Kursiyer.fiyat), 0),
+    ).outerjoin(Kursiyer, (Kursiyer.egitmen_id == User.id) &
+                          (Kursiyer.aktif.is_(True))).filter(
+        User.aktif.is_(True),
+        User.rol.in_(['admin', 'yonetici', 'ogretmen']),
+    ).group_by(User.id, User.ad, User.soyad).all()
+    egitmen_dagilim = [
+        {
+            'ad': f'{ad} {soyad}',
+            'kursiyer_sayi': sayi,
+            'toplam_ciro': float(ciro),
+        }
+        for _, ad, soyad, sayi, ciro in egitmen_dagilim_raw
+    ]
+    egitmen_dagilim.sort(key=lambda x: -x['kursiyer_sayi'])
+
+    # === Aylik kayit trendi (son 12 ay) ===
+    son_12_ay = bugun - timedelta(days=365)
+    kayit_listesi = db.session.query(Kursiyer.kayit_tarihi).filter(
+        Kursiyer.kayit_tarihi >= son_12_ay,
+    ).all()
+    aylik_kayit = defaultdict(int)
+    for (tarih,) in kayit_listesi:
+        if tarih:
+            anahtar = tarih.strftime('%Y-%m')
+            aylik_kayit[anahtar] += 1
+    aylik_kayit_sirali = sorted(aylik_kayit.items())
+
+    # === Mali trend (son 6 ay) ===
+    mali_kayitlar = db.session.query(
+        GelirGiderKaydi.tur,
+        GelirGiderKaydi.tarih,
+        GelirGiderKaydi.tutar,
+    ).filter(GelirGiderKaydi.tarih >= ay_geriye).all()
+    mali_trend = defaultdict(lambda: {'gelir': 0.0, 'gider': 0.0})
+    for tur, tarih, tutar in mali_kayitlar:
+        anahtar = tarih.strftime('%Y-%m')
+        mali_trend[anahtar][tur] += float(tutar or 0)
+    mali_trend_sirali = []
+    for anahtar in sorted(mali_trend.keys()):
+        v = mali_trend[anahtar]
+        mali_trend_sirali.append({
+            'ay': anahtar,
+            'gelir': v['gelir'], 'gider': v['gider'],
+            'net': v['gelir'] - v['gider'],
+        })
+
+    # === Sinav performans ozeti (son 5 oturum) ===
+    son_oturumlar = SurucuSinavOturumu.query.order_by(
+        SurucuSinavOturumu.sinav_tarihi.desc()
+    ).limit(5).all()
+    sinav_ozet = []
+    for o in son_oturumlar:
+        kayitlar = list(o.harc_kayitlari)
+        borclu = sum(1 for h in kayitlar if h.durum == 'aday_borclu')
+        tahsil = sum(1 for h in kayitlar if h.durum == 'tahsil_edildi')
+        tahsil_top = sum(float(h.ucret or 0) for h in kayitlar
+                         if h.durum == 'tahsil_edildi')
+        borclu_top = sum(float(h.ucret or 0) for h in kayitlar
+                         if h.durum == 'aday_borclu')
+        sinav_ozet.append({
+            'oturum': o, 'borclu': borclu, 'tahsil': tahsil,
+            'tahsil_top': tahsil_top, 'borclu_top': borclu_top,
+        })
+
+    # === Yil bazi sinav harci toplam ==
+    yil_basi = date(bugun.year, 1, 1)
+    yil_sinav_tahsil = float(db.session.query(
+        func.coalesce(func.sum(SurucuSinavHarciKaydi.ucret), 0)
+    ).filter(
+        SurucuSinavHarciKaydi.durum == 'tahsil_edildi',
+        SurucuSinavHarciKaydi.tahsil_tarihi >= yil_basi,
+    ).scalar() or 0)
+    yil_sinav_borclu = float(db.session.query(
+        func.coalesce(func.sum(SurucuSinavHarciKaydi.ucret), 0)
+    ).filter(SurucuSinavHarciKaydi.durum == 'aday_borclu').scalar() or 0)
+
+    return render_template(
+        'surucu_kursu/rapor.html',
+        # KPI
+        toplam_aktif=toplam_aktif, toplam_pasif=toplam_pasif,
+        bu_ay_yeni=bu_ay_yeni,
+        bu_ay_gelir=bu_ay_gelir, bu_ay_gider=bu_ay_gider,
+        bu_ay_net=bu_ay_net,
+        bekleyen_top=bekleyen_top,
+        geciken_top=geciken_top, geciken_sayi=geciken_sayi,
+        # Tablolar
+        geciken_taksitler=geciken_taksitler[:20],
+        yaklasan_taksitler=yaklasan_taksitler[:20],
+        ehliyet_dagilim=ehliyet_dagilim,
+        egitmen_dagilim=egitmen_dagilim,
+        aylik_kayit=aylik_kayit_sirali,
+        mali_trend=mali_trend_sirali,
+        sinav_ozet=sinav_ozet,
+        yil_sinav_tahsil=yil_sinav_tahsil,
+        yil_sinav_borclu=yil_sinav_borclu,
+        # Yardimcilar
+        bugun=bugun,
+    )

@@ -476,6 +476,12 @@ def create_app(config_class=Config):
                     {'label': 'Yeni Sınav Oturumu', 'icon': 'bi-plus-circle',
                      'url': '/surucu-kursu/sinav-harc/yeni'},
                  ], 'renk_kat': 'sari'},
+                {'label': 'Raporlar', 'icon': 'bi-graph-up-arrow',
+                 'url': '/surucu-kursu/rapor/', 'modul_key': None,
+                 'children': [
+                    {'label': 'Genel Rapor', 'icon': 'bi-bar-chart-line',
+                     'url': '/surucu-kursu/rapor/'},
+                 ], 'renk_kat': 'turuncu'},
                 {'label': 'Muhasebe', 'icon': 'bi-cash-stack', 'url': '/muhasebe/',
                  'modul_key': None, 'children': [
                     {'label': 'Gelir / Gider', 'icon': 'bi-arrow-left-right',

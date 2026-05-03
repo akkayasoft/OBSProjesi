@@ -43,6 +43,13 @@ EHLIYET_SINIFLARI = [
     ('F',          'F (Traktör)'),
     ('G',          'G (İş Makinesi)'),
     ('ozel_ders',  'Özel Ders (Kayıtsız Aday)'),
+    # Mesleki yeterlilik (SRC) ve psikoteknik
+    ('SRC1',       'SRC1 (Yurt İçi Yolcu Taşımacılığı)'),
+    ('SRC2',       'SRC2 (Yurt Dışı Yolcu Taşımacılığı)'),
+    ('SRC3',       'SRC3 (Yurt İçi Eşya/Kargo)'),
+    ('SRC4',       'SRC4 (Yurt Dışı Eşya/Kargo)'),
+    ('SRC5',       'SRC5 (Tehlikeli Madde – ADR)'),
+    ('psikoteknik','Psikoteknik Değerlendirme'),
 ]
 
 EHLIYET_SINIF_DICT = dict(EHLIYET_SINIFLARI)

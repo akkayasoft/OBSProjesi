@@ -301,8 +301,29 @@ def kursiyer_yeni():
             aktif=True,
         )
         db.session.add(k)
+        db.session.flush()  # k.id icin
+
+        # Cogul ehliyet (checkbox'lardan gelenler) - birincil olani hariç
+        ek_kodlar = request.form.getlist('ek_ehliyetler')
+        eklenen = 0
+        for kod in ek_kodlar:
+            kod = (kod or '').strip()
+            if not kod or kod == ehliyet_sinifi:
+                continue
+            if kod not in EHLIYET_SINIF_DICT:
+                continue
+            db.session.add(KursiyerEhliyet(
+                kursiyer_id=k.id, ehliyet_sinifi=kod,
+                durum='aktif',
+            ))
+            eklenen += 1
+
         db.session.commit()
-        flash(f'"{k.tam_ad}" eklendi.', 'success')
+        if eklenen:
+            flash(f'"{k.tam_ad}" eklendi ({eklenen} ek ehliyet ile).',
+                  'success')
+        else:
+            flash(f'"{k.tam_ad}" eklendi.', 'success')
         return redirect(url_for('surucu_kursu.kursiyer_detay',
                                 kursiyer_id=k.id))
 

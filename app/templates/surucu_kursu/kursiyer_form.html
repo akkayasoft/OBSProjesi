@@ -47,7 +47,7 @@
                            value="{{ form.kayit_tarihi }}" required>
                 </div>
                 <div class="col-md-8">
-                    <label class="form-label small">Ehliyet Sınıfı *</label>
+                    <label class="form-label small">Birincil Ehliyet Sınıfı *</label>
                     <select name="ehliyet_sinifi" class="form-select form-select-sm" required>
                         <option value="">— Seçiniz —</option>
                         {% for kod, ad in ehliyet_siniflari %}
@@ -57,6 +57,37 @@
                         {% endfor %}
                     </select>
                 </div>
+                {% if not kursiyer %}
+                <div class="col-12">
+                    <label class="form-label small">
+                        Ek Ehliyetler / SRC / Psikoteknik
+                        <span class="text-muted">(birden fazla seçilebilir)</span>
+                    </label>
+                    <div class="border rounded p-2 bg-light"
+                         style="max-height:220px;overflow-y:auto;">
+                        <div class="row g-1">
+                            {% for kod, ad in ehliyet_siniflari %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="form-check form-check-sm">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="ek_ehliyetler"
+                                           value="{{ kod }}"
+                                           id="ehl_{{ kod }}">
+                                    <label class="form-check-label small"
+                                           for="ehl_{{ kod }}">{{ ad }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        Birincil seçtiğiniz ehliyet otomatik atanır,
+                        burada işaretlediklerinizden farklı olanlar
+                        ek ehliyet olarak eklenir.
+                    </small>
+                </div>
+                {% endif %}
                 <div class="col-md-3">
                     <label class="form-label small">Ders Sayısı</label>
                     <input type="number" name="ders_sayisi" min="0" class="form-control form-control-sm"

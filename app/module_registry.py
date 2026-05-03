@@ -45,6 +45,11 @@ MODUL_URL_PREFIX = {
     'denetim': '/denetim',
     'belge': '/belge',
     'ders_programi': '/ders-programi',
+    # Surucu kursu URL'leri
+    'surucu_kursiyer':    '/surucu-kursu/kursiyer',
+    'surucu_sinav_harc':  '/surucu-kursu/sinav-harc',
+    'surucu_yonlendirme': '/surucu-kursu/yonlendirmeler',
+    'surucu_rapor':       '/surucu-kursu/rapor',
 }
 
 

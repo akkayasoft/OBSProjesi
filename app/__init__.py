@@ -457,12 +457,24 @@ def create_app(config_class=Config):
         if _kurum_tipi == 'surucu_kursu' and current_user.is_authenticated:
             # OBS'in zengin menusunu tamamen by-pass et — sadece surucu kursu icin
             # gerekli menuleri goster.
-            surucu_menu = [
+            from app.models.ayarlar import RolModulIzin
+
+            _rol = current_user.rol
+
+            def _gor(modul_key):
+                """Bu rol bu modulu menude gorebilir mi?"""
+                if _rol in ('admin', 'yonetici'):
+                    return True  # admin/yonetici hep gorur
+                return RolModulIzin.izin_var_mi(_rol, modul_key)
+
+            surucu_menu_full = [
+                # Ana Sayfa herkes icin gorunur (modul_key None)
                 {'label': 'Ana Sayfa', 'icon': 'bi-house-door',
                  'url': '/surucu-kursu/',
                  'modul_key': None, 'children': [], 'renk_kat': 'gri'},
                 {'label': 'Kursiyerler', 'icon': 'bi-people-fill',
-                 'url': '/surucu-kursu/kursiyer/', 'modul_key': None,
+                 'url': '/surucu-kursu/kursiyer/',
+                 'modul_key': 'surucu_kursiyer',
                  'children': [
                     {'label': 'Tüm Kursiyerler', 'icon': 'bi-list-ul',
                      'url': '/surucu-kursu/kursiyer/'},
@@ -472,7 +484,8 @@ def create_app(config_class=Config):
                      'url': '/surucu-kursu/kursiyer/toplu'},
                  ], 'renk_kat': 'mavi'},
                 {'label': 'Sınav Harç', 'icon': 'bi-receipt',
-                 'url': '/surucu-kursu/sinav-harc/', 'modul_key': None,
+                 'url': '/surucu-kursu/sinav-harc/',
+                 'modul_key': 'surucu_sinav_harc',
                  'children': [
                     {'label': 'Sınav Oturumları', 'icon': 'bi-list-ul',
                      'url': '/surucu-kursu/sinav-harc/'},
@@ -480,28 +493,50 @@ def create_app(config_class=Config):
                      'url': '/surucu-kursu/sinav-harc/yeni'},
                  ], 'renk_kat': 'sari'},
                 {'label': 'Yönlendirmeler', 'icon': 'bi-arrow-up-right-square',
-                 'url': '/surucu-kursu/yonlendirmeler', 'modul_key': None,
+                 'url': '/surucu-kursu/yonlendirmeler',
+                 'modul_key': 'surucu_yonlendirme',
                  'children': [], 'renk_kat': 'sari'},
                 {'label': 'Raporlar', 'icon': 'bi-graph-up-arrow',
-                 'url': '/surucu-kursu/rapor/', 'modul_key': None,
+                 'url': '/surucu-kursu/rapor/',
+                 'modul_key': 'surucu_rapor',
                  'children': [
                     {'label': 'Genel Rapor', 'icon': 'bi-bar-chart-line',
                      'url': '/surucu-kursu/rapor/'},
                  ], 'renk_kat': 'turuncu'},
                 {'label': 'Muhasebe', 'icon': 'bi-cash-stack', 'url': '/muhasebe/',
-                 'modul_key': None, 'children': [
+                 'modul_key': 'muhasebe',
+                 'children': [
                     {'label': 'Gelir / Gider', 'icon': 'bi-arrow-left-right',
                      'url': '/muhasebe/gelir-gider/'},
                     {'label': 'Banka Hesapları', 'icon': 'bi-bank',
                      'url': '/muhasebe/banka/'},
                  ], 'renk_kat': 'yesil'},
                 {'label': 'Kullanıcı Yönetimi', 'icon': 'bi-shield-lock',
-                 'url': '/kullanici/', 'modul_key': None, 'children': [
+                 'url': '/kullanici/',
+                 'modul_key': 'kullanici',
+                 'children': [
                     {'label': 'Kullanıcı Listesi', 'icon': 'bi-people',
                      'url': '/kullanici/liste'},
                     {'label': 'Yeni Kullanıcı', 'icon': 'bi-person-plus',
                      'url': '/kullanici/yeni'},
                  ], 'renk_kat': 'mor'},
+            ]
+            # Yetkilendirme - SADECE admin/yonetici icin (modul_key kontrolu yok)
+            if _rol in ('admin', 'yonetici'):
+                surucu_menu_full.append({
+                    'label': 'Ayarlar', 'icon': 'bi-gear',
+                    'url': '/surucu-kursu/ayarlar/yetkilendirme',
+                    'modul_key': None,
+                    'children': [
+                        {'label': 'Yetkilendirme', 'icon': 'bi-shield-lock',
+                         'url': '/surucu-kursu/ayarlar/yetkilendirme'},
+                    ],
+                    'renk_kat': 'mor',
+                })
+            # modul_key None ya da izin var ise menude tut
+            surucu_menu = [
+                m for m in surucu_menu_full
+                if m['modul_key'] is None or _gor(m['modul_key'])
             ]
             return dict(menu_items=surucu_menu, aktif_renk='mavi')
 

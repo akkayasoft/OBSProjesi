@@ -53,7 +53,23 @@ class RolModulIzin(db.Model):
         'belge': 'Belge Yönetimi',
         'ayarlar': 'Sistem Ayarları',
         'bildirim': 'Bildirimler',
+        # Surucu kursu modulleri (sadece kurum_tipi='surucu_kursu' tenantlarinda kullanilir)
+        'surucu_kursiyer':    'Sürücü Kursu — Kursiyerler',
+        'surucu_sinav_harc':  'Sürücü Kursu — Sınav Harç',
+        'surucu_yonlendirme': 'Sürücü Kursu — Yönlendirmeler',
+        'surucu_rapor':       'Sürücü Kursu — Raporlar',
     }
+
+    # Sadece surucu kursu yetkilendirme sayfasinda gosterilecek alt
+    # kume (yonetici buradaki modulleri rol bazinda toggle'layabilir).
+    SURUCU_KURSU_MODUL_KEYLERI = [
+        'surucu_kursiyer',
+        'surucu_sinav_harc',
+        'surucu_yonlendirme',
+        'surucu_rapor',
+        'muhasebe',
+        'kullanici',
+    ]
 
     ROLLER = {
         'admin': 'Sistem Yöneticisi',

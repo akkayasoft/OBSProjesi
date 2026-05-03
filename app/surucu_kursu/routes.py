@@ -177,6 +177,44 @@ def _surucu_kursu_tenant_required():
         abort(404)
 
 
+# URL prefix'leri -> modul_key esleme (yetkilendirme icin)
+# Yonetici, yetkilendirme sayfasindan rolun bu modullere erisimini
+# kapatabilir; o zaman before_request kontrolu 403 doner.
+_SURUCU_URL_GATES = [
+    ('/surucu-kursu/kursiyer',     'surucu_kursiyer'),
+    ('/surucu-kursu/sinav-harc',   'surucu_sinav_harc'),
+    ('/surucu-kursu/yonlendirme',  'surucu_yonlendirme'),
+    ('/surucu-kursu/rapor',        'surucu_rapor'),
+]
+
+
+@surucu_kursu_bp.before_request
+def _surucu_kursu_modul_izni_kontrol():
+    """Surucu kursu URL'leri icin rol-bazli modul izni kontrolu.
+
+    - Admin ve yonetici hep gecer (yetkilendirme sayfasini kullanan onlar).
+    - Diger rollerde (egitmen/muhasebeci/...) URL'in modul_key'i
+      RolModulIzin'de aktif degilse 403.
+    - Modul_key eslesmiyorsa (ana sayfa, ayarlar) gecerli — bu
+      sayfalar zaten kendi guard'larini kullanir.
+    """
+    if not current_user.is_authenticated:
+        return  # login_required kontrolune birak
+    if current_user.rol in ('admin', 'yonetici'):
+        return  # admin/yonetici hep erisebilir
+    path = request.path or ''
+    modul_key = None
+    for prefix, mk in _SURUCU_URL_GATES:
+        if path == prefix or path.startswith(prefix + '/'):
+            modul_key = mk
+            break
+    if modul_key is None:
+        return  # eslesme yok - ana sayfa, ayarlar vs.
+    from app.models.ayarlar import RolModulIzin
+    if not RolModulIzin.izin_var_mi(current_user.rol, modul_key):
+        abort(403)
+
+
 def _decimal_or_none(s):
     if s is None or s == '':
         return None
@@ -1759,3 +1797,82 @@ def yonlendirme_sil(kursiyer_id, yonl_id):
     flash(f'"{hedef}" yönlendirme kaydı silindi.', 'info')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
                              kursiyer_id=kursiyer_id))
+
+
+# === Yetkilendirme (sadece surucu kursu modulleri icin sade UI) ===
+
+# Surucu kursu yonetim sayfasi - sadece bu rolleri gosterir
+SURUCU_KURSU_ROLLERI = [
+    ('admin',      'Sistem Yöneticisi'),
+    ('yonetici',   'Kurs Yöneticisi'),
+    ('ogretmen',   'Eğitmen'),
+    ('muhasebeci', 'Muhasebeci'),
+]
+
+
+def _admin_veya_yonetici_required():
+    """Sadece admin/yonetici erissin - yetkilendirmeyi onlar yapar."""
+    if not current_user.is_authenticated:
+        abort(401)
+    if current_user.rol not in ('admin', 'yonetici'):
+        abort(403)
+
+
+@surucu_kursu_bp.route('/ayarlar/yetkilendirme', methods=['GET', 'POST'])
+@login_required
+def yetkilendirme():
+    """Surucu kursu modulleri icin rol-bazli izin matrisi.
+    Yonetici diger rollerin (egitmen, muhasebeci) hangi modulleri
+    gorebilecegini bu sayfadan ayarlar.
+    """
+    _surucu_kursu_tenant_required()
+    _admin_veya_yonetici_required()
+
+    from app.models.ayarlar import RolModulIzin
+
+    moduller = [
+        (k, RolModulIzin.MODULLER[k])
+        for k in RolModulIzin.SURUCU_KURSU_MODUL_KEYLERI
+        if k in RolModulIzin.MODULLER
+    ]
+    roller = SURUCU_KURSU_ROLLERI
+
+    if request.method == 'POST':
+        # admin daima tum modulleri gorur — formdan gelse bile zorla True
+        for rol_kod, _ in roller:
+            for modul_key, _ in moduller:
+                aktif = (rol_kod == 'admin') or \
+                    (f'izin_{rol_kod}_{modul_key}' in request.form)
+                izin = RolModulIzin.query.filter_by(
+                    rol=rol_kod, modul_key=modul_key
+                ).first()
+                if izin:
+                    izin.aktif = aktif
+                else:
+                    db.session.add(RolModulIzin(
+                        rol=rol_kod, modul_key=modul_key, aktif=aktif,
+                    ))
+        db.session.commit()
+        flash('Yetkilendirme ayarları kaydedildi.', 'success')
+        return redirect(url_for('surucu_kursu.yetkilendirme'))
+
+    # GET: mevcut durumu hazirla
+    izinler = {}
+    for rol_kod, _ in roller:
+        izinler[rol_kod] = {}
+        for modul_key, _ in moduller:
+            iz = RolModulIzin.query.filter_by(
+                rol=rol_kod, modul_key=modul_key
+            ).first()
+            # admin varsayilan olarak hep aktif; digerleri kayit yoksa pasif
+            if iz is None:
+                izinler[rol_kod][modul_key] = (rol_kod == 'admin')
+            else:
+                izinler[rol_kod][modul_key] = iz.aktif
+
+    return render_template(
+        'surucu_kursu/yetkilendirme.html',
+        roller=roller,
+        moduller=moduller,
+        izinler=izinler,
+    )

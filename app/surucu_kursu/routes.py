@@ -19,7 +19,7 @@ from app.models.user import User
 from app.models.surucu_kursu import (
     Kursiyer, EHLIYET_SINIFLARI, EHLIYET_SINIF_DICT,
     KursiyerTaksit, SurucuSinavOturumu, SurucuSinavHarciKaydi,
-    KursiyerEhliyet,
+    KursiyerEhliyet, KursiyerYonlendirme,
 )
 from app.models.muhasebe import (
     GelirGiderKaydi, GelirGiderKategorisi, BankaHesabi,
@@ -350,6 +350,8 @@ def kursiyer_detay(kursiyer_id):
     mevcut_ehliyet_kodlari = {k.ehliyet_sinifi}
     for e in k.ek_ehliyetler:
         mevcut_ehliyet_kodlari.add(e.ehliyet_sinifi)
+    # Yonlendirmeler — en yeniden eskiye
+    yonlendirmeler = k.yonlendirmeler.all()
     return render_template(
         'surucu_kursu/kursiyer_detay.html',
         kursiyer=k,
@@ -357,6 +359,8 @@ def kursiyer_detay(kursiyer_id):
         ehliyet_siniflari=EHLIYET_SINIFLARI,
         egitmenler=egitmenler,
         mevcut_ehliyet_kodlari=mevcut_ehliyet_kodlari,
+        yonlendirmeler=yonlendirmeler,
+        yonlendirme_durumlar=KursiyerYonlendirme.DURUMLAR,
         bugun=date.today(),
     )
 
@@ -1479,5 +1483,279 @@ def kursiyer_ehliyet_sil(kursiyer_id, ehliyet_id):
     db.session.delete(e)
     db.session.commit()
     flash(f'"{sinif_str}" ehliyeti silindi.', 'info')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))
+
+# === Yonlendirme komisyon -> Muhasebe otomatik baglanti ===
+
+YONLENDIRME_KOMISYON_KATEGORI_ADI = 'Yönlendirme Komisyonu'
+
+
+def _yonlendirme_komisyon_kategorisi_getir():
+    kat = GelirGiderKategorisi.query.filter_by(
+        ad=YONLENDIRME_KOMISYON_KATEGORI_ADI, tur='gelir',
+    ).first()
+    if kat is None:
+        kat = GelirGiderKategorisi(
+            ad=YONLENDIRME_KOMISYON_KATEGORI_ADI, tur='gelir', aktif=True,
+        )
+        db.session.add(kat)
+        db.session.flush()
+    return kat
+
+
+def _yonlendirme_komisyon_gelir_olustur(yonl):
+    """Komisyon alindi olarak isaretlendiginde gelir kaydi olustur."""
+    if yonl.gelir_gider_kayit_id:
+        return None
+    if not yonl.komisyon_tutari or yonl.komisyon_tutari <= 0:
+        return None
+    kat = _yonlendirme_komisyon_kategorisi_getir()
+    aciklama = (
+        f'{yonl.kursiyer.tam_ad} — {yonl.ehliyet_sinifi_str} '
+        f'yönlendirme komisyonu ({yonl.hedef_kurs_adi})'
+    )
+    kayit = GelirGiderKaydi(
+        tur='gelir',
+        kategori_id=kat.id,
+        tutar=yonl.komisyon_tutari,
+        aciklama=aciklama,
+        tarih=yonl.komisyon_tarihi or date.today(),
+        belge_no=f'YK-{yonl.id}',
+        banka_hesap_id=None,
+        olusturan_id=current_user.id,
+    )
+    db.session.add(kayit)
+    db.session.flush()
+    yonl.gelir_gider_kayit_id = kayit.id
+    return kayit
+
+
+def _yonlendirme_komisyon_gelir_temizle(yonl):
+    if not yonl.gelir_gider_kayit_id:
+        return
+    kayit = GelirGiderKaydi.query.filter_by(
+        id=yonl.gelir_gider_kayit_id,
+    ).first()
+    if kayit:
+        db.session.delete(kayit)
+    yonl.gelir_gider_kayit_id = None
+
+
+# === Yonlendirme route'lari ===
+
+@surucu_kursu_bp.route('/yonlendirmeler')
+@login_required
+def yonlendirme_liste():
+    """Tum yonlendirmeleri listele - filtreli."""
+    _surucu_kursu_tenant_required()
+
+    durum = (request.args.get('durum') or '').strip()
+    arama = (request.args.get('arama') or '').strip()
+
+    q = KursiyerYonlendirme.query.join(Kursiyer)
+    if durum:
+        q = q.filter(KursiyerYonlendirme.durum == durum)
+    if arama:
+        like = f'%{arama}%'
+        q = q.filter(or_(
+            Kursiyer.ad.ilike(like),
+            Kursiyer.soyad.ilike(like),
+            KursiyerYonlendirme.hedef_kurs_adi.ilike(like),
+        ))
+    yonlendirmeler = q.order_by(
+        KursiyerYonlendirme.yonlendirme_tarihi.desc()
+    ).limit(500).all()
+
+    # Ozet (toplam komisyon, alinan, alinmayan)
+    toplam = sum((y.komisyon_tutari or Decimal('0'))
+                 for y in yonlendirmeler)
+    alinan = sum((y.komisyon_tutari or Decimal('0'))
+                 for y in yonlendirmeler if y.komisyon_alindi_mi)
+    bekleyen = toplam - alinan
+
+    return render_template(
+        'surucu_kursu/yonlendirme_liste.html',
+        yonlendirmeler=yonlendirmeler,
+        durum=durum, arama=arama,
+        durumlar=KursiyerYonlendirme.DURUMLAR,
+        ehliyet_dict=EHLIYET_SINIF_DICT,
+        toplam_komisyon=toplam,
+        alinan_komisyon=alinan,
+        bekleyen_komisyon=bekleyen,
+    )
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/yonlendirme/ekle',
+    methods=['POST'])
+@login_required
+def yonlendirme_ekle(kursiyer_id):
+    _surucu_kursu_tenant_required()
+    k = Kursiyer.query.get_or_404(kursiyer_id)
+
+    ehliyet_sinifi = (request.form.get('ehliyet_sinifi') or '').strip()
+    hedef_kurs_adi = (request.form.get('hedef_kurs_adi') or '').strip()
+    hedef_kurs_telefon = (request.form.get('hedef_kurs_telefon') or '').strip()
+    hedef_kurs_yetkili = (request.form.get('hedef_kurs_yetkili') or '').strip()
+    yonl_tarihi = _date_or_none(request.form.get('yonlendirme_tarihi')) \
+        or date.today()
+    komisyon = _decimal_or_none(request.form.get('komisyon_tutari')) \
+        or Decimal('0')
+    durum = (request.form.get('durum') or 'yonlendirildi').strip()
+    notlar = (request.form.get('notlar') or '').strip()
+
+    if not ehliyet_sinifi or ehliyet_sinifi not in EHLIYET_SINIF_DICT:
+        flash('Geçerli bir ehliyet sınıfı seçin.', 'danger')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=k.id))
+    if not hedef_kurs_adi:
+        flash('Hedef kursun adı zorunludur.', 'danger')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=k.id))
+    if durum not in dict(KursiyerYonlendirme.DURUMLAR):
+        durum = 'yonlendirildi'
+
+    y = KursiyerYonlendirme(
+        kursiyer_id=k.id,
+        ehliyet_sinifi=ehliyet_sinifi,
+        hedef_kurs_adi=hedef_kurs_adi,
+        hedef_kurs_telefon=hedef_kurs_telefon or None,
+        hedef_kurs_yetkili=hedef_kurs_yetkili or None,
+        yonlendiren_id=current_user.id,
+        yonlendirme_tarihi=yonl_tarihi,
+        komisyon_tutari=komisyon,
+        komisyon_alindi_mi=False,
+        durum=durum,
+        notlar=notlar or None,
+    )
+    db.session.add(y)
+    db.session.commit()
+    flash(f'Yönlendirme kaydedildi: {hedef_kurs_adi} '
+          f'({y.ehliyet_sinifi_str}).', 'success')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=k.id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/yonlendirme/<int:yonl_id>/duzenle',
+    methods=['POST'])
+@login_required
+def yonlendirme_duzenle(kursiyer_id, yonl_id):
+    _surucu_kursu_tenant_required()
+    y = KursiyerYonlendirme.query.filter_by(
+        id=yonl_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+
+    ehliyet_sinifi = (request.form.get('ehliyet_sinifi') or '').strip()
+    hedef_kurs_adi = (request.form.get('hedef_kurs_adi') or '').strip()
+    hedef_kurs_telefon = (request.form.get('hedef_kurs_telefon') or '').strip()
+    hedef_kurs_yetkili = (request.form.get('hedef_kurs_yetkili') or '').strip()
+    yonl_tarihi = _date_or_none(request.form.get('yonlendirme_tarihi'))
+    yeni_komisyon = _decimal_or_none(request.form.get('komisyon_tutari')) \
+        or Decimal('0')
+    durum = (request.form.get('durum') or '').strip()
+    notlar = (request.form.get('notlar') or '').strip()
+
+    if ehliyet_sinifi and ehliyet_sinifi in EHLIYET_SINIF_DICT:
+        y.ehliyet_sinifi = ehliyet_sinifi
+    if hedef_kurs_adi:
+        y.hedef_kurs_adi = hedef_kurs_adi
+    y.hedef_kurs_telefon = hedef_kurs_telefon or None
+    y.hedef_kurs_yetkili = hedef_kurs_yetkili or None
+    if yonl_tarihi:
+        y.yonlendirme_tarihi = yonl_tarihi
+    if durum in dict(KursiyerYonlendirme.DURUMLAR):
+        y.durum = durum
+    y.notlar = notlar or None
+
+    # Komisyon tutari degistiyse, eger gelir kaydi varsa senkronize et
+    if y.komisyon_alindi_mi and y.gelir_gider_kayit_id and \
+            yeni_komisyon != (y.komisyon_tutari or Decimal('0')):
+        # Eski kaydi sil + yenisini olustur
+        _yonlendirme_komisyon_gelir_temizle(y)
+        y.komisyon_tutari = yeni_komisyon
+        if yeni_komisyon > 0:
+            _yonlendirme_komisyon_gelir_olustur(y)
+        else:
+            y.komisyon_alindi_mi = False
+            y.komisyon_tarihi = None
+    else:
+        y.komisyon_tutari = yeni_komisyon
+
+    db.session.commit()
+    flash('Yönlendirme güncellendi.', 'success')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/yonlendirme/<int:yonl_id>/komisyon-tahsil',
+    methods=['POST'])
+@login_required
+def yonlendirme_komisyon_tahsil(kursiyer_id, yonl_id):
+    """Komisyon alindi olarak isaretle ve gelir kaydi olustur."""
+    _surucu_kursu_tenant_required()
+    y = KursiyerYonlendirme.query.filter_by(
+        id=yonl_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+    if y.komisyon_alindi_mi:
+        flash('Bu yönlendirmenin komisyonu zaten tahsil edilmiş.', 'info')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+    if not y.komisyon_tutari or y.komisyon_tutari <= 0:
+        flash('Komisyon tutarı belirtilmemiş.', 'warning')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    tarih = _date_or_none(request.form.get('komisyon_tarihi')) or date.today()
+    y.komisyon_alindi_mi = True
+    y.komisyon_tarihi = tarih
+    _yonlendirme_komisyon_gelir_olustur(y)
+    db.session.commit()
+    flash(f'Komisyon tahsil edildi: {y.komisyon_tutari} ₺ '
+          f'(gelir kaydı oluşturuldu).', 'success')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/yonlendirme/<int:yonl_id>/komisyon-iptal',
+    methods=['POST'])
+@login_required
+def yonlendirme_komisyon_iptal(kursiyer_id, yonl_id):
+    """Komisyon tahsilini geri al — gelir kaydini sil."""
+    _surucu_kursu_tenant_required()
+    y = KursiyerYonlendirme.query.filter_by(
+        id=yonl_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+    if not y.komisyon_alindi_mi:
+        flash('Bu komisyon zaten tahsil edilmemiş.', 'info')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+    _yonlendirme_komisyon_gelir_temizle(y)
+    y.komisyon_alindi_mi = False
+    y.komisyon_tarihi = None
+    db.session.commit()
+    flash('Komisyon tahsili iptal edildi.', 'info')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/yonlendirme/<int:yonl_id>/sil',
+    methods=['POST'])
+@login_required
+def yonlendirme_sil(kursiyer_id, yonl_id):
+    _surucu_kursu_tenant_required()
+    y = KursiyerYonlendirme.query.filter_by(
+        id=yonl_id, kursiyer_id=kursiyer_id
+    ).first_or_404()
+    # Bagli gelir kaydi varsa once temizle
+    _yonlendirme_komisyon_gelir_temizle(y)
+    hedef = y.hedef_kurs_adi
+    db.session.delete(y)
+    db.session.commit()
+    flash(f'"{hedef}" yönlendirme kaydı silindi.', 'info')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
                              kursiyer_id=kursiyer_id))

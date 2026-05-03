@@ -298,3 +298,87 @@ class SurucuSinavHarciKaydi(db.Model):
     def __repr__(self) -> str:
         return (f'<SinavHarciKaydi kursiyer={self.kursiyer_id} '
                 f'oturum={self.sinav_oturum_id} durum={self.durum}>')
+
+
+class KursiyerYonlendirme(db.Model):
+    """Kursiyerin baska bir surucu kursuna yonlendirilmesi.
+
+    Kurs kendisinde olmayan bir egitim icin kursiyeri baska bir kursa
+    yonlendirir (orn. SRC, psikoteknik). Komisyon karsiligi yapilirsa
+    komisyon_alindi_mi=True isaretlendiginde otomatik gelir kaydi
+    olusur (mevcut KursiyerTaksit/SinavHarc orüntüsüyle ayni).
+
+    OBS dershanelerinde bu tablo bos kalir; sadece kurum_tipi=
+    'surucu_kursu' tenant'larinda menude gorunur.
+    """
+    __tablename__ = 'kursiyer_yonlendirmeleri'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    kursiyer_id = db.Column(
+        db.Integer,
+        db.ForeignKey('kursiyerler.id', ondelete='CASCADE'),
+        nullable=False, index=True,
+    )
+    # Hangi egitim icin yonlendirildi (SRC5, A2, psikoteknik vs.)
+    ehliyet_sinifi = db.Column(db.String(20), nullable=False, index=True)
+
+    # Hedef kurs bilgileri
+    hedef_kurs_adi = db.Column(db.String(200), nullable=False)
+    hedef_kurs_telefon = db.Column(db.String(20), nullable=True)
+    hedef_kurs_yetkili = db.Column(db.String(150), nullable=True)
+    # Yetkili kisi (ornegin "Ahmet Bey - mudur")
+
+    # Yonlendirme yapan personel (kayit eden kullanici)
+    yonlendiren_id = db.Column(db.Integer,
+                                db.ForeignKey('users.id'),
+                                nullable=True, index=True)
+
+    yonlendirme_tarihi = db.Column(db.Date, nullable=False, index=True)
+
+    # Komisyon (opsiyonel - bazi kurslar yonlendirme komisyonu verir)
+    komisyon_tutari = db.Column(db.Numeric(10, 2), nullable=True, default=0)
+    komisyon_alindi_mi = db.Column(db.Boolean, default=False, nullable=False)
+    komisyon_tarihi = db.Column(db.Date, nullable=True)
+
+    # Yonlendirme durumu
+    durum = db.Column(db.String(20), nullable=False, default='yonlendirildi')
+    # 'yonlendirildi' | 'kayit_oldu' | 'tamamlandi' | 'iptal'
+
+    notlar = db.Column(db.Text, nullable=True)
+    olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Komisyon tahsil edildiginde otomatik gelir kaydi (set null on delete)
+    gelir_gider_kayit_id = db.Column(
+        db.Integer,
+        db.ForeignKey('gelir_gider_kayitlari.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+
+    DURUMLAR = [
+        ('yonlendirildi', 'Yönlendirildi'),
+        ('kayit_oldu',    'Kayıt Oldu'),
+        ('tamamlandi',    'Tamamlandı'),
+        ('iptal',         'İptal'),
+    ]
+
+    kursiyer = db.relationship(
+        'Kursiyer',
+        backref=db.backref('yonlendirmeler', lazy='dynamic',
+                           cascade='all, delete-orphan',
+                           order_by='KursiyerYonlendirme.yonlendirme_tarihi.desc()'),
+    )
+    yonlendiren = db.relationship('User', foreign_keys=[yonlendiren_id],
+                                   lazy='joined')
+
+    @property
+    def ehliyet_sinifi_str(self) -> str:
+        return EHLIYET_SINIF_DICT.get(self.ehliyet_sinifi, self.ehliyet_sinifi)
+
+    @property
+    def durum_str(self) -> str:
+        return dict(self.DURUMLAR).get(self.durum, self.durum)
+
+    def __repr__(self) -> str:
+        return (f'<KursiyerYonlendirme kursiyer={self.kursiyer_id} '
+                f'hedef={self.hedef_kurs_adi} durum={self.durum}>')

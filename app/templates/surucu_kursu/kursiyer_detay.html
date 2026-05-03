@@ -167,6 +167,134 @@
     </div>
 </div>
 
+<!-- Yonlendirmeler (kursumuzda olmayan egitim icin baska kursa yonlendirme) -->
+<div class="card shadow-sm mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-arrow-up-right-square me-1 text-warning"></i>Yönlendirmeler
+            {% if yonlendirmeler %}
+            <span class="badge bg-warning text-dark ms-2">{{ yonlendirmeler|length }}</span>
+            {% endif %}
+        </h6>
+        <button type="button" class="btn btn-sm btn-outline-warning"
+                data-bs-toggle="modal" data-bs-target="#yonlendirmeEkleModal">
+            <i class="bi bi-plus-lg me-1"></i>Yönlendirme Ekle
+        </button>
+    </div>
+    <div class="card-body p-0">
+        {% if yonlendirmeler %}
+        <table class="table table-sm table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Eğitim</th>
+                    <th>Hedef Kurs</th>
+                    <th>Yönlendiren</th>
+                    <th>Komisyon</th>
+                    <th>Durum</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for y in yonlendirmeler %}
+                <tr>
+                    <td><small>{{ y.yonlendirme_tarihi.strftime('%d.%m.%Y') }}</small></td>
+                    <td>
+                        <span class="badge bg-info text-dark">{{ y.ehliyet_sinifi }}</span>
+                        <small class="text-muted">{{ y.ehliyet_sinifi_str }}</small>
+                    </td>
+                    <td>
+                        <strong>{{ y.hedef_kurs_adi }}</strong>
+                        {% if y.hedef_kurs_yetkili or y.hedef_kurs_telefon %}
+                        <br><small class="text-muted">
+                            {% if y.hedef_kurs_yetkili %}{{ y.hedef_kurs_yetkili }}{% endif %}
+                            {% if y.hedef_kurs_telefon %} · {{ y.hedef_kurs_telefon }}{% endif %}
+                        </small>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ y.yonlendiren.tam_ad if y.yonlendiren else '—' }}</small></td>
+                    <td>
+                        {% if y.komisyon_tutari and y.komisyon_tutari > 0 %}
+                        <strong>{{ '%.2f'|format(y.komisyon_tutari) }} ₺</strong>
+                        {% if y.komisyon_alindi_mi %}
+                        <span class="badge bg-success ms-1">
+                            <i class="bi bi-check-circle"></i> Tahsil
+                        </span>
+                        {% if y.komisyon_tarihi %}
+                        <br><small class="text-muted">{{ y.komisyon_tarihi.strftime('%d.%m.%Y') }}</small>
+                        {% endif %}
+                        {% else %}
+                        <span class="badge bg-warning text-dark ms-1">Bekliyor</span>
+                        {% endif %}
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if y.durum == 'yonlendirildi' %}
+                        <span class="badge bg-secondary">{{ y.durum_str }}</span>
+                        {% elif y.durum == 'kayit_oldu' %}
+                        <span class="badge bg-info text-dark">{{ y.durum_str }}</span>
+                        {% elif y.durum == 'tamamlandi' %}
+                        <span class="badge bg-success">{{ y.durum_str }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{{ y.durum_str }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if y.komisyon_tutari and y.komisyon_tutari > 0 and not y.komisyon_alindi_mi %}
+                        <button type="button" class="btn btn-sm btn-outline-success"
+                                data-bs-toggle="modal"
+                                data-bs-target="#yonlKomisyonTahsilModal{{ y.id }}"
+                                title="Komisyon Tahsil Et">
+                            <i class="bi bi-cash"></i>
+                        </button>
+                        {% elif y.komisyon_alindi_mi %}
+                        <form method="POST"
+                              action="{{ url_for('surucu_kursu.yonlendirme_komisyon_iptal', kursiyer_id=kursiyer.id, yonl_id=y.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('Komisyon tahsili iptal edilecek (gelir kaydı silinecek). Devam?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-warning" title="Komisyon Tahsilini İptal">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#yonlDuzenleModal{{ y.id }}"
+                                title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST"
+                              action="{{ url_for('surucu_kursu.yonlendirme_sil', kursiyer_id=kursiyer.id, yonl_id=y.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('Bu yönlendirme kaydı silinecek. Bağlı gelir kaydı da kaldırılır. Devam?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% if y.notlar %}
+                <tr>
+                    <td colspan="7" class="text-muted small">
+                        <i class="bi bi-sticky me-1"></i>{{ y.notlar }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-3">
+            <small>Bu kursiyer için yönlendirme kaydı yok.</small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
 <!-- Iki sutun: taksitler + sinav harci -->
 <div class="row g-3">
     <!-- SOL: Egitim ucreti taksitleri -->
@@ -710,4 +838,216 @@
     });
 })();
 </script>
+
+<!-- ============= Yonlendirme Ekle Modal ============= -->
+<div class="modal fade" id="yonlendirmeEkleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST"
+              action="{{ url_for('surucu_kursu.yonlendirme_ekle', kursiyer_id=kursiyer.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="bi bi-arrow-up-right-square me-1"></i>Yeni Yönlendirme
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label small">Hangi Eğitim İçin? *</label>
+                        <select name="ehliyet_sinifi" class="form-select form-select-sm" required>
+                            <option value="">— Seçiniz —</option>
+                            {% for kod, ad in ehliyet_siniflari %}
+                            <option value="{{ kod }}">{{ ad }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Hedef Kurs Adı *</label>
+                        <input type="text" name="hedef_kurs_adi" class="form-control form-control-sm"
+                               required placeholder="örn. Yıldız Sürücü Kursu">
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Yetkili</label>
+                            <input type="text" name="hedef_kurs_yetkili"
+                                   class="form-control form-control-sm"
+                                   placeholder="örn. Ahmet Bey">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Telefon</label>
+                            <input type="tel" name="hedef_kurs_telefon"
+                                   class="form-control form-control-sm"
+                                   placeholder="0xxx xxx xx xx">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Yönlendirme Tarihi *</label>
+                            <input type="date" name="yonlendirme_tarihi"
+                                   class="form-control form-control-sm"
+                                   value="{{ bugun.isoformat() }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Komisyon Tutarı (₺)</label>
+                            <input type="text" name="komisyon_tutari"
+                                   class="form-control form-control-sm"
+                                   placeholder="örn. 500.00 (boş bırakılabilir)">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Durum</label>
+                        <select name="durum" class="form-select form-select-sm">
+                            {% for kod, ad in yonlendirme_durumlar %}
+                            <option value="{{ kod }}" {% if kod == 'yonlendirildi' %}selected{% endif %}>{{ ad }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Notlar</label>
+                        <textarea name="notlar" rows="2" class="form-control form-control-sm"></textarea>
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Komisyon tutarı girerseniz,
+                        sonradan "Tahsil" butonuyla muhasebeye otomatik gelir kaydı düşer.
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm btn-warning">
+                        <i class="bi bi-check-lg me-1"></i>Kaydet
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============= Yonlendirme Duzenle / Komisyon Tahsil Modallari (loop) ============= -->
+{% for y in yonlendirmeler %}
+<!-- Duzenle modal -->
+<div class="modal fade" id="yonlDuzenleModal{{ y.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST"
+              action="{{ url_for('surucu_kursu.yonlendirme_duzenle', kursiyer_id=kursiyer.id, yonl_id=y.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Yönlendirmeyi Düzenle</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label small">Eğitim *</label>
+                        <select name="ehliyet_sinifi" class="form-select form-select-sm" required>
+                            {% for kod, ad in ehliyet_siniflari %}
+                            <option value="{{ kod }}" {% if kod == y.ehliyet_sinifi %}selected{% endif %}>{{ ad }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Hedef Kurs *</label>
+                        <input type="text" name="hedef_kurs_adi" class="form-control form-control-sm"
+                               value="{{ y.hedef_kurs_adi }}" required>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Yetkili</label>
+                            <input type="text" name="hedef_kurs_yetkili"
+                                   class="form-control form-control-sm"
+                                   value="{{ y.hedef_kurs_yetkili or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Telefon</label>
+                            <input type="tel" name="hedef_kurs_telefon"
+                                   class="form-control form-control-sm"
+                                   value="{{ y.hedef_kurs_telefon or '' }}">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Yönlendirme Tarihi *</label>
+                            <input type="date" name="yonlendirme_tarihi"
+                                   class="form-control form-control-sm"
+                                   value="{{ y.yonlendirme_tarihi.isoformat() }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Komisyon Tutarı (₺)</label>
+                            <input type="text" name="komisyon_tutari"
+                                   class="form-control form-control-sm"
+                                   value="{{ '%.2f'|format(y.komisyon_tutari or 0) }}">
+                            {% if y.komisyon_alindi_mi %}
+                            <small class="text-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Tahsil edildi — değişiklik gelir kaydını yeniden oluşturur.
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Durum</label>
+                        <select name="durum" class="form-select form-select-sm">
+                            {% for kod, ad in yonlendirme_durumlar %}
+                            <option value="{{ kod }}" {% if kod == y.durum %}selected{% endif %}>{{ ad }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Notlar</label>
+                        <textarea name="notlar" rows="2" class="form-control form-control-sm">{{ y.notlar or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Kaydet</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Komisyon tahsil modal -->
+{% if y.komisyon_tutari and y.komisyon_tutari > 0 and not y.komisyon_alindi_mi %}
+<div class="modal fade" id="yonlKomisyonTahsilModal{{ y.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <form method="POST"
+              action="{{ url_for('surucu_kursu.yonlendirme_komisyon_tahsil', kursiyer_id=kursiyer.id, yonl_id=y.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Komisyon Tahsil Et</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small mb-2">
+                        <strong>{{ y.hedef_kurs_adi }}</strong> kursundan
+                        <strong>{{ '%.2f'|format(y.komisyon_tutari) }} ₺</strong>
+                        komisyon tahsil edildi.
+                    </p>
+                    <div class="mb-2">
+                        <label class="form-label small">Tahsil Tarihi</label>
+                        <input type="date" name="komisyon_tarihi"
+                               class="form-control form-control-sm"
+                               value="{{ bugun.isoformat() }}">
+                    </div>
+                    <small class="text-muted">
+                        Onayladığınızda muhasebe modülüne otomatik gelir kaydı eklenir.
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-cash me-1"></i>Tahsil Et
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
 {% endblock %}

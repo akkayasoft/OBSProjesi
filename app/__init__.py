@@ -479,6 +479,9 @@ def create_app(config_class=Config):
                     {'label': 'Yeni Sınav Oturumu', 'icon': 'bi-plus-circle',
                      'url': '/surucu-kursu/sinav-harc/yeni'},
                  ], 'renk_kat': 'sari'},
+                {'label': 'Yönlendirmeler', 'icon': 'bi-arrow-up-right-square',
+                 'url': '/surucu-kursu/yonlendirmeler', 'modul_key': None,
+                 'children': [], 'renk_kat': 'sari'},
                 {'label': 'Raporlar', 'icon': 'bi-graph-up-arrow',
                  'url': '/surucu-kursu/rapor/', 'modul_key': None,
                  'children': [

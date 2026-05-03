@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Yönlendirmeler{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-arrow-up-right-square me-2 text-warning"></i>Yönlendirmeler
+        </h4>
+        <small class="text-muted">
+            Kursunuzda olmayan eğitimler için kursiyerleri başka kurslara yönlendirme kayıtları
+        </small>
+    </div>
+</div>
+
+<!-- Ozet kartlari -->
+<div class="row g-2 mb-3">
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Toplam Yönlendirme</small>
+                <h5 class="mb-0">{{ yonlendirmeler|length }}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Toplam Komisyon</small>
+                <h5 class="mb-0">{{ '%.2f'|format(toplam_komisyon) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Tahsil Edilen</small>
+                <h5 class="mb-0 text-success">{{ '%.2f'|format(alinan_komisyon) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Bekleyen Komisyon</small>
+                <h5 class="mb-0 text-danger">{{ '%.2f'|format(bekleyen_komisyon) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtre -->
+<form method="GET" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="search" name="arama" value="{{ arama }}"
+               class="form-control form-control-sm"
+               placeholder="Kursiyer adı veya hedef kurs ara…">
+    </div>
+    <div class="col-md-3">
+        <select name="durum" class="form-select form-select-sm">
+            <option value="">Tüm Durumlar</option>
+            {% for kod, ad in durumlar %}
+            <option value="{{ kod }}" {% if durum == kod %}selected{% endif %}>{{ ad }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-sm btn-primary w-100">
+            <i class="bi bi-funnel me-1"></i>Filtrele
+        </button>
+    </div>
+    <div class="col-md-2">
+        <a href="{{ url_for('surucu_kursu.yonlendirme_liste') }}"
+           class="btn btn-sm btn-outline-secondary w-100">Temizle</a>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    {% if yonlendirmeler %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Kursiyer</th>
+                    <th>Eğitim</th>
+                    <th>Hedef Kurs</th>
+                    <th>Yönlendiren</th>
+                    <th>Komisyon</th>
+                    <th>Durum</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for y in yonlendirmeler %}
+                <tr>
+                    <td><small>{{ y.yonlendirme_tarihi.strftime('%d.%m.%Y') }}</small></td>
+                    <td>
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=y.kursiyer_id) }}"
+                           class="text-decoration-none">
+                            <strong>{{ y.kursiyer.tam_ad }}</strong>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge bg-info text-dark">{{ y.ehliyet_sinifi }}</span>
+                        <small class="text-muted">{{ y.ehliyet_sinifi_str }}</small>
+                    </td>
+                    <td>
+                        <strong>{{ y.hedef_kurs_adi }}</strong>
+                        {% if y.hedef_kurs_yetkili or y.hedef_kurs_telefon %}
+                        <br><small class="text-muted">
+                            {% if y.hedef_kurs_yetkili %}{{ y.hedef_kurs_yetkili }}{% endif %}
+                            {% if y.hedef_kurs_telefon %} · {{ y.hedef_kurs_telefon }}{% endif %}
+                        </small>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ y.yonlendiren.tam_ad if y.yonlendiren else '—' }}</small></td>
+                    <td>
+                        {% if y.komisyon_tutari and y.komisyon_tutari > 0 %}
+                        <strong>{{ '%.2f'|format(y.komisyon_tutari) }} ₺</strong>
+                        {% if y.komisyon_alindi_mi %}
+                        <span class="badge bg-success ms-1">Tahsil</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark ms-1">Bekliyor</span>
+                        {% endif %}
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if y.durum == 'yonlendirildi' %}
+                        <span class="badge bg-secondary">{{ y.durum_str }}</span>
+                        {% elif y.durum == 'kayit_oldu' %}
+                        <span class="badge bg-info text-dark">{{ y.durum_str }}</span>
+                        {% elif y.durum == 'tamamlandi' %}
+                        <span class="badge bg-success">{{ y.durum_str }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{{ y.durum_str }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=y.kursiyer_id) }}"
+                           class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-arrow-right"></i> Aç
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+        Yönlendirme kaydı bulunamadı.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

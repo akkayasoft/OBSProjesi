@@ -816,6 +816,8 @@ def sinav_harc_detay(oturum_id):
         oturum=o, harc_kayitlari=harc_kayitlari,
         eklenebilir=eklenebilir,
         toplam_borc=toplam_borc, toplam_tahsil=toplam_tahsil,
+        bugun=date.today(),
+        odeme_turleri=SurucuSinavHarciKaydi.ODEME_TURLERI,
     )
 
 
@@ -859,6 +861,24 @@ def sinav_harc_aday_ekle(oturum_id):
                              oturum_id=o.id))
 
 
+def _sinav_harc_makbuz_no_uret():
+    """SHR-YYYYMMDD-NNNN formatinda benzersiz makbuz numarasi."""
+    bugun = datetime.now().strftime('%Y%m%d')
+    prefix = f'SHR-{bugun}-'
+    son = SurucuSinavHarciKaydi.query.filter(
+        SurucuSinavHarciKaydi.makbuz_no.like(f'{prefix}%'),
+    ).order_by(SurucuSinavHarciKaydi.makbuz_no.desc()).first()
+    if son and son.makbuz_no:
+        try:
+            son_no = int(son.makbuz_no.split('-')[-1])
+            yeni = son_no + 1
+        except (ValueError, IndexError):
+            yeni = 1
+    else:
+        yeni = 1
+    return f'{prefix}{yeni:04d}'
+
+
 @surucu_kursu_bp.route(
     '/sinav-harc/<int:oturum_id>/harc/<int:harc_id>/tahsil',
     methods=['POST'])
@@ -869,22 +889,68 @@ def sinav_harc_tahsil(oturum_id, harc_id):
         id=harc_id, sinav_oturum_id=oturum_id
     ).first_or_404()
     if h.durum == 'tahsil_edildi':
-        # Geri al — durumu degistir + bagli muhasebe kaydini sil
+        # Geri al — durumu degistir + bagli muhasebe kaydini sil + makbuz alanlari
         h.durum = 'aday_borclu'
         h.tahsil_tarihi = None
+        h.odeme_turu = None
+        h.odeyen_ad = None
+        h.teslim_alan_id = None
+        h.makbuz_no = None
         _muhasebe_kaydi_temizle(h)
-        flash('Tahsilat geri alındı, muhasebe kaydı da silindi.', 'info')
-    else:
-        # Tahsil et — durumu degistir + otomatik muhasebe kaydi olustur
-        h.durum = 'tahsil_edildi'
-        h.tahsil_tarihi = date.today()
-        db.session.flush()  # h.id ve degerlerin gorunmesi icin
-        _muhasebe_kaydi_olustur(h)
-        flash(f'{h.kursiyer.tam_ad} sınav harcı tahsil edildi. '
-              f'Muhasebeye otomatik gelir kaydı eklendi.', 'success')
+        db.session.commit()
+        flash('Tahsilat geri alındı, muhasebe kaydı ve makbuz silindi.', 'info')
+        return redirect(url_for('surucu_kursu.sinav_harc_detay',
+                                 oturum_id=oturum_id))
+
+    # Tahsil et - form alanlari (modal'dan)
+    odeme_turu = (request.form.get('odeme_turu') or 'nakit').strip()
+    odeyen_ad = (request.form.get('odeyen_ad') or '').strip()
+    tahsil_tarihi = _date_or_none(request.form.get('tahsil_tarihi')) \
+        or date.today()
+
+    if odeme_turu not in dict(SurucuSinavHarciKaydi.ODEME_TURLERI):
+        flash('Geçerli bir ödeme türü seçin.', 'danger')
+        return redirect(url_for('surucu_kursu.sinav_harc_detay',
+                                 oturum_id=oturum_id))
+
+    h.durum = 'tahsil_edildi'
+    h.tahsil_tarihi = tahsil_tarihi
+    h.odeme_turu = odeme_turu
+    h.odeyen_ad = odeyen_ad or h.kursiyer.tam_ad
+    h.teslim_alan_id = current_user.id
+    h.makbuz_no = _sinav_harc_makbuz_no_uret()
+    db.session.flush()
+    _muhasebe_kaydi_olustur(h)
     db.session.commit()
-    return redirect(url_for('surucu_kursu.sinav_harc_detay',
-                             oturum_id=oturum_id))
+    flash(f'{h.kursiyer.tam_ad} sınav harcı tahsil edildi (Makbuz: '
+          f'{h.makbuz_no}). Muhasebeye otomatik gelir kaydı eklendi.',
+          'success')
+    return redirect(url_for('surucu_kursu.sinav_harc_makbuz',
+                             oturum_id=oturum_id, harc_id=harc_id))
+
+
+@surucu_kursu_bp.route(
+    '/sinav-harc/<int:oturum_id>/harc/<int:harc_id>/makbuz')
+@login_required
+def sinav_harc_makbuz(oturum_id, harc_id):
+    """Sinav harci makbuzunu A4 yazdirma sayfasiyla goster."""
+    _surucu_kursu_tenant_required()
+    h = SurucuSinavHarciKaydi.query.filter_by(
+        id=harc_id, sinav_oturum_id=oturum_id
+    ).first_or_404()
+    if h.durum != 'tahsil_edildi' or not h.makbuz_no:
+        flash('Bu kayda ait makbuz bulunamadı (henüz tahsil edilmemiş).',
+              'warning')
+        return redirect(url_for('surucu_kursu.sinav_harc_detay',
+                                 oturum_id=oturum_id))
+    # Tenant adi (basligin uzerinde)
+    tenant = getattr(g, 'tenant', None)
+    kurum_adi = getattr(tenant, 'kurum_adi', None) or getattr(
+        tenant, 'ad', None) or 'Sürücü Kursu'
+    return render_template(
+        'surucu_kursu/sinav_harc_makbuz.html',
+        harc=h, kurum_adi=kurum_adi,
+    )
 
 
 @surucu_kursu_bp.route(
@@ -1884,18 +1950,22 @@ def yetkilendirme():
 @surucu_kursu_bp.route('/makbuz')
 @login_required
 def makbuz_arama():
-    """Makbuz numarasi / kursiyer adi ile odenmis taksit makbuzlarini ara.
+    """Makbuz numarasi / kursiyer adi ile makbuzlari ara.
 
-    - q parametresi bos ise son 50 makbuz listesi
-    - q ile birebir eslesme varsa, dogrudan makbuz sayfasina 302
-    - Aksi halde benzer eslesmeleri liste seklinde gosterir
+    Iki tip makbuz var:
+        - KSR-... : Kursiyer egitim ucreti taksiti makbuzu
+        - SHR-... : Sinav harc tahsilat makbuzu
+
+    - Birebir makbuz no eslesirse direkt makbuz sayfasina 302
+    - Aksi halde her iki tip de partial match ile listelenir
     """
     _surucu_kursu_tenant_required()
 
     q = (request.args.get('q') or '').strip()
 
-    # Birebir makbuz eslesmesi - direkt yonlendir
+    # Birebir makbuz eslesmesi - tip prefixine gore yonlendir
     if q:
+        # Once kursiyer taksiti
         tam_eslesme = KursiyerTaksit.query.filter(
             KursiyerTaksit.makbuz_no == q,
             KursiyerTaksit.odendi_mi.is_(True),
@@ -1906,8 +1976,19 @@ def makbuz_arama():
                 kursiyer_id=tam_eslesme.kursiyer_id,
                 taksit_id=tam_eslesme.id,
             ))
+        # Sonra sinav harc
+        sh_eslesme = SurucuSinavHarciKaydi.query.filter(
+            SurucuSinavHarciKaydi.makbuz_no == q,
+            SurucuSinavHarciKaydi.durum == 'tahsil_edildi',
+        ).first()
+        if sh_eslesme:
+            return redirect(url_for(
+                'surucu_kursu.sinav_harc_makbuz',
+                oturum_id=sh_eslesme.sinav_oturum_id,
+                harc_id=sh_eslesme.id,
+            ))
 
-    # Liste sorgusu
+    # Liste sorgusu - kursiyer taksitleri
     qs = KursiyerTaksit.query.join(Kursiyer).filter(
         KursiyerTaksit.odendi_mi.is_(True),
         KursiyerTaksit.makbuz_no.isnot(None),
@@ -1920,10 +2001,66 @@ def makbuz_arama():
             Kursiyer.soyad.ilike(like),
             KursiyerTaksit.odeyen_ad.ilike(like),
         ))
-    makbuzlar = qs.order_by(KursiyerTaksit.odeme_tarihi.desc(),
-                             KursiyerTaksit.id.desc()).limit(200).all()
+    taksit_makbuzlari = qs.order_by(KursiyerTaksit.odeme_tarihi.desc(),
+                                     KursiyerTaksit.id.desc()).limit(200).all()
+
+    # Liste sorgusu - sinav harc
+    qs2 = SurucuSinavHarciKaydi.query.join(Kursiyer).filter(
+        SurucuSinavHarciKaydi.durum == 'tahsil_edildi',
+        SurucuSinavHarciKaydi.makbuz_no.isnot(None),
+    )
+    if q:
+        like = f'%{q}%'
+        qs2 = qs2.filter(or_(
+            SurucuSinavHarciKaydi.makbuz_no.ilike(like),
+            Kursiyer.ad.ilike(like),
+            Kursiyer.soyad.ilike(like),
+            SurucuSinavHarciKaydi.odeyen_ad.ilike(like),
+        ))
+    sh_makbuzlari = qs2.order_by(
+        SurucuSinavHarciKaydi.tahsil_tarihi.desc(),
+        SurucuSinavHarciKaydi.id.desc()
+    ).limit(200).all()
+
+    # Birlestirilmis liste - tek formatta render edilebilsin
+    items = []
+    for t in taksit_makbuzlari:
+        items.append({
+            'tip': 'taksit',
+            'makbuz_no': t.makbuz_no,
+            'tarih': t.odeme_tarihi,
+            'kursiyer': t.kursiyer,
+            'kursiyer_id': t.kursiyer_id,
+            'aciklama': f'{t.sira}. taksit',
+            'odeyen_ad': t.odeyen_ad,
+            'tutar': t.tutar,
+            'odeme_turu': t.odeme_turu,
+            'odeme_turu_str': t.odeme_turu_str,
+            'makbuz_url': url_for('surucu_kursu.taksit_makbuz',
+                                    kursiyer_id=t.kursiyer_id,
+                                    taksit_id=t.id),
+        })
+    for h in sh_makbuzlari:
+        items.append({
+            'tip': 'sinav_harc',
+            'makbuz_no': h.makbuz_no,
+            'tarih': h.tahsil_tarihi,
+            'kursiyer': h.kursiyer,
+            'kursiyer_id': h.kursiyer_id,
+            'aciklama': f'Sınav harcı ({h.sinav_oturum.sinav_tipi_str})',
+            'odeyen_ad': h.odeyen_ad,
+            'tutar': h.ucret,
+            'odeme_turu': h.odeme_turu,
+            'odeme_turu_str': h.odeme_turu_str,
+            'makbuz_url': url_for('surucu_kursu.sinav_harc_makbuz',
+                                    oturum_id=h.sinav_oturum_id,
+                                    harc_id=h.id),
+        })
+    # Tarihe gore birlestirilmis sirala (yeniden eskiye)
+    items.sort(key=lambda x: (x['tarih'] or date.min), reverse=True)
+    items = items[:200]
 
     return render_template(
         'surucu_kursu/makbuz_liste.html',
-        makbuzlar=makbuzlar, q=q,
+        makbuzlar=items, q=q,
     )

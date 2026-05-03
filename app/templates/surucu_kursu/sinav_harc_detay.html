@@ -94,24 +94,46 @@
                                 <small>· {{ h.tahsil_tarihi.strftime('%d.%m.%Y') }}</small>
                                 {% endif %}
                             </span>
+                            {% if h.odeme_turu %}
+                            <small class="d-block text-muted mt-1">
+                                <i class="bi bi-credit-card-2-front me-1"></i>{{ h.odeme_turu_str }}
+                                {% if h.makbuz_no %}
+                                <br><span style="font-family:monospace; font-size:0.7rem;">{{ h.makbuz_no }}</span>
+                                {% endif %}
+                            </small>
+                            {% endif %}
                             {% else %}
                             <span class="badge bg-warning text-dark">Borçlu</span>
                             {% endif %}
                         </td>
                         <td class="text-end">
+                            {% if h.durum == 'tahsil_edildi' %}
+                            {# Makbuz goster #}
+                            {% if h.makbuz_no %}
+                            <a href="{{ url_for('surucu_kursu.sinav_harc_makbuz', oturum_id=oturum.id, harc_id=h.id) }}"
+                               class="btn btn-sm btn-outline-success" title="Makbuzu Aç">
+                                <i class="bi bi-receipt"></i>
+                            </a>
+                            {% endif %}
+                            {# Geri al #}
                             <form method="POST"
                                   action="{{ url_for('surucu_kursu.sinav_harc_tahsil', oturum_id=oturum.id, harc_id=h.id) }}"
-                                  class="d-inline">
+                                  class="d-inline"
+                                  onsubmit="return confirm('Tahsilat geri alınacak (gelir kaydı ve makbuz silinir). Devam?');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button class="btn btn-sm btn-{% if h.durum == 'tahsil_edildi' %}outline-secondary{% else %}success{% endif %}"
-                                        title="{% if h.durum == 'tahsil_edildi' %}Geri al{% else %}Tahsil Edildi{% endif %}">
-                                    {% if h.durum == 'tahsil_edildi' %}
+                                <button class="btn btn-sm btn-outline-secondary" title="Tahsilatı Geri Al">
                                     <i class="bi bi-arrow-counterclockwise"></i>
-                                    {% else %}
-                                    <i class="bi bi-cash-coin me-1"></i>Tahsil
-                                    {% endif %}
                                 </button>
                             </form>
+                            {% else %}
+                            {# Tahsil et modali #}
+                            <button type="button"
+                                    class="btn btn-sm btn-success"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#sinavHarcTahsilModal{{ h.id }}">
+                                <i class="bi bi-cash-coin me-1"></i>Tahsil
+                            </button>
+                            {% endif %}
                             <form method="POST"
                                   action="{{ url_for('surucu_kursu.sinav_harc_kayit_sil', oturum_id=oturum.id, harc_id=h.id) }}"
                                   class="d-inline"
@@ -181,4 +203,67 @@
         </div>
     </div>
 </div>
+
+<!-- ============= Sinav Harc Tahsil Modallari (sadece borclu olanlar icin) ============= -->
+{% for h in harc_kayitlari if h.durum != 'tahsil_edildi' %}
+<div class="modal fade" id="sinavHarcTahsilModal{{ h.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST"
+              action="{{ url_for('surucu_kursu.sinav_harc_tahsil', oturum_id=oturum.id, harc_id=h.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="bi bi-cash-coin me-1"></i>Sınav Harcı Tahsil Et
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning small mb-3">
+                        <strong>{{ h.kursiyer.tam_ad }}</strong>
+                        ({{ h.kursiyer.ehliyet_sinifi_str }})<br>
+                        Tahsil edilecek tutar:
+                        <strong>{{ '%.2f'|format(h.ucret or 0) }} ₺</strong>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Tahsil Tarihi *</label>
+                            <input type="date" name="tahsil_tarihi"
+                                   class="form-control form-control-sm"
+                                   value="{{ bugun.isoformat() }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Ödeme Türü *</label>
+                            <select name="odeme_turu" class="form-select form-select-sm" required>
+                                {% for kod, ad in odeme_turleri %}
+                                <option value="{{ kod }}">{{ ad }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Ödeyen Kişi</label>
+                        <input type="text" name="odeyen_ad"
+                               class="form-control form-control-sm"
+                               placeholder="Boş bırakılırsa kursiyerin adı kullanılır"
+                               value="{{ h.kursiyer.tam_ad }}">
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Onayladığınızda makbuz numarası
+                        otomatik üretilir, muhasebeye gelir kaydı düşer.
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Tahsil Et + Makbuz
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
 {% endblock %}

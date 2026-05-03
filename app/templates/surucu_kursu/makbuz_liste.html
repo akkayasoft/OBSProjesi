@@ -48,7 +48,8 @@
                 <tr>
                     <th>Makbuz No</th>
                     <th>Tarih</th>
-                    <th>Kursiyer</th>
+                    <th>Tip</th>
+                    <th>Kursiyer / Açıklama</th>
                     <th>Ödeyen</th>
                     <th>Tutar</th>
                     <th>Ödeme Türü</th>
@@ -56,34 +57,41 @@
                 </tr>
             </thead>
             <tbody>
-                {% for t in makbuzlar %}
+                {% for m in makbuzlar %}
                 <tr>
                     <td>
                         <span style="font-family:monospace; font-size:0.85rem;">
-                            {{ t.makbuz_no }}
+                            {{ m.makbuz_no }}
                         </span>
                     </td>
                     <td>
-                        <small>{{ t.odeme_tarihi.strftime('%d.%m.%Y') if t.odeme_tarihi else '—' }}</small>
+                        <small>{{ m.tarih.strftime('%d.%m.%Y') if m.tarih else '—' }}</small>
                     </td>
                     <td>
-                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=t.kursiyer_id) }}"
+                        {% if m.tip == 'taksit' %}
+                        <span class="badge bg-success">Eğitim</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Sınav Harç</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=m.kursiyer_id) }}"
                            class="text-decoration-none">
-                            <strong>{{ t.kursiyer.tam_ad }}</strong>
+                            <strong>{{ m.kursiyer.tam_ad }}</strong>
                         </a>
-                        <br><small class="text-muted">{{ t.sira }}. taksit</small>
+                        <br><small class="text-muted">{{ m.aciklama }}</small>
                     </td>
-                    <td><small>{{ t.odeyen_ad or '—' }}</small></td>
-                    <td><strong>{{ '%.2f'|format(t.tutar) }} ₺</strong></td>
+                    <td><small>{{ m.odeyen_ad or '—' }}</small></td>
+                    <td><strong>{{ '%.2f'|format(m.tutar) }} ₺</strong></td>
                     <td>
-                        {% if t.odeme_turu %}
-                        <span class="badge bg-info text-dark">{{ t.odeme_turu_str }}</span>
+                        {% if m.odeme_turu %}
+                        <span class="badge bg-info text-dark">{{ m.odeme_turu_str }}</span>
                         {% else %}
                         <small class="text-muted">—</small>
                         {% endif %}
                     </td>
                     <td class="text-end">
-                        <a href="{{ url_for('surucu_kursu.taksit_makbuz', kursiyer_id=t.kursiyer_id, taksit_id=t.id) }}"
+                        <a href="{{ m.makbuz_url }}"
                            class="btn btn-sm btn-outline-success" title="Makbuzu Aç">
                             <i class="bi bi-receipt"></i> Makbuz
                         </a>

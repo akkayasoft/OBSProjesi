@@ -194,6 +194,11 @@ def create_all_tables_cmd():
         ('kursiyer_taksitleri', 'odeyen_ad', 'VARCHAR(150)'),
         ('kursiyer_taksitleri', 'teslim_alan_id', 'INTEGER'),
         ('kursiyer_taksitleri', 'makbuz_no', 'VARCHAR(50)'),
+        # Sinav harc makbuz alanlari (kursiyer taksitiyle ayni desen)
+        ('surucu_sinav_harci_kayitlari', 'odeme_turu', 'VARCHAR(20)'),
+        ('surucu_sinav_harci_kayitlari', 'odeyen_ad', 'VARCHAR(150)'),
+        ('surucu_sinav_harci_kayitlari', 'teslim_alan_id', 'INTEGER'),
+        ('surucu_sinav_harci_kayitlari', 'makbuz_no', 'VARCHAR(50)'),
         # OBS muhasebe — odeme alinca otomatik gelir kaydi linklemesi
         ('odemeler', 'gelir_gider_kayit_id', 'INTEGER'),
         # Personel maas odemesi -> Gider linki

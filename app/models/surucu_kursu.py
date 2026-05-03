@@ -270,6 +270,15 @@ class SurucuSinavHarciKaydi(db.Model):
     notlar = db.Column(db.String(200), nullable=True)
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Makbuz alanlari (kursiyer taksiti ile ayni desende)
+    odeme_turu = db.Column(db.String(20), nullable=True)
+    # 'nakit' | 'eft' | 'kredi_karti'
+    odeyen_ad = db.Column(db.String(150), nullable=True)
+    teslim_alan_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                                nullable=True)
+    makbuz_no = db.Column(db.String(50), nullable=True, unique=True, index=True)
+    # Otomatik uretilir: SHR-YYYYMMDD-NNNN
+
     # Tahsilat yapildiginda otomatik olusturulan muhasebe gelir kaydina
     # link. Tahsilat geri alinirsa ya da kayit silinirse bagli muhasebe
     # kaydi da silinir. ondelete='SET NULL': muhasebe ekraninda elle
@@ -283,6 +292,12 @@ class SurucuSinavHarciKaydi(db.Model):
     DURUMLAR = [('aday_borclu', 'Aday Borçlu'),
                 ('tahsil_edildi', 'Tahsil Edildi')]
 
+    ODEME_TURLERI = [
+        ('nakit', 'Nakit'),
+        ('eft', 'EFT / Havale'),
+        ('kredi_karti', 'Kredi Kartı'),
+    ]
+
     sinav_oturum = db.relationship('SurucuSinavOturumu',
                                     backref=db.backref('harc_kayitlari',
                                                        lazy='dynamic',
@@ -290,10 +305,15 @@ class SurucuSinavHarciKaydi(db.Model):
     kursiyer = db.relationship('Kursiyer',
                                 backref=db.backref('sinav_harclari',
                                                    lazy='dynamic'))
+    teslim_alan = db.relationship('User', foreign_keys=[teslim_alan_id])
 
     @property
     def durum_str(self) -> str:
         return dict(self.DURUMLAR).get(self.durum, self.durum)
+
+    @property
+    def odeme_turu_str(self) -> str:
+        return dict(self.ODEME_TURLERI).get(self.odeme_turu, '—')
 
     def __repr__(self) -> str:
         return (f'<SinavHarciKaydi kursiyer={self.kursiyer_id} '

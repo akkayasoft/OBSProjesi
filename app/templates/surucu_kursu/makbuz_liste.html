@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Makbuz Arama{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <h4 class="mb-0">
+        <i class="bi bi-receipt me-2 text-success"></i>Makbuz Arama
+    </h4>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-2">
+            <div class="col-md-9">
+                <input type="search" name="q" value="{{ q }}"
+                       class="form-control"
+                       placeholder="Makbuz no (KSR-…), kursiyer ad/soyad veya ödeyen kişi adı"
+                       autofocus>
+                <small class="text-muted">
+                    Birebir makbuz numarası girerseniz makbuz sayfası direkt açılır.
+                </small>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success w-100">
+                    <i class="bi bi-search me-1"></i>Ara
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            {% if q %}
+            "<strong>{{ q }}</strong>" için sonuçlar
+            {% else %}
+            Son ödenmiş makbuzlar
+            {% endif %}
+        </h6>
+        <small class="text-muted">{{ makbuzlar|length }} kayıt</small>
+    </div>
+    {% if makbuzlar %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Makbuz No</th>
+                    <th>Tarih</th>
+                    <th>Kursiyer</th>
+                    <th>Ödeyen</th>
+                    <th>Tutar</th>
+                    <th>Ödeme Türü</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in makbuzlar %}
+                <tr>
+                    <td>
+                        <span style="font-family:monospace; font-size:0.85rem;">
+                            {{ t.makbuz_no }}
+                        </span>
+                    </td>
+                    <td>
+                        <small>{{ t.odeme_tarihi.strftime('%d.%m.%Y') if t.odeme_tarihi else '—' }}</small>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=t.kursiyer_id) }}"
+                           class="text-decoration-none">
+                            <strong>{{ t.kursiyer.tam_ad }}</strong>
+                        </a>
+                        <br><small class="text-muted">{{ t.sira }}. taksit</small>
+                    </td>
+                    <td><small>{{ t.odeyen_ad or '—' }}</small></td>
+                    <td><strong>{{ '%.2f'|format(t.tutar) }} ₺</strong></td>
+                    <td>
+                        {% if t.odeme_turu %}
+                        <span class="badge bg-info text-dark">{{ t.odeme_turu_str }}</span>
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('surucu_kursu.taksit_makbuz', kursiyer_id=t.kursiyer_id, taksit_id=t.id) }}"
+                           class="btn btn-sm btn-outline-success" title="Makbuzu Aç">
+                            <i class="bi bi-receipt"></i> Makbuz
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+        {% if q %}
+        "<strong>{{ q }}</strong>" için makbuz bulunamadı.
+        {% else %}
+        Henüz makbuz oluşturulmamış.
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

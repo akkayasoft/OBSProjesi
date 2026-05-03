@@ -19,6 +19,30 @@
     </a>
 </div>
 
+<!-- HIZLI MAKBUZ ARAMA -->
+<div class="card shadow-sm mb-3 border-success">
+    <div class="card-body py-2">
+        <form method="GET" action="{{ url_for('surucu_kursu.makbuz_arama') }}"
+              class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label class="form-label small mb-0 fw-semibold">
+                    <i class="bi bi-receipt me-1 text-success"></i>Makbuz Ara:
+                </label>
+            </div>
+            <div class="col">
+                <input type="search" name="q"
+                       class="form-control form-control-sm"
+                       placeholder="Makbuz no (örn. KSR-20260503-0001), kursiyer adı veya ödeyen kişi…">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-success">
+                    <i class="bi bi-search me-1"></i>Bul
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- KPI KARTLARI -->
 <div class="row g-3 mb-4">
     <div class="col-md-6 col-lg-3">

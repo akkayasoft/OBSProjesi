@@ -182,6 +182,7 @@ def _surucu_kursu_tenant_required():
 # kapatabilir; o zaman before_request kontrolu 403 doner.
 _SURUCU_URL_GATES = [
     ('/surucu-kursu/kursiyer',     'surucu_kursiyer'),
+    ('/surucu-kursu/makbuz',       'surucu_kursiyer'),
     ('/surucu-kursu/sinav-harc',   'surucu_sinav_harc'),
     ('/surucu-kursu/yonlendirme',  'surucu_yonlendirme'),
     ('/surucu-kursu/rapor',        'surucu_rapor'),
@@ -1875,4 +1876,54 @@ def yetkilendirme():
         roller=roller,
         moduller=moduller,
         izinler=izinler,
+    )
+
+
+# === Makbuz arama ===
+
+@surucu_kursu_bp.route('/makbuz')
+@login_required
+def makbuz_arama():
+    """Makbuz numarasi / kursiyer adi ile odenmis taksit makbuzlarini ara.
+
+    - q parametresi bos ise son 50 makbuz listesi
+    - q ile birebir eslesme varsa, dogrudan makbuz sayfasina 302
+    - Aksi halde benzer eslesmeleri liste seklinde gosterir
+    """
+    _surucu_kursu_tenant_required()
+
+    q = (request.args.get('q') or '').strip()
+
+    # Birebir makbuz eslesmesi - direkt yonlendir
+    if q:
+        tam_eslesme = KursiyerTaksit.query.filter(
+            KursiyerTaksit.makbuz_no == q,
+            KursiyerTaksit.odendi_mi.is_(True),
+        ).first()
+        if tam_eslesme:
+            return redirect(url_for(
+                'surucu_kursu.taksit_makbuz',
+                kursiyer_id=tam_eslesme.kursiyer_id,
+                taksit_id=tam_eslesme.id,
+            ))
+
+    # Liste sorgusu
+    qs = KursiyerTaksit.query.join(Kursiyer).filter(
+        KursiyerTaksit.odendi_mi.is_(True),
+        KursiyerTaksit.makbuz_no.isnot(None),
+    )
+    if q:
+        like = f'%{q}%'
+        qs = qs.filter(or_(
+            KursiyerTaksit.makbuz_no.ilike(like),
+            Kursiyer.ad.ilike(like),
+            Kursiyer.soyad.ilike(like),
+            KursiyerTaksit.odeyen_ad.ilike(like),
+        ))
+    makbuzlar = qs.order_by(KursiyerTaksit.odeme_tarihi.desc(),
+                             KursiyerTaksit.id.desc()).limit(200).all()
+
+    return render_template(
+        'surucu_kursu/makbuz_liste.html',
+        makbuzlar=makbuzlar, q=q,
     )

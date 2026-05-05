@@ -66,6 +66,7 @@ class Kursiyer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ad = db.Column(db.String(100), nullable=False)
     soyad = db.Column(db.String(100), nullable=False)
+    tc_kimlik = db.Column(db.String(11), nullable=True, index=True)
     telefon = db.Column(db.String(40), nullable=True, index=True)
 
     # Kayit donemi: ay/yil bazli (form'da date input ama gun ignore edilir)

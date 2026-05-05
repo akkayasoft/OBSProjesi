@@ -187,6 +187,7 @@ def create_all_tables_cmd():
     # exception silently atlanir.
     TENANT_KOLON_BACKFILL = [
         # surucu kursu
+        ('kursiyerler', 'tc_kimlik', 'VARCHAR(11)'),
         ('surucu_sinav_harci_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
         ('kursiyer_taksitleri', 'gelir_gider_kayit_id', 'INTEGER'),
         # Faz 3.A — odeme detaylari + makbuz

@@ -33,6 +33,16 @@
                            value="{{ form.soyad }}" required>
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label small">TC Kimlik No</label>
+                    <input type="text" name="tc_kimlik"
+                           class="form-control form-control-sm"
+                           value="{{ form.tc_kimlik }}"
+                           pattern="[0-9]{11}"
+                           inputmode="numeric"
+                           maxlength="11"
+                           placeholder="11 hane">
+                </div>
+                <div class="col-md-4">
                     <label class="form-label small">Telefon</label>
                     <input type="tel" name="telefon" class="form-control form-control-sm"
                            value="{{ form.telefon }}" placeholder="0555 555 55 55">

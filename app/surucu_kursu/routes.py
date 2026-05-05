@@ -243,6 +243,37 @@ def _date_or_none(s):
         return None
 
 
+def _tc_kimlik_dogrula(tc):
+    """TC kimlik numarasi dogrulama (algoritmik).
+
+    Kurallar:
+    - 11 haneli, sayisal
+    - Ilk hane 0 olamaz
+    - 10. hane: ((1+3+5+7+9. haneler)*7 - (2+4+6+8. haneler)) mod 10
+    - 11. hane: (1..10. haneler toplami) mod 10
+    - Son hane cift sayi olmali
+
+    Donus: (gecerli_mi: bool, hata_mesaji: str | None)
+    """
+    if tc is None or tc == '':
+        return True, None  # Bos kabul edilir (nullable)
+    tc = str(tc).strip()
+    if not tc.isdigit() or len(tc) != 11:
+        return False, 'TC kimlik 11 haneli sayisal olmalı.'
+    if tc[0] == '0':
+        return False, 'TC kimlik 0 ile başlayamaz.'
+    rakamlar = [int(c) for c in tc]
+    if int(tc[-1]) % 2 != 0:
+        return False, 'Geçersiz TC kimlik (son hane çift olmalı).'
+    tek_toplam = rakamlar[0] + rakamlar[2] + rakamlar[4] + rakamlar[6] + rakamlar[8]
+    cift_toplam = rakamlar[1] + rakamlar[3] + rakamlar[5] + rakamlar[7]
+    if (tek_toplam * 7 - cift_toplam) % 10 != rakamlar[9]:
+        return False, 'Geçersiz TC kimlik numarası (sağlama hatası).'
+    if sum(rakamlar[:10]) % 10 != rakamlar[10]:
+        return False, 'Geçersiz TC kimlik numarası (sağlama hatası).'
+    return True, None
+
+
 # === Kursiyer liste ===
 
 @surucu_kursu_bp.route('/kursiyer/')
@@ -268,6 +299,7 @@ def kursiyer_liste():
             Kursiyer.ad.ilike(like),
             Kursiyer.soyad.ilike(like),
             Kursiyer.telefon.ilike(like),
+            Kursiyer.tc_kimlik.ilike(like),
         ))
 
     kursiyerler = q.order_by(Kursiyer.id.desc()).all()
@@ -296,7 +328,7 @@ def kursiyer_yeni():
     ).order_by(User.ad, User.soyad).all()
 
     form_data = {
-        'ad': '', 'soyad': '', 'telefon': '',
+        'ad': '', 'soyad': '', 'tc_kimlik': '', 'telefon': '',
         'kayit_tarihi': date.today().isoformat(),
         'ehliyet_sinifi': '',
         'ders_sayisi': '',
@@ -312,6 +344,7 @@ def kursiyer_yeni():
 
         ad = form_data['ad']
         soyad = form_data['soyad']
+        tc_kimlik = form_data['tc_kimlik']
         ehliyet_sinifi = form_data['ehliyet_sinifi']
         kayit_tarihi = _date_or_none(form_data['kayit_tarihi']) or date.today()
 
@@ -319,6 +352,10 @@ def kursiyer_yeni():
             hata = 'Ad ve soyad zorunludur.'
         elif ehliyet_sinifi not in EHLIYET_SINIF_DICT:
             hata = 'Geçerli bir ehliyet sınıfı seçin.'
+        else:
+            tc_ok, tc_hata = _tc_kimlik_dogrula(tc_kimlik)
+            if not tc_ok:
+                hata = tc_hata
 
         if hata:
             return render_template(
@@ -330,6 +367,7 @@ def kursiyer_yeni():
 
         k = Kursiyer(
             ad=ad, soyad=soyad,
+            tc_kimlik=tc_kimlik or None,
             telefon=form_data['telefon'] or None,
             kayit_tarihi=kayit_tarihi,
             ehliyet_sinifi=ehliyet_sinifi,
@@ -419,7 +457,9 @@ def kursiyer_duzenle(kursiyer_id):
     ).order_by(User.ad, User.soyad).all()
 
     form_data = {
-        'ad': k.ad, 'soyad': k.soyad, 'telefon': k.telefon or '',
+        'ad': k.ad, 'soyad': k.soyad,
+        'tc_kimlik': k.tc_kimlik or '',
+        'telefon': k.telefon or '',
         'kayit_tarihi': k.kayit_tarihi.isoformat() if k.kayit_tarihi else '',
         'ehliyet_sinifi': k.ehliyet_sinifi,
         'ders_sayisi': str(k.ders_sayisi) if k.ders_sayisi is not None else '',
@@ -435,6 +475,7 @@ def kursiyer_duzenle(kursiyer_id):
 
         ad = form_data['ad']
         soyad = form_data['soyad']
+        tc_kimlik = form_data['tc_kimlik']
         ehliyet_sinifi = form_data['ehliyet_sinifi']
         kayit_tarihi = _date_or_none(form_data['kayit_tarihi']) or k.kayit_tarihi
 
@@ -442,10 +483,15 @@ def kursiyer_duzenle(kursiyer_id):
             hata = 'Ad ve soyad zorunludur.'
         elif ehliyet_sinifi not in EHLIYET_SINIF_DICT:
             hata = 'Geçerli bir ehliyet sınıfı seçin.'
+        else:
+            tc_ok, tc_hata = _tc_kimlik_dogrula(tc_kimlik)
+            if not tc_ok:
+                hata = tc_hata
 
         if not hata:
             k.ad = ad
             k.soyad = soyad
+            k.tc_kimlik = tc_kimlik or None
             k.telefon = form_data['telefon'] or None
             k.kayit_tarihi = kayit_tarihi
             k.ehliyet_sinifi = ehliyet_sinifi
@@ -1290,6 +1336,7 @@ def dashboard():
 KURSIYER_TOPLU_BASLIKLARI = [
     {'key': 'ad', 'label': 'Ad', 'zorunlu': True},
     {'key': 'soyad', 'label': 'Soyad', 'zorunlu': True},
+    {'key': 'tc_kimlik', 'label': 'TC Kimlik No'},
     {'key': 'telefon', 'label': 'Telefon'},
     {'key': 'ehliyet_sinifi', 'label': 'Ehliyet Sınıfı (kod)', 'zorunlu': True},
     {'key': 'ders_sayisi', 'label': 'Ders Sayısı'},
@@ -1318,9 +1365,9 @@ def kursiyer_toplu_sablon():
         'yoksa eğitmensiz kayıt yapılır.'
     )
     ornek = [
-        ['Ali', 'Yılmaz', '0532 111 22 33', 'B_manuel', '32', '12500.00',
-         'ahmet_egitmen', '2026-05-01', 'Acemi sürücü'],
-        ['Ayşe', 'Kaya', '0534 222 33 44', 'A2', '16', '7500.00',
+        ['Ali', 'Yılmaz', '12345678901', '0532 111 22 33', 'B_manuel',
+         '32', '12500.00', 'ahmet_egitmen', '2026-05-01', 'Acemi sürücü'],
+        ['Ayşe', 'Kaya', '', '0534 222 33 44', 'A2', '16', '7500.00',
          '', '', 'Hafta sonları'],
     ]
     output = excel_sablonu_olustur(
@@ -1387,6 +1434,11 @@ def kursiyer_toplu_yukle():
             ad = (satir.get('ad') or '').strip() if satir.get('ad') else ''
             soyad = (satir.get('soyad') or '').strip() if satir.get('soyad') else ''
             sinif = (satir.get('ehliyet_sinifi') or '').strip() if satir.get('ehliyet_sinifi') else ''
+            tc_raw = satir.get('tc_kimlik')
+            tc = ''
+            if tc_raw not in (None, ''):
+                # Excel'den int olarak gelebilir
+                tc = str(tc_raw).strip().replace('.0', '') if str(tc_raw).endswith('.0') else str(tc_raw).strip()
 
             if not ad:
                 satir['_hatalar'].append('Ad zorunlu.')
@@ -1396,6 +1448,10 @@ def kursiyer_toplu_yukle():
                 satir['_hatalar'].append('Ehliyet sınıfı zorunlu.')
             elif sinif not in EHLIYET_SINIF_DICT:
                 satir['_hatalar'].append(f'Geçersiz ehliyet kodu: {sinif!r}.')
+            if tc:
+                tc_ok, tc_hata = _tc_kimlik_dogrula(tc)
+                if not tc_ok:
+                    satir['_hatalar'].append(f'TC: {tc_hata}')
 
             # Sayisal alan dogrulamalari
             ders_raw = satir.get('ders_sayisi')
@@ -1470,6 +1526,11 @@ def _kursiyer_toplu_kaydet_post():
         sinif = (request.form.get(f'row_ehliyet[{idx}]') or '').strip()
         if not ad or not soyad or sinif not in EHLIYET_SINIF_DICT:
             continue  # gecersiz, atla
+        tc = (request.form.get(f'row_tc[{idx}]') or '').strip() or None
+        if tc:
+            tc_ok, _ = _tc_kimlik_dogrula(tc)
+            if not tc_ok:
+                tc = None  # gecersiz tc'yi sessizce dusur
         telefon = (request.form.get(f'row_telefon[{idx}]') or '').strip() or None
         ders_sayisi = _int_or_none(request.form.get(f'row_ders[{idx}]'))
         fiyat = _decimal_or_none(request.form.get(f'row_fiyat[{idx}]'))
@@ -1481,7 +1542,9 @@ def _kursiyer_toplu_kaydet_post():
         notlar = (request.form.get(f'row_notlar[{idx}]') or '').strip() or None
 
         k = Kursiyer(
-            ad=ad, soyad=soyad, telefon=telefon,
+            ad=ad, soyad=soyad,
+            tc_kimlik=tc,
+            telefon=telefon,
             kayit_tarihi=tarih,
             ehliyet_sinifi=sinif,
             ders_sayisi=ders_sayisi,

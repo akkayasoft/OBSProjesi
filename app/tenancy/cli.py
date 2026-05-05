@@ -58,6 +58,64 @@ def _admin_psql_url() -> str:
     return url
 
 
+# ===========================================================================
+# TENANT KOLON BACKFILL
+# ---------------------------------------------------------------------------
+# Modele eklenmis ama Alembic migrasyonu yazilmamis kolonlar.
+# Hem `flask tenant create-all-tables` hem de yeni tenant olusturma
+# (sistem_routes.tenant_yeni) bu listeyi calistirir ki yeni DB'ler
+# eksik kolonla gelmesin. Postgres 9.6+ 'ADD COLUMN IF NOT EXISTS'
+# destekler, yani idempotent.
+# ---------------------------------------------------------------------------
+
+TENANT_KOLON_BACKFILL_LISTESI = [
+    # surucu kursu
+    ('kursiyerler', 'tc_kimlik', 'VARCHAR(11)'),
+    ('kursiyerler', 'donem_id', 'INTEGER'),
+    ('surucu_sinav_harci_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
+    ('kursiyer_taksitleri', 'gelir_gider_kayit_id', 'INTEGER'),
+    # Faz 3.A — odeme detaylari + makbuz
+    ('kursiyer_taksitleri', 'odeme_turu', 'VARCHAR(20)'),
+    ('kursiyer_taksitleri', 'odeyen_ad', 'VARCHAR(150)'),
+    ('kursiyer_taksitleri', 'teslim_alan_id', 'INTEGER'),
+    ('kursiyer_taksitleri', 'makbuz_no', 'VARCHAR(50)'),
+    # Sinav harc makbuz alanlari (kursiyer taksitiyle ayni desen)
+    ('surucu_sinav_harci_kayitlari', 'odeme_turu', 'VARCHAR(20)'),
+    ('surucu_sinav_harci_kayitlari', 'odeyen_ad', 'VARCHAR(150)'),
+    ('surucu_sinav_harci_kayitlari', 'teslim_alan_id', 'INTEGER'),
+    ('surucu_sinav_harci_kayitlari', 'makbuz_no', 'VARCHAR(50)'),
+    # OBS muhasebe — odeme alinca otomatik gelir kaydi linklemesi
+    ('odemeler', 'gelir_gider_kayit_id', 'INTEGER'),
+    # Personel maas odemesi -> Gider linki
+    ('personel_odeme_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
+    # Kantin satisi -> Gelir linki
+    ('kantin_satislar', 'gelir_gider_kayit_id', 'INTEGER'),
+]
+
+
+def tenant_kolonlarini_backfill_et(engine, surucu_kursu: bool = False):
+    """Verilen tenant engine'inde TENANT_KOLON_BACKFILL_LISTESI
+    icindeki ALTER TABLE'lari calistir. Idempotent.
+
+    surucu_kursu=True ise donem backfill de calisir.
+    """
+    from sqlalchemy import text as _text
+    with engine.begin() as conn:
+        for tablo, kolon, tip in TENANT_KOLON_BACKFILL_LISTESI:
+            try:
+                conn.execute(_text(
+                    f'ALTER TABLE {tablo} '
+                    f'ADD COLUMN IF NOT EXISTS {kolon} {tip}'
+                ))
+            except Exception:
+                pass
+        if surucu_kursu:
+            try:
+                _surucu_donem_backfill(conn)
+            except Exception:
+                pass
+
+
 # Turkce ay adlari (backfill icin)
 _AY_ADLARI_TR = [
     'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -234,32 +292,8 @@ def create_all_tables_cmd():
     from app.extensions import db
     from .engines import get_tenant_engine
 
-    # Mevcut tablolara sonradan eklenen kolonlar — idempotent ALTER.
-    # Postgres 9.6+ ADD COLUMN IF NOT EXISTS destekler. Tablo yoksa
-    # exception silently atlanir.
-    TENANT_KOLON_BACKFILL = [
-        # surucu kursu
-        ('kursiyerler', 'tc_kimlik', 'VARCHAR(11)'),
-        ('kursiyerler', 'donem_id', 'INTEGER'),
-        ('surucu_sinav_harci_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
-        ('kursiyer_taksitleri', 'gelir_gider_kayit_id', 'INTEGER'),
-        # Faz 3.A — odeme detaylari + makbuz
-        ('kursiyer_taksitleri', 'odeme_turu', 'VARCHAR(20)'),
-        ('kursiyer_taksitleri', 'odeyen_ad', 'VARCHAR(150)'),
-        ('kursiyer_taksitleri', 'teslim_alan_id', 'INTEGER'),
-        ('kursiyer_taksitleri', 'makbuz_no', 'VARCHAR(50)'),
-        # Sinav harc makbuz alanlari (kursiyer taksitiyle ayni desen)
-        ('surucu_sinav_harci_kayitlari', 'odeme_turu', 'VARCHAR(20)'),
-        ('surucu_sinav_harci_kayitlari', 'odeyen_ad', 'VARCHAR(150)'),
-        ('surucu_sinav_harci_kayitlari', 'teslim_alan_id', 'INTEGER'),
-        ('surucu_sinav_harci_kayitlari', 'makbuz_no', 'VARCHAR(50)'),
-        # OBS muhasebe — odeme alinca otomatik gelir kaydi linklemesi
-        ('odemeler', 'gelir_gider_kayit_id', 'INTEGER'),
-        # Personel maas odemesi -> Gider linki
-        ('personel_odeme_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
-        # Kantin satisi -> Gelir linki
-        ('kantin_satislar', 'gelir_gider_kayit_id', 'INTEGER'),
-    ]
+    # Modele eklenmis ama Alembic migrasyonu yazilmamis kolonlar
+    # module-level TENANT_KOLON_BACKFILL_LISTESI listesinde tanimli.
 
     with master_session() as s:
         tenantler = s.execute(
@@ -273,26 +307,11 @@ def create_all_tables_cmd():
         try:
             engine = get_tenant_engine(t.db_name)
             db.metadata.create_all(bind=engine)
-            # ALTER TABLE backfill — tablonun mevcut oldugu durumlarda
-            # eksik kolonlari ekler. Yoksa tablo, except'e dusup atlanir.
-            with engine.begin() as conn:
-                for tablo, kolon, tip in TENANT_KOLON_BACKFILL:
-                    try:
-                        conn.execute(text(
-                            f'ALTER TABLE {tablo} '
-                            f'ADD COLUMN IF NOT EXISTS {kolon} {tip}'
-                        ))
-                    except Exception as alter_err:
-                        # tablo henuz yoksa veya baska beklenmedik durum
-                        # — sessizce gec
-                        pass
-                # Surucu kursu donem backfill - donemi olmayan
-                # kursiyerlere kayit_tarihi'ne gore donem ata. Idempotent.
-                if t.kurum_tipi == 'surucu_kursu':
-                    try:
-                        _surucu_donem_backfill(conn)
-                    except Exception:
-                        pass
+            # ALTER TABLE backfill (modul-seviyesinde reusable helper)
+            tenant_kolonlarini_backfill_et(
+                engine,
+                surucu_kursu=(t.kurum_tipi == 'surucu_kursu'),
+            )
             click.echo(f'  ok  {t.slug} ({t.db_name})')
         except Exception as e:
             hata += 1

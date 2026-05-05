@@ -19,7 +19,7 @@ from app.models.user import User
 from app.models.surucu_kursu import (
     Kursiyer, EHLIYET_SINIFLARI, EHLIYET_SINIF_DICT,
     KursiyerTaksit, SurucuSinavOturumu, SurucuSinavHarciKaydi,
-    KursiyerEhliyet, KursiyerYonlendirme,
+    KursiyerEhliyet, KursiyerYonlendirme, Donem,
 )
 from app.models.muhasebe import (
     GelirGiderKaydi, GelirGiderKategorisi, BankaHesabi,
@@ -182,6 +182,7 @@ def _surucu_kursu_tenant_required():
 # kapatabilir; o zaman before_request kontrolu 403 doner.
 _SURUCU_URL_GATES = [
     ('/surucu-kursu/kursiyer',     'surucu_kursiyer'),
+    ('/surucu-kursu/donem',        'surucu_kursiyer'),
     ('/surucu-kursu/makbuz',       'surucu_kursiyer'),
     ('/surucu-kursu/sinav-harc',   'surucu_sinav_harc'),
     ('/surucu-kursu/yonlendirme',  'surucu_yonlendirme'),
@@ -274,6 +275,21 @@ def _tc_kimlik_dogrula(tc):
     return True, None
 
 
+def _donem_getir_veya_olustur(yil: int, ay: int) -> Donem:
+    """Verilen yil/ay icin Donem'i getir; yoksa olustur ve kaydet.
+
+    Idempotent: ayni yil+ay icin tekrar cagrilirsa mevcut kaydi doner.
+    Cagiranin ayrica db.session.commit() yapmasi gerekmez (zaten
+    flush yapmiyor — caller'in transaction'ina katiliyor).
+    """
+    d = Donem.query.filter_by(yil=yil, ay=ay).first()
+    if d is None:
+        d = Donem.from_yil_ay(yil, ay)
+        db.session.add(d)
+        db.session.flush()  # d.id elde etmek icin
+    return d
+
+
 # === Kursiyer liste ===
 
 @surucu_kursu_bp.route('/kursiyer/')
@@ -293,6 +309,15 @@ def kursiyer_liste():
     if sinif and sinif in EHLIYET_SINIF_DICT:
         q = q.filter(Kursiyer.ehliyet_sinifi == sinif)
 
+    donem_id_str = (request.args.get('donem') or '').strip()
+    donem_id = None
+    if donem_id_str:
+        try:
+            donem_id = int(donem_id_str)
+            q = q.filter(Kursiyer.donem_id == donem_id)
+        except ValueError:
+            donem_id = None
+
     if arama:
         like = f'%{arama}%'
         q = q.filter(or_(
@@ -305,12 +330,18 @@ def kursiyer_liste():
     kursiyerler = q.order_by(Kursiyer.id.desc()).all()
     toplam = Kursiyer.query.filter(Kursiyer.aktif.is_(True)).count()
 
+    # Donem dropdown icin tum donemleri getir (yeniden eskiye)
+    donemler = Donem.query.order_by(
+        Donem.yil.desc(), Donem.ay.desc()
+    ).all()
+
     return render_template(
         'surucu_kursu/kursiyer_liste.html',
         kursiyerler=kursiyerler,
         ehliyet_siniflari=EHLIYET_SINIFLARI,
         ehliyet_dict=EHLIYET_SINIF_DICT,
-        arama=arama, sinif=sinif, durum=durum,
+        donemler=donemler,
+        arama=arama, sinif=sinif, durum=durum, donem=donem_id,
         toplam_aktif=toplam,
     )
 
@@ -365,6 +396,10 @@ def kursiyer_yeni():
                 egitmenler=egitmenler, baslik='Yeni Kursiyer',
             )
 
+        # Donem - kayit_tarihi'ne gore otomatik atama
+        donem = _donem_getir_veya_olustur(kayit_tarihi.year,
+                                            kayit_tarihi.month)
+
         k = Kursiyer(
             ad=ad, soyad=soyad,
             tc_kimlik=tc_kimlik or None,
@@ -375,6 +410,7 @@ def kursiyer_yeni():
             fiyat=_decimal_or_none(form_data['fiyat']) or 0,
             egitmen_id=_int_or_none(form_data['egitmen_id']),
             notlar=form_data['notlar'] or None,
+            donem_id=donem.id,
             aktif=True,
         )
         db.session.add(k)
@@ -493,7 +529,15 @@ def kursiyer_duzenle(kursiyer_id):
             k.soyad = soyad
             k.tc_kimlik = tc_kimlik or None
             k.telefon = form_data['telefon'] or None
+            # Donem - kayit_tarihi degistiyse yeniden ata
+            eski_yil_ay = (k.kayit_tarihi.year, k.kayit_tarihi.month) \
+                if k.kayit_tarihi else (None, None)
+            yeni_yil_ay = (kayit_tarihi.year, kayit_tarihi.month)
             k.kayit_tarihi = kayit_tarihi
+            if eski_yil_ay != yeni_yil_ay or not k.donem_id:
+                d = _donem_getir_veya_olustur(kayit_tarihi.year,
+                                                kayit_tarihi.month)
+                k.donem_id = d.id
             k.ehliyet_sinifi = ehliyet_sinifi
             k.ders_sayisi = _int_or_none(form_data['ders_sayisi'])
             k.fiyat = _decimal_or_none(form_data['fiyat']) or 0
@@ -2127,3 +2171,174 @@ def makbuz_arama():
         'surucu_kursu/makbuz_liste.html',
         makbuzlar=items, q=q,
     )
+
+
+# === Donemler (ay bazli kursiyer gruplama) ===
+
+@surucu_kursu_bp.route('/donem/')
+@login_required
+def donem_liste():
+    """Tum donemler — her donem icin kursiyer sayisi + odeme ozeti."""
+    _surucu_kursu_tenant_required()
+
+    durum = (request.args.get('durum') or '').strip()
+    qs = Donem.query
+    if durum in ('aktif', 'kapali'):
+        qs = qs.filter(Donem.durum == durum)
+    donemler = qs.order_by(Donem.yil.desc(), Donem.ay.desc()).all()
+
+    # Her donem icin: kursiyer sayisi, fiyat toplami, tahsilat toplami,
+    # bekleyen taksit toplami (tek seferlik aggregate)
+    donem_id_to_stat = {}
+    if donemler:
+        ids = [d.id for d in donemler]
+        # Kursiyer sayisi + fiyat toplami
+        rows = db.session.query(
+            Kursiyer.donem_id,
+            func.count(Kursiyer.id),
+            func.coalesce(func.sum(Kursiyer.fiyat), 0),
+        ).filter(
+            Kursiyer.donem_id.in_(ids),
+            Kursiyer.aktif.is_(True),
+        ).group_by(Kursiyer.donem_id).all()
+        for did, sayi, fiyat in rows:
+            donem_id_to_stat[did] = {
+                'kursiyer_sayisi': sayi,
+                'toplam_fiyat': fiyat or Decimal('0'),
+                'odenen': Decimal('0'),
+                'kalan': Decimal('0'),
+            }
+        # Odenen taksit toplami (donem bazli)
+        rows2 = db.session.query(
+            Kursiyer.donem_id,
+            func.coalesce(func.sum(KursiyerTaksit.tutar), 0),
+        ).join(KursiyerTaksit, KursiyerTaksit.kursiyer_id == Kursiyer.id).filter(
+            Kursiyer.donem_id.in_(ids),
+            KursiyerTaksit.odendi_mi.is_(True),
+        ).group_by(Kursiyer.donem_id).all()
+        for did, odenen in rows2:
+            if did in donem_id_to_stat:
+                donem_id_to_stat[did]['odenen'] = odenen or Decimal('0')
+        # Kalan = toplam_fiyat - odenen
+        for did, st in donem_id_to_stat.items():
+            st['kalan'] = (st['toplam_fiyat'] or Decimal('0')) - \
+                          (st['odenen'] or Decimal('0'))
+
+    return render_template(
+        'surucu_kursu/donem_liste.html',
+        donemler=donemler,
+        donem_stat=donem_id_to_stat,
+        durum=durum,
+    )
+
+
+@surucu_kursu_bp.route('/donem/<int:donem_id>')
+@login_required
+def donem_detay(donem_id):
+    """Bir donemin detayi — o donemdeki kursiyerler + odeme tablosu."""
+    _surucu_kursu_tenant_required()
+    d = Donem.query.get_or_404(donem_id)
+
+    kursiyerler = Kursiyer.query.filter_by(
+        donem_id=d.id, aktif=True
+    ).order_by(Kursiyer.ad, Kursiyer.soyad).all()
+
+    # Her kursiyer icin odeme ozeti
+    kursiyer_ozet = []
+    toplam_fiyat = Decimal('0')
+    toplam_odenen = Decimal('0')
+    for k in kursiyerler:
+        odenen = sum(
+            (t.tutar or Decimal('0'))
+            for t in k.taksitler if t.odendi_mi
+        ) or Decimal('0')
+        toplam = k.fiyat or Decimal('0')
+        kalan = toplam - odenen
+        kursiyer_ozet.append({
+            'k': k,
+            'toplam': toplam,
+            'odenen': odenen,
+            'kalan': kalan,
+            'oran': int((odenen / toplam * 100) if toplam else 0),
+        })
+        toplam_fiyat += toplam
+        toplam_odenen += odenen
+
+    return render_template(
+        'surucu_kursu/donem_detay.html',
+        donem=d,
+        kursiyer_ozet=kursiyer_ozet,
+        toplam_fiyat=toplam_fiyat,
+        toplam_odenen=toplam_odenen,
+        toplam_kalan=toplam_fiyat - toplam_odenen,
+        ehliyet_dict=EHLIYET_SINIF_DICT,
+    )
+
+
+@surucu_kursu_bp.route('/donem/yeni', methods=['POST'])
+@login_required
+def donem_yeni():
+    """Manuel donem olustur (genelde otomatik olusur, manuel
+    onceden ay acilmasi icin)."""
+    _surucu_kursu_tenant_required()
+    try:
+        yil = int(request.form.get('yil') or 0)
+        ay = int(request.form.get('ay') or 0)
+    except ValueError:
+        flash('Geçersiz yıl/ay.', 'danger')
+        return redirect(url_for('surucu_kursu.donem_liste'))
+    if yil < 2000 or yil > 2100 or ay < 1 or ay > 12:
+        flash('Yıl 2000-2100, ay 1-12 olmalı.', 'danger')
+        return redirect(url_for('surucu_kursu.donem_liste'))
+
+    mevcut = Donem.query.filter_by(yil=yil, ay=ay).first()
+    if mevcut:
+        flash(f'{mevcut.ad} dönemi zaten mevcut.', 'info')
+        return redirect(url_for('surucu_kursu.donem_detay',
+                                 donem_id=mevcut.id))
+    d = Donem.from_yil_ay(yil, ay)
+    aciklama = (request.form.get('aciklama') or '').strip()
+    if aciklama:
+        d.aciklama = aciklama
+    db.session.add(d)
+    db.session.commit()
+    flash(f'{d.ad} dönemi oluşturuldu.', 'success')
+    return redirect(url_for('surucu_kursu.donem_detay', donem_id=d.id))
+
+
+@surucu_kursu_bp.route('/donem/<int:donem_id>/duzenle', methods=['POST'])
+@login_required
+def donem_duzenle(donem_id):
+    """Donem aciklama/durum guncelleme."""
+    _surucu_kursu_tenant_required()
+    d = Donem.query.get_or_404(donem_id)
+
+    durum = (request.form.get('durum') or '').strip()
+    aciklama = (request.form.get('aciklama') or '').strip()
+
+    if durum in ('aktif', 'kapali'):
+        d.durum = durum
+    d.aciklama = aciklama or None
+    db.session.commit()
+    flash(f'{d.ad} dönemi güncellendi.', 'success')
+    return redirect(url_for('surucu_kursu.donem_detay', donem_id=d.id))
+
+
+@surucu_kursu_bp.route('/donem/<int:donem_id>/sil', methods=['POST'])
+@login_required
+def donem_sil(donem_id):
+    """Donem silme — sadece bos donemler silinebilir."""
+    _surucu_kursu_tenant_required()
+    d = Donem.query.get_or_404(donem_id)
+    kursiyer_sayisi = Kursiyer.query.filter_by(donem_id=d.id).count()
+    if kursiyer_sayisi > 0:
+        flash(f'{d.ad} dönemine bağlı {kursiyer_sayisi} kursiyer var. '
+              f'Önce kursiyerleri başka döneme taşıyın veya silin.',
+              'warning')
+        return redirect(url_for('surucu_kursu.donem_detay',
+                                 donem_id=d.id))
+    ad = d.ad
+    db.session.delete(d)
+    db.session.commit()
+    flash(f'{ad} dönemi silindi.', 'info')
+    return redirect(url_for('surucu_kursu.donem_liste'))

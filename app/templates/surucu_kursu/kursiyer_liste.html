@@ -16,20 +16,28 @@
 </div>
 
 <form method="GET" class="row g-2 mb-3">
-    <div class="col-md-5">
+    <div class="col-md-4">
         <input type="search" name="arama" value="{{ arama }}"
                class="form-control form-control-sm"
-               placeholder="Ad, soyad veya telefon ara…">
+               placeholder="Ad, soyad, telefon veya TC ara…">
     </div>
     <div class="col-md-3">
+        <select name="donem" class="form-select form-select-sm">
+            <option value="">Tüm Dönemler</option>
+            {% for d in donemler %}
+            <option value="{{ d.id }}" {% if donem == d.id %}selected{% endif %}>{{ d.ad }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
         <select name="sinif" class="form-select form-select-sm">
-            <option value="">Tüm Ehliyet Sınıfları</option>
+            <option value="">Tüm Sınıflar</option>
             {% for kod, ad in ehliyet_siniflari %}
             <option value="{{ kod }}" {% if sinif == kod %}selected{% endif %}>{{ ad }}</option>
             {% endfor %}
         </select>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-1">
         <select name="durum" class="form-select form-select-sm">
             <option value="aktif" {% if durum == 'aktif' %}selected{% endif %}>Aktif</option>
             <option value="pasif" {% if durum == 'pasif' %}selected{% endif %}>Pasif</option>

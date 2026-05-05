@@ -8,8 +8,65 @@ Tablolar her tenant DB'sinde olusturulur (db.metadata.create_all
 calistiginda) ama dershane tenant'larinda bos kalir, hicbir kod o
 tablolara dokunmaz.
 """
-from datetime import datetime
+import calendar
+from datetime import date, datetime
 from app.extensions import db
+
+
+AY_ADLARI = [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+]
+
+
+class Donem(db.Model):
+    """Surucu kursu donemleri (her ay bir donem).
+
+    Kursiyerler kayit_tarihi'ne gore otomatik bir doneme atanir.
+    Donem bazli odeme/kursiyer takibi icin kullanilir.
+    """
+    __tablename__ = 'surucu_donemler'
+
+    id = db.Column(db.Integer, primary_key=True)
+    yil = db.Column(db.Integer, nullable=False, index=True)
+    ay = db.Column(db.Integer, nullable=False, index=True)  # 1-12
+    ad = db.Column(db.String(50), nullable=False)
+    # Otomatik: 'Mayıs 2026'
+    baslangic_tarihi = db.Column(db.Date, nullable=False)
+    bitis_tarihi = db.Column(db.Date, nullable=False)
+    durum = db.Column(db.String(20), nullable=False, default='aktif',
+                      index=True)
+    # 'aktif' | 'kapali'
+    aciklama = db.Column(db.Text, nullable=True)
+    olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('yil', 'ay', name='uq_surucu_donem_yil_ay'),
+    )
+
+    @classmethod
+    def from_yil_ay(cls, yil: int, ay: int) -> 'Donem':
+        """Yil+ay icin yeni bir Donem nesnesi olustur (DB'ye eklenmemis).
+
+        ad ve tarihler otomatik hesaplanir.
+        """
+        ad = f'{AY_ADLARI[ay - 1]} {yil}'
+        baslangic = date(yil, ay, 1)
+        son_gun = calendar.monthrange(yil, ay)[1]
+        bitis = date(yil, ay, son_gun)
+        return cls(
+            yil=yil, ay=ay, ad=ad,
+            baslangic_tarihi=baslangic, bitis_tarihi=bitis,
+            durum='aktif',
+        )
+
+    @property
+    def kisa_ad(self) -> str:
+        """'Mayıs 2026' yerine '05/2026' kisa formati."""
+        return f'{self.ay:02d}/{self.yil}'
+
+    def __repr__(self) -> str:
+        return f'<Donem {self.ad}>'
 
 
 # Turkiye'de gecerli tum ehliyet siniflari (Karayollari Trafik
@@ -88,11 +145,21 @@ class Kursiyer(db.Model):
     notlar = db.Column(db.Text, nullable=True)
     aktif = db.Column(db.Boolean, default=True, nullable=False)
 
+    # Donem (ay bazli grup) — kayit_tarihi'ne gore otomatik atanir
+    donem_id = db.Column(db.Integer,
+                          db.ForeignKey('surucu_donemler.id',
+                                        ondelete='SET NULL'),
+                          nullable=True, index=True)
+
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow,
                             onupdate=datetime.utcnow)
 
     egitmen = db.relationship('User', foreign_keys=[egitmen_id], lazy='joined')
+    donem = db.relationship('Donem',
+                             backref=db.backref('kursiyerler',
+                                                lazy='dynamic',
+                                                order_by='Kursiyer.ad'))
 
     @property
     def tam_ad(self) -> str:

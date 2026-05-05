@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Dönemler{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-calendar3 me-2 text-primary"></i>Dönemler
+        </h4>
+        <small class="text-muted">
+            Her ay bir dönemdir. Yeni kursiyer kaydında otomatik atanır.
+        </small>
+    </div>
+    <button type="button" class="btn btn-success btn-sm"
+            data-bs-toggle="modal" data-bs-target="#donemYeniModal">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Dönem
+    </button>
+</div>
+
+<form method="GET" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <select name="durum" class="form-select form-select-sm">
+            <option value="" {% if not durum %}selected{% endif %}>Tüm Dönemler</option>
+            <option value="aktif" {% if durum == 'aktif' %}selected{% endif %}>Sadece Aktif</option>
+            <option value="kapali" {% if durum == 'kapali' %}selected{% endif %}>Sadece Kapalı</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-sm btn-primary w-100">
+            <i class="bi bi-funnel me-1"></i>Filtrele
+        </button>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    {% if donemler %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Dönem</th>
+                    <th>Tarih Aralığı</th>
+                    <th>Kursiyer</th>
+                    <th class="text-end">Toplam Fiyat</th>
+                    <th class="text-end">Tahsil Edilen</th>
+                    <th class="text-end">Kalan</th>
+                    <th>Durum</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in donemler %}
+                {% set st = donem_stat.get(d.id, {'kursiyer_sayisi': 0, 'toplam_fiyat': 0, 'odenen': 0, 'kalan': 0}) %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('surucu_kursu.donem_detay', donem_id=d.id) }}"
+                           class="text-decoration-none">
+                            <strong>{{ d.ad }}</strong>
+                        </a>
+                        <br><small class="text-muted">{{ d.kisa_ad }}</small>
+                    </td>
+                    <td>
+                        <small>
+                            {{ d.baslangic_tarihi.strftime('%d.%m.%Y') }}
+                            — {{ d.bitis_tarihi.strftime('%d.%m.%Y') }}
+                        </small>
+                    </td>
+                    <td>
+                        <span class="badge bg-info text-dark">{{ st.kursiyer_sayisi }}</span>
+                    </td>
+                    <td class="text-end">
+                        <strong>{{ '%.2f'|format(st.toplam_fiyat) }} ₺</strong>
+                    </td>
+                    <td class="text-end">
+                        <strong class="text-success">{{ '%.2f'|format(st.odenen) }} ₺</strong>
+                    </td>
+                    <td class="text-end">
+                        {% if st.kalan > 0 %}
+                        <strong class="text-danger">{{ '%.2f'|format(st.kalan) }} ₺</strong>
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if d.durum == 'aktif' %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Kapalı</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('surucu_kursu.donem_detay', donem_id=d.id) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i> Aç
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-50"></i>
+        Henüz dönem yok.
+        <div class="mt-2">
+            <small>İlk kursiyeri kaydettiğinizde dönem otomatik oluşur.</small>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Yeni Donem Modal -->
+<div class="modal fade" id="donemYeniModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('surucu_kursu.donem_yeni') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="bi bi-calendar-plus me-1"></i>Yeni Dönem
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Yeni kursiyer kaydında dönem otomatik oluşur. Bu sayfa,
+                        ilerideki ayları önceden açmak için kullanılır.
+                    </p>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Yıl *</label>
+                            <input type="number" name="yil" min="2000" max="2100"
+                                   class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Ay *</label>
+                            <select name="ay" class="form-select form-select-sm" required>
+                                {% for i in range(1, 13) %}
+                                <option value="{{ i }}">{{ '%02d'|format(i) }} — {{ ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][i-1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <label class="form-label small">Açıklama (opsiyonel)</label>
+                            <textarea name="aciklama" rows="2" class="form-control form-control-sm"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Oluştur
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

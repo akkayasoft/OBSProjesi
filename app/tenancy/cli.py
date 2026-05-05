@@ -58,6 +58,58 @@ def _admin_psql_url() -> str:
     return url
 
 
+# Turkce ay adlari (backfill icin)
+_AY_ADLARI_TR = [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+]
+
+
+def _surucu_donem_backfill(conn):
+    """Surucu kursu tenant'i icin: donemi olmayan kursiyerlere
+    kayit_tarihi'ne gore donem olustur ve ata. Idempotent.
+
+    Mevcut kursiyerlerin (yil, ay) kombinasyonlarini bulur, eksik
+    olanlari surucu_donemler tablosuna ekler, sonra UPDATE ile
+    kursiyerlere donem_id atar.
+    """
+    import calendar as _cal
+    # 1) Eksik (yil, ay) ciftlerini bul
+    rows = conn.execute(text("""
+        SELECT DISTINCT EXTRACT(YEAR FROM kayit_tarihi)::int AS yil,
+                        EXTRACT(MONTH FROM kayit_tarihi)::int AS ay
+          FROM kursiyerler
+         WHERE kayit_tarihi IS NOT NULL
+           AND donem_id IS NULL
+    """)).fetchall()
+    for yil, ay in rows:
+        # Olusturmaya calis (idempotent — UNIQUE varsa hata)
+        ad = f'{_AY_ADLARI_TR[ay - 1]} {yil}'
+        baslangic = f'{yil:04d}-{ay:02d}-01'
+        son_gun = _cal.monthrange(yil, ay)[1]
+        bitis = f'{yil:04d}-{ay:02d}-{son_gun:02d}'
+        try:
+            conn.execute(text("""
+                INSERT INTO surucu_donemler
+                    (yil, ay, ad, baslangic_tarihi, bitis_tarihi,
+                     durum, olusturma_tarihi)
+                VALUES (:yil, :ay, :ad, :bas, :bit, 'aktif', NOW())
+                ON CONFLICT (yil, ay) DO NOTHING
+            """), dict(yil=yil, ay=ay, ad=ad, bas=baslangic, bit=bitis))
+        except Exception:
+            pass
+    # 2) UPDATE ile donemi olmayan kursiyerlere ata
+    conn.execute(text("""
+        UPDATE kursiyerler k
+           SET donem_id = d.id
+          FROM surucu_donemler d
+         WHERE k.donem_id IS NULL
+           AND k.kayit_tarihi IS NOT NULL
+           AND EXTRACT(YEAR FROM k.kayit_tarihi)::int = d.yil
+           AND EXTRACT(MONTH FROM k.kayit_tarihi)::int = d.ay
+    """))
+
+
 @tenant_cli.command('init-master')
 def init_master_cmd():
     """Master DB'de tenants tablosunu olustur."""
@@ -188,6 +240,7 @@ def create_all_tables_cmd():
     TENANT_KOLON_BACKFILL = [
         # surucu kursu
         ('kursiyerler', 'tc_kimlik', 'VARCHAR(11)'),
+        ('kursiyerler', 'donem_id', 'INTEGER'),
         ('surucu_sinav_harci_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
         ('kursiyer_taksitleri', 'gelir_gider_kayit_id', 'INTEGER'),
         # Faz 3.A — odeme detaylari + makbuz
@@ -232,6 +285,13 @@ def create_all_tables_cmd():
                     except Exception as alter_err:
                         # tablo henuz yoksa veya baska beklenmedik durum
                         # — sessizce gec
+                        pass
+                # Surucu kursu donem backfill - donemi olmayan
+                # kursiyerlere kayit_tarihi'ne gore donem ata. Idempotent.
+                if t.kurum_tipi == 'surucu_kursu':
+                    try:
+                        _surucu_donem_backfill(conn)
+                    except Exception:
                         pass
             click.echo(f'  ok  {t.slug} ({t.db_name})')
         except Exception as e:

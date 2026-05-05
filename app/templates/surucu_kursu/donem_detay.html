@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{{ donem.ad }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('surucu_kursu.donem_liste') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Dönemler
+    </a>
+    <span class="text-muted">/</span>
+    <strong>{{ donem.ad }}</strong>
+    {% if donem.durum == 'aktif' %}
+    <span class="badge bg-success ms-2">Aktif</span>
+    {% else %}
+    <span class="badge bg-secondary ms-2">Kapalı</span>
+    {% endif %}
+</div>
+
+<!-- Dönem KPI -->
+<div class="row g-2 mb-3">
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Kursiyer</small>
+                <h5 class="mb-0">{{ kursiyer_ozet|length }}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Toplam Fiyat</small>
+                <h5 class="mb-0">{{ '%.2f'|format(toplam_fiyat) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Tahsil Edilen</small>
+                <h5 class="mb-0 text-success">{{ '%.2f'|format(toplam_odenen) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card {% if toplam_kalan > 0 %}border-danger{% else %}border-success{% endif %}">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Kalan</small>
+                <h5 class="mb-0 {% if toplam_kalan > 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ '%.2f'|format(toplam_kalan) }} ₺
+                </h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kursiyerler tablosu -->
+<div class="card shadow-sm mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-people me-1"></i>Bu Dönemin Kursiyerleri
+        </h6>
+        <small class="text-muted">
+            {{ donem.baslangic_tarihi.strftime('%d.%m.%Y') }} —
+            {{ donem.bitis_tarihi.strftime('%d.%m.%Y') }}
+        </small>
+    </div>
+    {% if kursiyer_ozet %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th>
+                    <th>Telefon</th>
+                    <th>Ehliyet</th>
+                    <th>Kayıt Tarihi</th>
+                    <th class="text-end">Fiyat</th>
+                    <th class="text-end">Ödenen</th>
+                    <th class="text-end">Kalan</th>
+                    <th style="width:120px;">Tahsilat</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in kursiyer_ozet %}
+                {% set k = x.k %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=k.id) }}"
+                           class="text-decoration-none">
+                            <strong>{{ k.tam_ad }}</strong>
+                        </a>
+                        {% if k.tc_kimlik %}
+                        <br><small class="text-muted" style="font-family:monospace;">{{ k.tc_kimlik }}</small>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ k.telefon or '—' }}</small></td>
+                    <td>
+                        <span class="badge bg-info text-dark">{{ k.ehliyet_sinifi }}</span>
+                    </td>
+                    <td>
+                        <small>{{ k.kayit_tarihi.strftime('%d.%m.%Y') if k.kayit_tarihi }}</small>
+                    </td>
+                    <td class="text-end">
+                        <strong>{{ '%.2f'|format(x.toplam) }} ₺</strong>
+                    </td>
+                    <td class="text-end">
+                        <strong class="text-success">{{ '%.2f'|format(x.odenen) }} ₺</strong>
+                    </td>
+                    <td class="text-end">
+                        {% if x.kalan > 0 %}
+                        <strong class="text-danger">{{ '%.2f'|format(x.kalan) }} ₺</strong>
+                        {% else %}
+                        <small class="text-success">Tamamlandı</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{% if x.oran >= 100 %}success{% elif x.oran >= 50 %}info{% else %}warning{% endif %}"
+                                 style="width: {{ [x.oran, 100]|min }}%"></div>
+                        </div>
+                        <small class="text-muted">%{{ x.oran }}</small>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=k.id) }}"
+                           class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-arrow-right"></i> Aç
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-4">
+        <small>Bu dönemde kursiyer yok.</small>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Dönem ayarları -->
+<div class="card shadow-sm mb-3">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-gear me-1"></i>Dönem Ayarları</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST"
+              action="{{ url_for('surucu_kursu.donem_duzenle', donem_id=donem.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <label class="form-label small">Durum</label>
+                    <select name="durum" class="form-select form-select-sm">
+                        <option value="aktif" {% if donem.durum == 'aktif' %}selected{% endif %}>Aktif</option>
+                        <option value="kapali" {% if donem.durum == 'kapali' %}selected{% endif %}>Kapalı</option>
+                    </select>
+                </div>
+                <div class="col-md-7">
+                    <label class="form-label small">Açıklama</label>
+                    <input type="text" name="aciklama" class="form-control form-control-sm"
+                           value="{{ donem.aciklama or '' }}"
+                           placeholder="Bu döneme özel notlar (opsiyonel)">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-check-lg me-1"></i>Kaydet
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        {% if kursiyer_ozet|length == 0 %}
+        <hr>
+        <form method="POST"
+              action="{{ url_for('surucu_kursu.donem_sil', donem_id=donem.id) }}"
+              onsubmit="return confirm('{{ donem.ad }} dönemi silinecek. Devam?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash me-1"></i>Bu Dönemi Sil
+            </button>
+            <small class="text-muted ms-2">
+                (Sadece boş dönemler silinebilir)
+            </small>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -108,20 +108,24 @@
             </div>
             {% endif %}
 
-            <!-- Plan + limit duzenleme -->
+            <!-- Limit + iletisim duzenleme (plan degistirme kapali) -->
             <form method="POST" action="{{ url_for('sistem.tenant_duzenle', tenant_id=tenant.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <h6 class="mb-2 mt-3"><i class="bi bi-stack me-1"></i>Plan</h6>
-                <div class="mb-3">
-                    <select name="plan" class="form-select form-select-sm">
-                        {% for kod, p in planlar.items() %}
-                        <option value="{{ kod }}" {% if tenant.plan == kod %}selected{% endif %}>
-                            {{ p.ad }}
-                            {% if p.ogrenci_limiti %}({{ p.ogrenci_limiti }} öğrenci, {{ p.ogretmen_limiti }} öğretmen){% else %}(sınırsız){% endif %}
-                            {% if p.fiyat_tl_aylik %} — {{ p.fiyat_tl_aylik }}₺/ay{% endif %}
-                        </option>
-                        {% endfor %}
-                    </select>
+
+                {% set _p = planlar.get(tenant.plan, planlar.standart) %}
+                <div class="alert alert-light border small mb-3 mt-3" style="background:#f8f9fa;">
+                    <i class="bi bi-stack me-1"></i>
+                    <strong>Mevcut Plan:</strong> {{ _p.ad }}
+                    {% if _p.ogrenci_limiti %}
+                    <span class="text-muted">
+                        ({{ _p.ogrenci_limiti }} öğrenci, {{ _p.ogretmen_limiti }} öğretmen)
+                    </span>
+                    {% else %}
+                    <span class="text-muted">(sınırsız)</span>
+                    {% endif %}
+                    {% if _p.fiyat_tl_aylik %}
+                    <span class="text-muted">— {{ _p.fiyat_tl_aylik }}₺/ay</span>
+                    {% endif %}
                 </div>
 
                 <h6 class="mb-2 mt-3"><i class="bi bi-sliders me-1"></i>Özel Limit (Opsiyonel)</h6>

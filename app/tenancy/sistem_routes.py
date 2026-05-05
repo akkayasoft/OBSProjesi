@@ -378,11 +378,10 @@ def _tenant_istatistik(db_name: str) -> dict:
 @bp.route('/tenant/<int:tenant_id>/duzenle', methods=['POST'])
 @platform_admin_required
 def tenant_duzenle(tenant_id):
-    yeni_plan = (request.form.get('plan') or '').strip()
-    if yeni_plan not in PLAN_LIMITLERI:
-        flash('Geçersiz plan.', 'danger')
-        return redirect(url_for('sistem.tenant_detay', tenant_id=tenant_id))
-
+    """Tenant ozel limit + iletisim + abonelik bitis duzenleme.
+    Plan degistirme bu uctan KAPATILDI - tenant.plan hicbir kosulda
+    bu route ile guncellenmiyor (sadece tenant_yeni'de set edilir).
+    """
     def _int_or_none(key):
         v = (request.form.get(key) or '').strip()
         if v == '':
@@ -411,8 +410,7 @@ def tenant_duzenle(tenant_id):
         tenant = s.query(Tenant).filter_by(id=tenant_id).first()
         if not tenant:
             abort(404)
-        eski_plan = tenant.plan
-        tenant.plan = yeni_plan
+        # NOT: tenant.plan korunur (degistirme kapali)
         tenant.ogrenci_limiti = yeni_ogrenci
         tenant.ogretmen_limiti = yeni_ogretmen
         tenant.kullanici_limiti = yeni_kullanici
@@ -420,7 +418,7 @@ def tenant_duzenle(tenant_id):
         tenant.iletisim_telefon = iletisim_telefon
         tenant.abonelik_bitis = abonelik_bitis
         audit_kaydet(s, admin, 'tenant_update', tenant=tenant,
-                      detay=f'plan: {eski_plan} -> {yeni_plan}, '
+                      detay=f'plan={tenant.plan} (sabit), '
                             f'ogrenci_limit={yeni_ogrenci}, '
                             f'ogretmen_limit={yeni_ogretmen}, '
                             f'kullanici_limit={yeni_kullanici}')

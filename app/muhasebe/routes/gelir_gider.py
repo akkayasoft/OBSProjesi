@@ -105,7 +105,8 @@ def duzenle(id):
         flash('Kayıt başarıyla güncellendi.', 'success')
         return redirect(url_for('muhasebe.gelir_gider.liste'))
 
-    return render_template('muhasebe/gelir_gider/ekle.html', form=form, baslik='Kaydı Düzenle')
+    return render_template('muhasebe/gelir_gider/ekle.html', form=form,
+                           baslik='Kaydı Düzenle', kayit=kayit)
 
 
 @bp.route('/<int:id>/sil', methods=['POST'])

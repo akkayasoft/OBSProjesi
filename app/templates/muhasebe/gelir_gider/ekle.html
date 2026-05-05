@@ -14,6 +14,18 @@
             <div class="card-header bg-white">
                 <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>{{ baslik }}</h5>
             </div>
+            {% if kayit and kayit.olusturan %}
+            <div class="px-3 py-2 bg-light border-bottom small text-muted">
+                <i class="bi bi-person-circle me-1"></i>
+                Bu kaydı <strong>{{ kayit.olusturan.tam_ad }}</strong>
+                {% if kayit.olusturma_tarihi %}
+                <span class="text-secondary">·
+                    {{ kayit.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                </span>
+                {% endif %}
+                tarihinde oluşturdu.
+            </div>
+            {% endif %}
             <div class="card-body">
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

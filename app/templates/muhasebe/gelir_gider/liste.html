@@ -63,6 +63,7 @@
                     <th>Açıklama</th>
                     <th>Belge No</th>
                     <th class="text-end">Tutar</th>
+                    <th>Ekleyen</th>
                     <th class="text-center">İşlemler</th>
                 </tr>
             </thead>
@@ -83,6 +84,20 @@
                     <td class="text-end fw-bold {% if kayit.tur == 'gelir' %}text-success{% else %}text-danger{% endif %}">
                         {{ "{:,.2f}".format(kayit.tutar) }} ₺
                     </td>
+                    <td>
+                        {% if kayit.olusturan %}
+                        <small>
+                            <i class="bi bi-person-circle me-1 text-muted"></i>{{ kayit.olusturan.tam_ad }}
+                        </small>
+                        {% if kayit.olusturma_tarihi %}
+                        <br><small class="text-muted" style="font-size:0.7rem;">
+                            {{ kayit.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                        </small>
+                        {% endif %}
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
                     <td class="text-center">
                         <a href="{{ url_for('muhasebe.gelir_gider.duzenle', id=kayit.id) }}"
                            class="btn btn-sm btn-outline-primary" title="Düzenle">
@@ -100,7 +115,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-4">Henüz kayıt bulunmuyor</td>
+                    <td colspan="8" class="text-center text-muted py-4">Henüz kayıt bulunmuyor</td>
                 </tr>
                 {% endfor %}
             </tbody>

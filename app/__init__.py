@@ -525,7 +525,7 @@ def create_app(config_class=Config):
                      'url': '/kullanici/yeni'},
                  ], 'renk_kat': 'mor'},
             ]
-            # Yetkilendirme - SADECE admin/yonetici icin (modul_key kontrolu yok)
+            # Ayarlar - SADECE admin/yonetici icin (modul_key kontrolu yok)
             if _rol in ('admin', 'yonetici'):
                 surucu_menu_full.append({
                     'label': 'Ayarlar', 'icon': 'bi-gear',
@@ -534,6 +534,8 @@ def create_app(config_class=Config):
                     'children': [
                         {'label': 'Yetkilendirme', 'icon': 'bi-shield-lock',
                          'url': '/surucu-kursu/ayarlar/yetkilendirme'},
+                        {'label': 'Veritabanı Yedekleme', 'icon': 'bi-cloud-download',
+                         'url': '/ayarlar/yedekleme'},
                     ],
                     'renk_kat': 'mor',
                 })

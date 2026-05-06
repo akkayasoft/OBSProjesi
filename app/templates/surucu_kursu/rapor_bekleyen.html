@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Bekleyen Tahsilatlar{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+    <a href="{{ url_for('surucu_kursu.rapor_dashboard') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Raporlar
+    </a>
+    <span class="text-muted">/</span>
+    <strong>Bekleyen Tahsilatlar</strong>
+</div>
+
+<!-- Ozet kartlar -->
+<div class="row g-2 mb-3">
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Borçlu Kursiyer</small>
+                <h5 class="mb-0">{{ kursiyer_sayisi }}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Toplam Bekleyen</small>
+                <h5 class="mb-0 text-warning">{{ '%.2f'|format(toplam_borc) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Geciken Tutar</small>
+                <h5 class="mb-0 text-danger">{{ '%.2f'|format(geciken_borc) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Geciken Taksit</small>
+                <h5 class="mb-0 text-danger">{{ toplam_geciken_adet }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtre -->
+<form method="GET" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <select name="donem" class="form-select form-select-sm">
+            <option value="">Tüm Dönemler</option>
+            {% for d in donemler %}
+            <option value="{{ d.id }}" {% if donem == d.id|string %}selected{% endif %}>{{ d.ad }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="sinif" class="form-select form-select-sm">
+            <option value="">Tüm Ehliyet Sınıfları</option>
+            {% for kod, ad in ehliyet_siniflari %}
+            <option value="{{ kod }}" {% if sinif == kod %}selected{% endif %}>{{ ad }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="sirala" class="form-select form-select-sm">
+            <option value="kalan" {% if sirala == 'kalan' %}selected{% endif %}>Kalan tutar (büyükten küçüğe)</option>
+            <option value="vade" {% if sirala == 'vade' %}selected{% endif %}>En yakın vade</option>
+            <option value="ad" {% if sirala == 'ad' %}selected{% endif %}>Ad-soyad</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-sm btn-primary w-100">
+            <i class="bi bi-funnel me-1"></i>Filtrele
+        </button>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-hourglass-split me-1 text-warning"></i>
+            Borçlu Kursiyerler
+        </h6>
+        <small class="text-muted">{{ kursiyer_sayisi }} kayıt</small>
+    </div>
+    {% if satirlar %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Kursiyer</th>
+                    <th>Telefon</th>
+                    <th>Ehliyet</th>
+                    <th>Dönem</th>
+                    <th class="text-center">Borçlu Taksit</th>
+                    <th class="text-center">Geciken</th>
+                    <th>En Yakın Vade</th>
+                    <th class="text-end">Bekleyen Tutar</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in satirlar %}
+                {% set k = r.k %}
+                <tr {% if r.geciken_adet > 0 %}class="table-danger"{% endif %}>
+                    <td>
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=k.id) }}"
+                           class="text-decoration-none">
+                            <strong>{{ k.tam_ad }}</strong>
+                        </a>
+                        {% if k.tc_kimlik %}
+                        <br><small class="text-muted" style="font-family:monospace;">{{ k.tc_kimlik }}</small>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ k.telefon or '—' }}</small></td>
+                    <td>
+                        {% if k.ehliyet_sinifi %}
+                        <span class="badge bg-info text-dark">{{ k.ehliyet_sinifi }}</span>
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if k.donem %}
+                        <small>{{ k.donem.kisa_ad }}</small>
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-warning text-dark">{{ r.borc_adet }}</span>
+                    </td>
+                    <td class="text-center">
+                        {% if r.geciken_adet > 0 %}
+                        <span class="badge bg-danger">{{ r.geciken_adet }}</span>
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if r.en_yakin_vade %}
+                        {% if r.en_yakin_vade < bugun %}
+                        <small class="text-danger">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            {{ r.en_yakin_vade.strftime('%d.%m.%Y') }}
+                        </small>
+                        {% else %}
+                        <small>{{ r.en_yakin_vade.strftime('%d.%m.%Y') }}</small>
+                        {% endif %}
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <strong class="text-{% if r.geciken_adet > 0 %}danger{% else %}warning{% endif %}">
+                            {{ '%.2f'|format(r.borc_tutar) }} ₺
+                        </strong>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=k.id) }}"
+                           class="btn btn-sm btn-outline-primary" title="Aç">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-light">
+                <tr>
+                    <th colspan="7" class="text-end">TOPLAM</th>
+                    <th class="text-end">
+                        <strong class="text-warning">{{ '%.2f'|format(toplam_borc) }} ₺</strong>
+                    </th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-check-circle fs-1 d-block mb-2 text-success opacity-50"></i>
+        Bekleyen tahsilat yok — tüm kursiyerlerin taksitleri ödenmiş.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

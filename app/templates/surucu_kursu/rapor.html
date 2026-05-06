@@ -46,19 +46,23 @@
         </div>
     </div>
     <div class="col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100" style="border-left: 4px solid #ffc107;">
-            <div class="card-body">
-                <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
-                    <i class="bi bi-hourglass-split me-1"></i>Bekleyen Tahsilat
-                </small>
-                <div class="fs-2 fw-bold mt-1 text-warning">
-                    {{ '%.2f'|format(bekleyen_top) }} ₺
+        <a href="{{ url_for('surucu_kursu.rapor_bekleyen_tahsilat') }}"
+           class="text-decoration-none">
+            <div class="card shadow-sm h-100" style="border-left: 4px solid #ffc107; cursor:pointer;">
+                <div class="card-body">
+                    <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
+                        <i class="bi bi-hourglass-split me-1"></i>Bekleyen Tahsilat
+                    </small>
+                    <div class="fs-2 fw-bold mt-1 text-warning">
+                        {{ '%.2f'|format(bekleyen_top) }} ₺
+                    </div>
+                    <small class="text-muted">
+                        Tıkla — kim ne kadar borçlu, detay listele
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </small>
                 </div>
-                <small class="text-muted">
-                    Tüm ödenmemiş eğitim ücreti taksitleri
-                </small>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-6 col-lg-3">
         <div class="card shadow-sm h-100" style="border-left: 4px solid #dc3545;">
@@ -414,6 +418,143 @@
                 </table>
                 {% else %}
                 <div class="text-center text-muted py-3"><small>Henüz sınav oturumu yok.</small></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Komisyon Ozeti (Yonlendirmeler ve Komisyon Odemeleri) -->
+<div class="row g-3 mt-2">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-arrow-up-right me-1 text-success"></i>
+                    Yönlendirme Komisyonu (Bizim Yönlendirdiklerimiz — Gelir)
+                </h6>
+                <a href="{{ url_for('surucu_kursu.yonlendirme_liste') }}"
+                   class="small text-decoration-none">Detay <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-4 text-center">
+                        <small class="text-muted d-block">Toplam</small>
+                        <strong>{{ '%.2f'|format(yon_komisyon_top) }} ₺</strong>
+                    </div>
+                    <div class="col-4 text-center">
+                        <small class="text-muted d-block">Tahsil Edilen</small>
+                        <strong class="text-success">{{ '%.2f'|format(yon_komisyon_alinan) }} ₺</strong>
+                    </div>
+                    <div class="col-4 text-center">
+                        <small class="text-muted d-block">Bekleyen</small>
+                        <strong class="text-warning">{{ '%.2f'|format(yon_komisyon_bekleyen) }} ₺</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-arrow-down-left me-1 text-danger"></i>
+                    Komisyon Ödemeleri (Bize Yönlendirilenler — Gider)
+                </h6>
+                <a href="{{ url_for('surucu_kursu.komisyon_liste') }}"
+                   class="small text-decoration-none">Detay <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-4 text-center">
+                        <small class="text-muted d-block">Toplam</small>
+                        <strong>{{ '%.2f'|format(kom_odeme_top) }} ₺</strong>
+                    </div>
+                    <div class="col-4 text-center">
+                        <small class="text-muted d-block">Ödenen</small>
+                        <strong class="text-success">{{ '%.2f'|format(kom_odeme_odenen) }} ₺</strong>
+                    </div>
+                    <div class="col-4 text-center">
+                        <small class="text-muted d-block">Bekleyen</small>
+                        <strong class="text-danger">{{ '%.2f'|format(kom_odeme_bekleyen) }} ₺</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Odeme Turu Dagilimi + Aylik Tahsilat Trendi -->
+<div class="row g-3 mt-2">
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-credit-card me-1"></i>
+                    Ödeme Türü Dağılımı (son 90 gün)
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if odeme_turu_dagilim %}
+                {% set toplam_od = (odeme_turu_dagilim | sum(attribute='tutar')) or 1 %}
+                <table class="table table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tür</th>
+                            <th class="text-end">Adet</th>
+                            <th class="text-end">Tutar</th>
+                            <th>Pay</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in odeme_turu_dagilim %}
+                        {% set yuzde = (o.tutar / toplam_od * 100) | round(1) %}
+                        <tr>
+                            <td><small><strong>{{ o.ad }}</strong></small></td>
+                            <td class="text-end"><small>{{ o.sayi }}</small></td>
+                            <td class="text-end"><strong>{{ '%.0f'|format(o.tutar) }} ₺</strong></td>
+                            <td>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-info"
+                                         style="width: {{ yuzde }}%"></div>
+                                </div>
+                                <small class="text-muted">%{{ yuzde }}</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-3"><small>Bu dönemde ödeme yok.</small></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-bar-chart me-1"></i>
+                    Aylık Tahsilat Trendi (kursiyer ödemeleri, son 6 ay)
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if aylik_tahsilat %}
+                {% set max_tahsilat = (aylik_tahsilat | map(attribute='tutar') | max) or 1 %}
+                {% for ay_kaydi in aylik_tahsilat %}
+                {% set yuzde = (ay_kaydi.tutar / max_tahsilat * 100) | round(1) %}
+                <div class="d-flex align-items-center mb-2 gap-2">
+                    <div style="width:80px;"><small class="text-muted">{{ ay_kaydi.ay }}</small></div>
+                    <div class="progress flex-grow-1" style="height: 18px;">
+                        <div class="progress-bar bg-success"
+                             style="width: {{ yuzde }}%; min-width: 30px;">
+                            <small>{{ '%.0f'|format(ay_kaydi.tutar) }} ₺</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center text-muted py-3"><small>Son 6 ayda kayıtlı tahsilat yok.</small></div>
                 {% endif %}
             </div>
         </div>

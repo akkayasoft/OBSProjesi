@@ -1213,6 +1213,59 @@ def rapor_dashboard():
         func.coalesce(func.sum(SurucuSinavHarciKaydi.ucret), 0)
     ).filter(SurucuSinavHarciKaydi.durum == 'aday_borclu').scalar() or 0)
 
+    # === Odeme turu dagilimi (son 90 gun) ===
+    son_90 = bugun - timedelta(days=90)
+    odeme_turu_raw = db.session.query(
+        KursiyerTaksit.odeme_turu,
+        func.count(KursiyerTaksit.id),
+        func.coalesce(func.sum(KursiyerTaksit.tutar), 0),
+    ).filter(
+        KursiyerTaksit.odendi_mi.is_(True),
+        KursiyerTaksit.odeme_tarihi >= son_90,
+    ).group_by(KursiyerTaksit.odeme_turu).all()
+    OD_LABEL = {'nakit': 'Nakit', 'eft': 'EFT/Havale',
+                'kredi_karti': 'Kredi Kartı', None: 'Belirtilmemiş'}
+    odeme_turu_dagilim = [
+        {'kod': k or 'belirsiz', 'ad': OD_LABEL.get(k, '—'),
+         'sayi': sayi, 'tutar': float(tutar)}
+        for k, sayi, tutar in odeme_turu_raw
+    ]
+    odeme_turu_dagilim.sort(key=lambda x: -x['tutar'])
+
+    # === Komisyon ozeti (yonlendirme - giden GELIR / komisyon - gelen GIDER) ===
+    from app.models.surucu_kursu import KomisyonOdemesi as _Kom
+    yon_komisyon_top = float(db.session.query(
+        func.coalesce(func.sum(KursiyerYonlendirme.komisyon_tutari), 0)
+    ).scalar() or 0)
+    yon_komisyon_alinan = float(db.session.query(
+        func.coalesce(func.sum(KursiyerYonlendirme.komisyon_tutari), 0)
+    ).filter(KursiyerYonlendirme.komisyon_alindi_mi.is_(True)).scalar() or 0)
+    yon_komisyon_bekleyen = yon_komisyon_top - yon_komisyon_alinan
+
+    kom_odeme_top = float(db.session.query(
+        func.coalesce(func.sum(_Kom.komisyon_tutari), 0)
+    ).scalar() or 0)
+    kom_odeme_odenen = float(db.session.query(
+        func.coalesce(func.sum(_Kom.komisyon_tutari), 0)
+    ).filter(_Kom.odendi_mi.is_(True)).scalar() or 0)
+    kom_odeme_bekleyen = kom_odeme_top - kom_odeme_odenen
+
+    # === Aylik tahsilat trendi (son 6 ay - kursiyer taksiti odenen tutar) ===
+    tahsilat_kayitlari = db.session.query(
+        KursiyerTaksit.odeme_tarihi, KursiyerTaksit.tutar,
+    ).filter(
+        KursiyerTaksit.odendi_mi.is_(True),
+        KursiyerTaksit.odeme_tarihi >= ay_geriye,
+    ).all()
+    aylik_tahsilat = defaultdict(float)
+    for tarih, tutar in tahsilat_kayitlari:
+        if tarih:
+            aylik_tahsilat[tarih.strftime('%Y-%m')] += float(tutar or 0)
+    aylik_tahsilat_sirali = [
+        {'ay': ay, 'tutar': aylik_tahsilat[ay]}
+        for ay in sorted(aylik_tahsilat.keys())
+    ]
+
     return render_template(
         'surucu_kursu/rapor.html',
         # KPI
@@ -1232,7 +1285,124 @@ def rapor_dashboard():
         sinav_ozet=sinav_ozet,
         yil_sinav_tahsil=yil_sinav_tahsil,
         yil_sinav_borclu=yil_sinav_borclu,
+        # Yeni bolumler
+        odeme_turu_dagilim=odeme_turu_dagilim,
+        yon_komisyon_top=yon_komisyon_top,
+        yon_komisyon_alinan=yon_komisyon_alinan,
+        yon_komisyon_bekleyen=yon_komisyon_bekleyen,
+        kom_odeme_top=kom_odeme_top,
+        kom_odeme_odenen=kom_odeme_odenen,
+        kom_odeme_bekleyen=kom_odeme_bekleyen,
+        aylik_tahsilat=aylik_tahsilat_sirali,
         # Yardimcilar
+        bugun=bugun,
+    )
+
+
+# === Bekleyen tahsilat detay (kursiyer bazli borc listesi) ===
+
+@surucu_kursu_bp.route('/rapor/bekleyen-tahsilat')
+@login_required
+def rapor_bekleyen_tahsilat():
+    """Aktif kursiyerlerin odenmemis taksit toplami - kim ne kadar borclu?
+
+    Bekleyen tahsilat KPI'sindan tiklanir.
+    """
+    _surucu_kursu_tenant_required()
+    bugun = date.today()
+
+    # Filtreler
+    donem_id_str = (request.args.get('donem') or '').strip()
+    sinif = (request.args.get('sinif') or '').strip()
+    sirala = (request.args.get('sirala') or 'kalan').strip()
+    # 'kalan' (default), 'ad', 'vade'
+
+    # Aktif kursiyerlerin odenmemis taksit toplamlarini hesapla
+    odenmemis_qs = db.session.query(
+        KursiyerTaksit.kursiyer_id,
+        func.count(KursiyerTaksit.id).label('borc_adet'),
+        func.coalesce(func.sum(KursiyerTaksit.tutar), 0).label('borc_tutar'),
+        func.min(KursiyerTaksit.vade_tarihi).label('en_yakin_vade'),
+    ).filter(KursiyerTaksit.odendi_mi.is_(False)).group_by(
+        KursiyerTaksit.kursiyer_id
+    ).all()
+    borc_dict = {
+        row.kursiyer_id: {
+            'adet': row.borc_adet,
+            'tutar': float(row.borc_tutar or 0),
+            'en_yakin_vade': row.en_yakin_vade,
+        }
+        for row in odenmemis_qs
+    }
+
+    # Geciken sayisi (kursiyer basina)
+    geciken_qs = db.session.query(
+        KursiyerTaksit.kursiyer_id,
+        func.count(KursiyerTaksit.id).label('geciken_adet'),
+    ).filter(
+        KursiyerTaksit.odendi_mi.is_(False),
+        KursiyerTaksit.vade_tarihi < bugun,
+    ).group_by(KursiyerTaksit.kursiyer_id).all()
+    geciken_dict = {row.kursiyer_id: row.geciken_adet for row in geciken_qs}
+
+    # Borcu olan kursiyerleri getir
+    borclu_idler = list(borc_dict.keys())
+    if not borclu_idler:
+        kursiyerler = []
+    else:
+        q = Kursiyer.query.filter(
+            Kursiyer.id.in_(borclu_idler),
+            Kursiyer.aktif.is_(True),
+        )
+        if donem_id_str:
+            try:
+                q = q.filter(Kursiyer.donem_id == int(donem_id_str))
+            except ValueError:
+                pass
+        if sinif and sinif in EHLIYET_SINIF_DICT:
+            q = q.filter(Kursiyer.ehliyet_sinifi == sinif)
+        kursiyerler = q.all()
+
+    # Satirlari olustur
+    satirlar = []
+    for k in kursiyerler:
+        b = borc_dict.get(k.id, {})
+        satirlar.append({
+            'k': k,
+            'borc_adet': b.get('adet', 0),
+            'borc_tutar': b.get('tutar', 0.0),
+            'en_yakin_vade': b.get('en_yakin_vade'),
+            'geciken_adet': geciken_dict.get(k.id, 0),
+        })
+
+    # Siralama
+    if sirala == 'ad':
+        satirlar.sort(key=lambda x: x['k'].tam_ad.lower())
+    elif sirala == 'vade':
+        satirlar.sort(key=lambda x: x['en_yakin_vade'] or date.max)
+    else:
+        satirlar.sort(key=lambda x: -x['borc_tutar'])
+
+    toplam_borc = sum(r['borc_tutar'] for r in satirlar)
+    toplam_geciken_adet = sum(r['geciken_adet'] for r in satirlar)
+    geciken_borc = sum(r['borc_tutar'] for r in satirlar
+                        if r['geciken_adet'] > 0)
+
+    donemler = Donem.query.order_by(
+        Donem.yil.desc(), Donem.ay.desc()
+    ).all()
+
+    return render_template(
+        'surucu_kursu/rapor_bekleyen.html',
+        satirlar=satirlar,
+        toplam_borc=toplam_borc,
+        toplam_geciken_adet=toplam_geciken_adet,
+        geciken_borc=geciken_borc,
+        kursiyer_sayisi=len(satirlar),
+        donemler=donemler,
+        ehliyet_siniflari=EHLIYET_SINIFLARI,
+        ehliyet_dict=EHLIYET_SINIF_DICT,
+        donem=donem_id_str, sinif=sinif, sirala=sirala,
         bugun=bugun,
     )
 

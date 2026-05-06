@@ -1062,9 +1062,13 @@ h4.mb-0 {
  * haline').
  * =========================================================================== */
 
-/* Ust navbar (banner) - mavi yerine koyu yesil (#15803d, trafik) */
+/* Ust navbar (banner) - mavi yerine koyu yesil (#15803d, trafik)
+   NOT: .navbar tabanda 'background: linear-gradient(...) !important'
+   ile gradient kullaniyor; sadece background-color override yetmiyor.
+   Bu yuzden ayni shorthand'i yesil tonlarla overrride ediyoruz. */
+body[data-kurum-tipi="surucu_kursu"] .navbar,
 body[data-kurum-tipi="surucu_kursu"] .navbar.bg-primary {
-    background-color: #15803d !important;
+    background: linear-gradient(135deg, #15803d, #166534) !important;
 }
 body[data-kurum-tipi="surucu_kursu"] .navbar-dark .navbar-brand,
 body[data-kurum-tipi="surucu_kursu"] .navbar-dark .nav-link {

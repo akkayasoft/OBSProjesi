@@ -255,15 +255,23 @@ def create_app(config_class=Config):
         if kurum_tipi == 'surucu_kursu':
             return dict(
                 kurum_tipi=kurum_tipi,
-                kurum_tipi_baslik='Sürücü Kursu Yönetim Sistemi',
-                kurum_tipi_kisa='Sürücü Kursu',
+                kurum_tipi_baslik='SKY — Sürücü Kursu Yönetimi',
+                kurum_tipi_kisa='SKY',
+                kurum_tipi_ad='Sürücü Kursu',
                 kurum_tipi_ikon='bi-car-front-fill',
+                kurum_tipi_renk_hex='#f59f00',     # turuncu
+                kurum_tipi_renk_koyu_hex='#b76e00',
+                kurum_tipi_pwa_title='SKY Portal',
             )
         return dict(
             kurum_tipi=kurum_tipi,
             kurum_tipi_baslik='OBS — Öğrenci Bilgi Sistemi',
             kurum_tipi_kisa='OBS',
+            kurum_tipi_ad='Dershane',
             kurum_tipi_ikon='bi-mortarboard-fill',
+            kurum_tipi_renk_hex='#0d6efd',       # mavi
+            kurum_tipi_renk_koyu_hex='#0a58ca',
+            kurum_tipi_pwa_title='OBS Portal',
         )
 
     # Context processor - sidebar menü

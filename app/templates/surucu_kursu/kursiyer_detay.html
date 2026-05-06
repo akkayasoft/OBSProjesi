@@ -741,10 +741,33 @@
                                    class="form-control form-control-sm">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small">Fiyat (₺)</label>
+                            <label class="form-label small">Fiyat (₺) *</label>
                             <input type="text" name="fiyat"
                                    class="form-control form-control-sm"
                                    placeholder="örn. 7500.00">
+                        </div>
+                    </div>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label small">
+                                Taksit Sayısı *
+                                <span class="text-muted">(otomatik bölünür)</span>
+                            </label>
+                            <input type="number" name="taksit_sayisi" min="1" max="36"
+                                   class="form-control form-control-sm"
+                                   value="1" required>
+                            <small class="text-muted">
+                                1 = peşin (tek taksit). N = aylık vadeli, eşit dağıtılır.
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">İlk Taksit Vade Tarihi</label>
+                            <input type="date" name="ilk_vade"
+                                   class="form-control form-control-sm"
+                                   value="{{ bugun.isoformat() }}">
+                            <small class="text-muted">
+                                Sonraki taksitler 1'er ay sonraya planlanır.
+                            </small>
                         </div>
                     </div>
                     <div class="mt-2">
@@ -760,6 +783,14 @@
                         <label class="form-label small">Notlar</label>
                         <input type="text" name="notlar"
                                class="form-control form-control-sm" maxlength="200">
+                    </div>
+                    <div class="alert alert-info small mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Ehliyet eklendiğinde taksit sayısına göre eşit
+                        bölünerek <strong>borç taksitleri</strong> otomatik
+                        oluşur. Vade tarihlerini sonradan
+                        <strong>Eğitim Ücreti Taksitleri</strong> tablosundan
+                        elle düzenleyebilirsiniz.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -791,17 +822,24 @@
                 </div>
                 <div class="modal-body">
                     <div class="row g-2">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label small">Ders Sayısı</label>
                             <input type="number" name="ders_sayisi" min="0"
                                    class="form-control form-control-sm"
                                    value="{{ e.ders_sayisi if e.ders_sayisi is not none else '' }}">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label small">Fiyat (₺)</label>
                             <input type="text" name="fiyat"
                                    class="form-control form-control-sm"
                                    value="{{ '%.2f'|format(e.fiyat or 0) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Taksit Sayısı</label>
+                            <input type="number" name="taksit_sayisi"
+                                   min="1" max="36"
+                                   class="form-control form-control-sm"
+                                   value="{{ e.taksit_sayisi or 1 }}">
                         </div>
                     </div>
                     <div class="mt-2">
@@ -828,6 +866,12 @@
                         <input type="text" name="notlar"
                                class="form-control form-control-sm" maxlength="200"
                                value="{{ e.notlar or '' }}">
+                    </div>
+                    <div class="alert alert-warning small mt-3 mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Fiyat veya taksit sayısı değişirse <strong>ödenmemiş
+                        borç taksitleri</strong> yeniden hesaplanır
+                        (ödenmiş taksitler korunur).
                     </div>
                 </div>
                 <div class="modal-footer">

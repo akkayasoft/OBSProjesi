@@ -192,6 +192,9 @@ class KursiyerEhliyet(db.Model):
     ehliyet_sinifi = db.Column(db.String(20), nullable=False, index=True)
     ders_sayisi = db.Column(db.Integer, nullable=True)
     fiyat = db.Column(db.Numeric(10, 2), nullable=True, default=0)
+    # Otomatik taksit sayisi - ehliyet eklenirken fiyat bu sayiya
+    # bolunup N tane KursiyerTaksit olusturulur. 1 = tek taksit (default).
+    taksit_sayisi = db.Column(db.Integer, nullable=True, default=1)
     egitmen_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     durum = db.Column(db.String(20), nullable=False, default='aktif')
     # aktif | tamamlandi | iptal

@@ -474,3 +474,78 @@ class KursiyerYonlendirme(db.Model):
     def __repr__(self) -> str:
         return (f'<KursiyerYonlendirme kursiyer={self.kursiyer_id} '
                 f'hedef={self.hedef_kurs_adi} durum={self.durum}>')
+
+
+class KomisyonOdemesi(db.Model):
+    """Baska kurslarin BIZE yonlendirdigi kursiyerler icin BIZIM
+    odeyecegimiz komisyon (yon='gelen').
+
+    KursiyerYonlendirme'nin tersi: yonlendirme modulu bizim
+    gonderdiklerimiz (gelir), bu modul bize gelenler (gider).
+
+    Kursiyer FK opsiyonel - bize yonlendirilen kisi sistem'e kayit
+    olabilir veya olmayabilir. Olmamissa kursiyer_adi serbest metin
+    olarak girilir.
+
+    Komisyon odendi olarak isaretlendiginde otomatik 'Yonlendirme
+    Komisyon Gideri' kategorisinde GelirGiderKaydi (tur='gider')
+    olusur. Iptal edilince gider kaydi silinir.
+    """
+    __tablename__ = 'surucu_komisyon_odemeleri'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Hangi kursiyer icin (sistemimizde varsa FK, yoksa serbest metin)
+    kursiyer_id = db.Column(
+        db.Integer,
+        db.ForeignKey('kursiyerler.id', ondelete='SET NULL'),
+        nullable=True, index=True,
+    )
+    kursiyer_adi = db.Column(db.String(150), nullable=False)
+    # FK varsa kursiyer.tam_ad ile esit, yoksa elle girilir
+    kursiyer_telefon = db.Column(db.String(40), nullable=True)
+    ehliyet_sinifi = db.Column(db.String(20), nullable=True)
+    # Hangi egitim icin yonlendirildi (opsiyonel)
+
+    # Kaynak (yonlendiren) kurs bilgileri
+    kaynak_kurs_adi = db.Column(db.String(200), nullable=False)
+    kaynak_kurs_yetkili = db.Column(db.String(150), nullable=True)
+    kaynak_kurs_telefon = db.Column(db.String(40), nullable=True)
+
+    # Bizim taraftan kaydeden personel
+    kaydeden_id = db.Column(db.Integer,
+                             db.ForeignKey('users.id'),
+                             nullable=True, index=True)
+
+    yonlendirme_tarihi = db.Column(db.Date, nullable=False, index=True)
+
+    komisyon_tutari = db.Column(db.Numeric(10, 2),
+                                 nullable=False, default=0)
+    odendi_mi = db.Column(db.Boolean, default=False, nullable=False,
+                           index=True)
+    odeme_tarihi = db.Column(db.Date, nullable=True)
+
+    aciklama = db.Column(db.Text, nullable=True)
+    olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Komisyon odendiginde otomatik gider kaydi linki
+    gelir_gider_kayit_id = db.Column(
+        db.Integer,
+        db.ForeignKey('gelir_gider_kayitlari.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+
+    kursiyer = db.relationship('Kursiyer', foreign_keys=[kursiyer_id])
+    kaydeden = db.relationship('User', foreign_keys=[kaydeden_id],
+                                lazy='joined')
+
+    @property
+    def ehliyet_sinifi_str(self) -> str:
+        if not self.ehliyet_sinifi:
+            return '—'
+        return EHLIYET_SINIF_DICT.get(self.ehliyet_sinifi, self.ehliyet_sinifi)
+
+    def __repr__(self) -> str:
+        return (f'<KomisyonOdemesi kursiyer={self.kursiyer_adi!r} '
+                f'kaynak={self.kaynak_kurs_adi!r} '
+                f'tutar={self.komisyon_tutari} odendi={self.odendi_mi}>')

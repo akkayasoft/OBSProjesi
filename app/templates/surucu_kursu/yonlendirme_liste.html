@@ -7,9 +7,14 @@
     <div>
         <h4 class="mb-1">
             <i class="bi bi-arrow-up-right-square me-2 text-warning"></i>Yönlendirmeler
+            <small class="text-muted">— Bizim yönlendirdiklerimiz</small>
         </h4>
         <small class="text-muted">
-            Kursunuzda olmayan eğitimler için kursiyerleri başka kurslara yönlendirme kayıtları
+            Kursunuzda olmayan eğitimler için kursiyerleri başka kurslara
+            yönlendirdiğiniz kayıtlar (komisyon = <strong>gelir</strong>).
+            Tersi için
+            <a href="{{ url_for('surucu_kursu.komisyon_liste') }}">Komisyon Ödemeleri</a>
+            sayfasını kullanın.
         </small>
     </div>
 </div>

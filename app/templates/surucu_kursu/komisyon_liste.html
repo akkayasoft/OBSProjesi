@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% block title %}Komisyon Ödemeleri{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">
+            <i class="bi bi-arrow-down-left-square me-2 text-danger"></i>Komisyon Ödemeleri
+        </h4>
+        <small class="text-muted">
+            Başka kursların <strong>bize</strong> yönlendirdiği kursiyerler için
+            ödenecek/ödenen komisyonlar (ödendiğinde otomatik gider kaydı düşer).
+        </small>
+    </div>
+    {% if not salt_goruntu_modu %}
+    <button type="button" class="btn btn-success btn-sm"
+            data-bs-toggle="modal" data-bs-target="#komisyonYeniModal">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Komisyon
+    </button>
+    {% endif %}
+</div>
+
+<!-- Ozet kartlari -->
+<div class="row g-2 mb-3">
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Toplam Komisyon</small>
+                <h5 class="mb-0">{{ '%.2f'|format(toplam) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Ödenen</small>
+                <h5 class="mb-0 text-success">{{ '%.2f'|format(odenen) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-body py-2">
+                <small class="text-muted d-block">Bekleyen Ödeme</small>
+                <h5 class="mb-0 text-danger">{{ '%.2f'|format(bekleyen) }} ₺</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtre -->
+<form method="GET" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="search" name="arama" value="{{ arama }}"
+               class="form-control form-control-sm"
+               placeholder="Kursiyer veya kaynak kurs ara…">
+    </div>
+    <div class="col-md-3">
+        <select name="durum" class="form-select form-select-sm">
+            <option value="">Tüm Komisyonlar</option>
+            <option value="bekliyor" {% if durum == 'bekliyor' %}selected{% endif %}>Bekleyenler</option>
+            <option value="odendi" {% if durum == 'odendi' %}selected{% endif %}>Ödenenler</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-sm btn-primary w-100">
+            <i class="bi bi-funnel me-1"></i>Filtrele
+        </button>
+    </div>
+    <div class="col-md-2">
+        <a href="{{ url_for('surucu_kursu.komisyon_liste') }}"
+           class="btn btn-sm btn-outline-secondary w-100">Temizle</a>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    {% if komisyonlar %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Kursiyer</th>
+                    <th>Eğitim</th>
+                    <th>Kaynak Kurs</th>
+                    <th>Kaydeden</th>
+                    <th class="text-end">Komisyon</th>
+                    <th>Durum</th>
+                    <th class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in komisyonlar %}
+                <tr>
+                    <td><small>{{ k.yonlendirme_tarihi.strftime('%d.%m.%Y') }}</small></td>
+                    <td>
+                        {% if k.kursiyer_id and k.kursiyer %}
+                        <a href="{{ url_for('surucu_kursu.kursiyer_detay', kursiyer_id=k.kursiyer_id) }}"
+                           class="text-decoration-none">
+                            <strong>{{ k.kursiyer_adi }}</strong>
+                        </a>
+                        {% else %}
+                        <strong>{{ k.kursiyer_adi }}</strong>
+                        <br><small class="text-muted">(Sistemde kayıtlı değil)</small>
+                        {% endif %}
+                        {% if k.kursiyer_telefon %}
+                        <br><small class="text-muted">{{ k.kursiyer_telefon }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if k.ehliyet_sinifi %}
+                        <span class="badge bg-info text-dark">{{ k.ehliyet_sinifi }}</span>
+                        <small class="text-muted">{{ k.ehliyet_sinifi_str }}</small>
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ k.kaynak_kurs_adi }}</strong>
+                        {% if k.kaynak_kurs_yetkili or k.kaynak_kurs_telefon %}
+                        <br><small class="text-muted">
+                            {% if k.kaynak_kurs_yetkili %}{{ k.kaynak_kurs_yetkili }}{% endif %}
+                            {% if k.kaynak_kurs_telefon %} · {{ k.kaynak_kurs_telefon }}{% endif %}
+                        </small>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ k.kaydeden.tam_ad if k.kaydeden else '—' }}</small></td>
+                    <td class="text-end">
+                        <strong>{{ '%.2f'|format(k.komisyon_tutari or 0) }} ₺</strong>
+                    </td>
+                    <td>
+                        {% if k.odendi_mi %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> Ödendi
+                        </span>
+                        {% if k.odeme_tarihi %}
+                        <br><small class="text-muted">{{ k.odeme_tarihi.strftime('%d.%m.%Y') }}</small>
+                        {% endif %}
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Bekliyor</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if not k.odendi_mi and (k.komisyon_tutari or 0) > 0 %}
+                        <button type="button" class="btn btn-sm btn-outline-success"
+                                data-bs-toggle="modal"
+                                data-bs-target="#komisyonOdemeModal{{ k.id }}"
+                                title="Ödeme Yap">
+                            <i class="bi bi-cash"></i>
+                        </button>
+                        {% elif k.odendi_mi %}
+                        <form method="POST"
+                              action="{{ url_for('surucu_kursu.komisyon_odeme_iptal', komisyon_id=k.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('Komisyon ödemesi iptal edilecek (gider kaydı silinecek). Devam?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-warning" title="Ödemeyi İptal">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#komisyonDuzenleModal{{ k.id }}"
+                                title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST"
+                              action="{{ url_for('surucu_kursu.komisyon_sil', komisyon_id=k.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('Bu komisyon kaydı silinecek. Bağlı gider kaydı da kaldırılır. Devam?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% if k.aciklama %}
+                <tr>
+                    <td colspan="8" class="text-muted small bg-light">
+                        <i class="bi bi-sticky me-1"></i>{{ k.aciklama }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+        Komisyon kaydı bulunamadı.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Yeni Komisyon Modal -->
+<div class="modal fade" id="komisyonYeniModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="{{ url_for('surucu_kursu.komisyon_yeni') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="bi bi-arrow-down-left-square me-1"></i>Yeni Komisyon
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="small text-muted mb-2">KURSİYER BİLGİLERİ</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Kayıtlı Kursiyer (varsa)</label>
+                            <select name="kursiyer_id" class="form-select form-select-sm">
+                                <option value="">— Sistemde kayıtlı değil —</option>
+                                {% for kk in kursiyer_listesi %}
+                                <option value="{{ kk.id }}">{{ kk.tam_ad }}{% if kk.telefon %} · {{ kk.telefon }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Seçerseniz aşağıdaki ad otomatik kopyalanmaz; yine de elle girin.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Kursiyer Adı *</label>
+                            <input type="text" name="kursiyer_adi" required
+                                   class="form-control form-control-sm"
+                                   placeholder="Ad Soyad">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Telefon</label>
+                            <input type="tel" name="kursiyer_telefon"
+                                   class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small">Hangi Eğitim İçin</label>
+                            <select name="ehliyet_sinifi" class="form-select form-select-sm">
+                                <option value="">—</option>
+                                {% for kod, ad in ehliyet_siniflari %}
+                                <option value="{{ kod }}">{{ ad }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="small text-muted mb-2 mt-3">KAYNAK KURS (yönlendiren)</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Kurs Adı *</label>
+                            <input type="text" name="kaynak_kurs_adi" required
+                                   class="form-control form-control-sm"
+                                   placeholder="örn. X Sürücü Kursu">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Yetkili</label>
+                            <input type="text" name="kaynak_kurs_yetkili"
+                                   class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Telefon</label>
+                            <input type="tel" name="kaynak_kurs_telefon"
+                                   class="form-control form-control-sm">
+                        </div>
+                    </div>
+
+                    <h6 class="small text-muted mb-2 mt-3">KOMİSYON</h6>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Yönlendirme Tarihi *</label>
+                            <input type="date" name="yonlendirme_tarihi"
+                                   class="form-control form-control-sm"
+                                   value="{{ bugun.isoformat() }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Komisyon Tutarı (₺) *</label>
+                            <input type="text" name="komisyon_tutari" required
+                                   class="form-control form-control-sm"
+                                   placeholder="örn. 500.00">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">Açıklama</label>
+                            <textarea name="aciklama" rows="2"
+                                      class="form-control form-control-sm"></textarea>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Komisyon ödendiğinde
+                        muhasebe modülüne otomatik <strong>gider</strong> kaydı düşer
+                        ("Yönlendirme Komisyon Gideri" kategorisinde).
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Kaydet
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Duzenle / Odeme Modallari (loop) -->
+{% for k in komisyonlar %}
+<!-- Duzenle modal -->
+<div class="modal fade" id="komisyonDuzenleModal{{ k.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="POST"
+              action="{{ url_for('surucu_kursu.komisyon_duzenle', komisyon_id=k.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Komisyonu Düzenle</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Kursiyer Adı *</label>
+                            <input type="text" name="kursiyer_adi" required
+                                   class="form-control form-control-sm"
+                                   value="{{ k.kursiyer_adi }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Telefon</label>
+                            <input type="tel" name="kursiyer_telefon"
+                                   class="form-control form-control-sm"
+                                   value="{{ k.kursiyer_telefon or '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Eğitim</label>
+                            <select name="ehliyet_sinifi" class="form-select form-select-sm">
+                                <option value="">—</option>
+                                {% for kod, ad in ehliyet_siniflari %}
+                                <option value="{{ kod }}" {% if kod == k.ehliyet_sinifi %}selected{% endif %}>{{ kod }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Kaynak Kurs *</label>
+                            <input type="text" name="kaynak_kurs_adi" required
+                                   class="form-control form-control-sm"
+                                   value="{{ k.kaynak_kurs_adi }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Yetkili</label>
+                            <input type="text" name="kaynak_kurs_yetkili"
+                                   class="form-control form-control-sm"
+                                   value="{{ k.kaynak_kurs_yetkili or '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Tel</label>
+                            <input type="tel" name="kaynak_kurs_telefon"
+                                   class="form-control form-control-sm"
+                                   value="{{ k.kaynak_kurs_telefon or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Yönlendirme Tarihi</label>
+                            <input type="date" name="yonlendirme_tarihi"
+                                   class="form-control form-control-sm"
+                                   value="{{ k.yonlendirme_tarihi.isoformat() }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Komisyon (₺)</label>
+                            <input type="text" name="komisyon_tutari"
+                                   class="form-control form-control-sm"
+                                   value="{{ '%.2f'|format(k.komisyon_tutari or 0) }}">
+                            {% if k.odendi_mi %}
+                            <small class="text-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Ödenmiş — değişiklik gider kaydını yeniden oluşturur.
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">Açıklama</label>
+                            <textarea name="aciklama" rows="2"
+                                      class="form-control form-control-sm">{{ k.aciklama or '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Kaydet</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Odeme modal -->
+{% if not k.odendi_mi and (k.komisyon_tutari or 0) > 0 %}
+<div class="modal fade" id="komisyonOdemeModal{{ k.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <form method="POST"
+              action="{{ url_for('surucu_kursu.komisyon_odeme', komisyon_id=k.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Komisyon Ödemesi Yap</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small mb-2">
+                        <strong>{{ k.kaynak_kurs_adi }}</strong> kursuna
+                        <strong>{{ '%.2f'|format(k.komisyon_tutari) }} ₺</strong>
+                        komisyon ödenecek.
+                    </p>
+                    <div class="mb-2">
+                        <label class="form-label small">Ödeme Tarihi</label>
+                        <input type="date" name="odeme_tarihi"
+                               class="form-control form-control-sm"
+                               value="{{ bugun.isoformat() }}">
+                    </div>
+                    <small class="text-muted">
+                        Onayladığınızda muhasebeye otomatik <strong>gider kaydı</strong> eklenir.
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-cash me-1"></i>Öde
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

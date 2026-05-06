@@ -252,26 +252,30 @@ def create_app(config_class=Config):
         from flask import g
         tenant = getattr(g, 'tenant', None)
         kurum_tipi = getattr(tenant, 'kurum_tipi', 'dershane') if tenant else 'dershane'
+        # Aktif tenant'in adi (kurs/dershane adi) - her sayfa basliginda gosterilir
+        tenant_ad = getattr(tenant, 'ad', None) if tenant else None
         if kurum_tipi == 'surucu_kursu':
             return dict(
                 kurum_tipi=kurum_tipi,
-                kurum_tipi_baslik='SKY — Sürücü Kursu Yönetimi',
-                kurum_tipi_kisa='SKY',
+                tenant_ad=tenant_ad,
+                kurum_tipi_baslik='Sürücü Kursu Yönetim Sistemi',
+                kurum_tipi_kisa=tenant_ad or 'Sürücü Kursu',
                 kurum_tipi_ad='Sürücü Kursu',
                 kurum_tipi_ikon='bi-car-front-fill',
-                kurum_tipi_renk_hex='#f59f00',     # turuncu
-                kurum_tipi_renk_koyu_hex='#b76e00',
-                kurum_tipi_pwa_title='SKY Portal',
+                kurum_tipi_renk_hex='#15803d',     # koyu yesil (trafik)
+                kurum_tipi_renk_koyu_hex='#166534',
+                kurum_tipi_pwa_title=tenant_ad or 'Sürücü Kursu',
             )
         return dict(
             kurum_tipi=kurum_tipi,
-            kurum_tipi_baslik='OBS — Öğrenci Bilgi Sistemi',
-            kurum_tipi_kisa='OBS',
+            tenant_ad=tenant_ad,
+            kurum_tipi_baslik='Öğrenci Bilgi Sistemi',
+            kurum_tipi_kisa=tenant_ad or 'OBS',
             kurum_tipi_ad='Dershane',
             kurum_tipi_ikon='bi-mortarboard-fill',
             kurum_tipi_renk_hex='#0d6efd',       # mavi
             kurum_tipi_renk_koyu_hex='#0a58ca',
-            kurum_tipi_pwa_title='OBS Portal',
+            kurum_tipi_pwa_title=tenant_ad or 'OBS Portal',
         )
 
     # Context processor - sidebar menü

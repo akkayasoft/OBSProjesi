@@ -1056,77 +1056,20 @@ h4.mb-0 {
 
 /* ===========================================================================
  * SURUCU KURSU TEMA OVERRIDE
- * Body'de data-kurum-tipi="surucu_kursu" olunca navbar/buton renkleri
- * mavi yerine turuncuya dondurulur. Sidebar koyu tonlarda kalir.
+ * Body'de data-kurum-tipi="surucu_kursu" olunca SADECE ust navbar
+ * (banner) rengi degisir; sidebar, butonlar, linkler vs. OBS'in
+ * varsayilan mavi temasinda kalir (kullanici istegi: 'sol menu eski
+ * haline').
  * =========================================================================== */
 
+/* Ust navbar (banner) - mavi yerine koyu yesil (#15803d, trafik) */
 body[data-kurum-tipi="surucu_kursu"] .navbar.bg-primary {
-    background-color: #f59f00 !important;
+    background-color: #15803d !important;
 }
-body[data-kurum-tipi="surucu_kursu"] .navbar-dark .navbar-brand {
-    color: #fff;
-}
-/* Navbar bildirim/kullanici ikonlari */
+body[data-kurum-tipi="surucu_kursu"] .navbar-dark .navbar-brand,
 body[data-kurum-tipi="surucu_kursu"] .navbar-dark .nav-link {
-    color: rgba(255, 255, 255, 0.92);
+    color: rgba(255, 255, 255, 0.95);
 }
 body[data-kurum-tipi="surucu_kursu"] .navbar-dark .nav-link:hover {
     color: #fff;
-}
-
-/* Birincil butonlar */
-body[data-kurum-tipi="surucu_kursu"] .btn-primary {
-    background-color: #f59f00;
-    border-color: #f59f00;
-}
-body[data-kurum-tipi="surucu_kursu"] .btn-primary:hover,
-body[data-kurum-tipi="surucu_kursu"] .btn-primary:focus,
-body[data-kurum-tipi="surucu_kursu"] .btn-primary:active {
-    background-color: #b76e00 !important;
-    border-color: #b76e00 !important;
-}
-body[data-kurum-tipi="surucu_kursu"] .btn-outline-primary {
-    color: #b76e00;
-    border-color: #f59f00;
-}
-body[data-kurum-tipi="surucu_kursu"] .btn-outline-primary:hover {
-    background-color: #f59f00;
-    border-color: #f59f00;
-    color: #fff;
-}
-
-/* Linkler ve form-check input vurgusu */
-body[data-kurum-tipi="surucu_kursu"] a {
-    color: #b76e00;
-}
-body[data-kurum-tipi="surucu_kursu"] a:hover {
-    color: #8a5300;
-}
-body[data-kurum-tipi="surucu_kursu"] .text-primary {
-    color: #b76e00 !important;
-}
-body[data-kurum-tipi="surucu_kursu"] .form-check-input:checked {
-    background-color: #f59f00;
-    border-color: #f59f00;
-}
-
-/* Sidebar aktif menu vurgusu */
-body[data-kurum-tipi="surucu_kursu"] .sidebar .nav-link.active {
-    background: linear-gradient(90deg, rgba(245, 159, 0, 0.18), transparent);
-    border-left: 3px solid #f59f00;
-}
-
-/* Card border accent (default mavi yerine) */
-body[data-kurum-tipi="surucu_kursu"] .border-primary {
-    border-color: #f59f00 !important;
-}
-
-/* Badge - bg-primary kullanilan yerlerde turuncu olsun */
-body[data-kurum-tipi="surucu_kursu"] .badge.bg-primary {
-    background-color: #f59f00 !important;
-}
-
-/* Progress bar default rengi */
-body[data-kurum-tipi="surucu_kursu"] .progress-bar.bg-primary {
-    background-color: #f59f00 !important;
 }

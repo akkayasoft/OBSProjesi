@@ -34,7 +34,7 @@
                 </button>
                 <a class="navbar-brand d-flex align-items-center mb-0" href="{{ url_for('main.dashboard') }}">
                     <i class="bi {{ kurum_tipi_ikon or 'bi-mortarboard-fill' }} me-2"></i>
-                    <strong>{{ kurum_tipi_kisa or 'OBS' }}</strong>
+                    <strong>{{ tenant_ad or kurum_tipi_kisa or 'OBS' }}</strong>
                 </a>
             </div>
             <ul class="navbar-nav flex-row align-items-center">

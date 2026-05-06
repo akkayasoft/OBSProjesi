@@ -12,10 +12,12 @@
             Her ay bir dönemdir. Yeni kursiyer kaydında otomatik atanır.
         </small>
     </div>
+    {% if not salt_goruntu_modu %}
     <button type="button" class="btn btn-success btn-sm"
             data-bs-toggle="modal" data-bs-target="#donemYeniModal">
         <i class="bi bi-plus-circle me-1"></i>Yeni Dönem
     </button>
+    {% endif %}
 </div>
 
 <form method="GET" class="row g-2 mb-3">

@@ -120,6 +120,18 @@
         <!-- Page Content -->
         <div class="page-content" id="page-content">
             <div class="container-fluid py-4">
+                {% if salt_goruntu_modu %}
+                <div class="alert alert-warning d-flex align-items-center mb-3 py-2"
+                     role="alert" style="border-left:4px solid #f59f00;">
+                    <i class="bi bi-eye fs-5 me-2"></i>
+                    <div class="small">
+                        <strong>Salt görüntüleme modu</strong> —
+                        Muhasebeci olarak sadece görüntüleme yetkiniz var.
+                        Yeni kayıt, ödeme alma, tahsilat gibi işlemler
+                        için yöneticiyle iletişime geçin.
+                    </div>
+                </div>
+                {% endif %}
                 <!-- Flash Messages -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}

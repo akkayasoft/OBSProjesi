@@ -168,10 +168,50 @@ def create_app(config_class=Config):
     from app.ders_programi import ders_programi_bp
     app.register_blueprint(ders_programi_bp, url_prefix='/ders-programi')
 
+    # Surucu kursu muhasebeci kisitlamasi - SADECE GORUNTULEME
+    # Kurum_tipi='surucu_kursu' olan tenant'larda muhasebeci rolu
+    # hicbir POST/PUT/DELETE isleminde bulunamaz; tum yazma istekleri
+    # 403 doner. Dershane tenant'larinda muhasebeci eski hakliyla calisir.
+    @app.before_request
+    def _surucu_kursu_muhasebeci_readonly():
+        from flask import g, request, abort, flash, redirect
+        from flask_login import current_user
+        if request.method == 'GET':
+            return
+        if not current_user.is_authenticated:
+            return
+        if current_user.rol != 'muhasebeci':
+            return
+        tenant = getattr(g, 'tenant', None)
+        if not tenant or getattr(tenant, 'kurum_tipi', 'dershane') != 'surucu_kursu':
+            return
+        # Auth/cikis hareketleri etkilenmesin
+        path = request.path or ''
+        if path.startswith('/auth/'):
+            return
+        flash('Muhasebeci rolünde sadece görüntüleme yetkiniz var. '
+              'Bu işlemi yapması gereken yöneticiyle iletişime geçin.',
+              'warning')
+        abort(403)
+
     # 403 hata sayfası
     @app.errorhandler(403)
     def forbidden(e):
         return render_template('errors/403.html'), 403
+
+    # Salt goruntu (read-only) modunda mi - surucu kursu muhasebeci icin True
+    @app.context_processor
+    def inject_salt_goruntu():
+        from flask import g
+        from flask_login import current_user
+        if not current_user.is_authenticated:
+            return dict(salt_goruntu_modu=False)
+        if current_user.rol != 'muhasebeci':
+            return dict(salt_goruntu_modu=False)
+        tenant = getattr(g, 'tenant', None)
+        if not tenant or getattr(tenant, 'kurum_tipi', 'dershane') != 'surucu_kursu':
+            return dict(salt_goruntu_modu=False)
+        return dict(salt_goruntu_modu=True)
 
     # Context processor - bildirim sayısı
     @app.context_processor

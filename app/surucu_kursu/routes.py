@@ -1891,6 +1891,120 @@ def _ehliyet_borc_taksiti_sil(ehliyet_id):
         db.session.delete(linkli)
 
 
+def _kursiyer_toplu_taksitlendir(kursiyer, taksit_sayisi, ilk_vade=None):
+    """Kursiyerin toplam borcunu (sum ehliyet fiyat - odenmis taksit
+    tutar) verilen taksit_sayisi'na esit boler ve aylik vadelerle
+    KursiyerTaksit kayitlari olusturur.
+
+    - Odenmemis MEVCUT tum taksitler silinir (linkli olsun olmasin)
+    - Odenmis taksitler korunur
+    - Yeni taksitler kursiyer_ehliyet_id=NULL ile olusur (ortak plan)
+    - Yuvarlama farki son taksite eklenir
+    - taksit_sayisi <= 0 ise hicbir sey yapma
+    - Kalan tutar <= 0 ise (her sey odenmis) hicbir sey yapma
+
+    Donus: olusturulan taksitlerin listesi
+    """
+    if taksit_sayisi <= 0:
+        return []
+
+    # Odenmis taksit toplami
+    odenmis_top = (
+        db.session.query(func.coalesce(func.sum(KursiyerTaksit.tutar), 0))
+        .filter(
+            KursiyerTaksit.kursiyer_id == kursiyer.id,
+            KursiyerTaksit.odendi_mi.is_(True),
+        ).scalar() or Decimal('0')
+    )
+
+    # Toplam borc = ehliyetlerin fiyat toplami (= kursiyer.fiyat)
+    toplam_borc = kursiyer.fiyat or Decimal('0')
+    kalan = toplam_borc - odenmis_top
+    if kalan <= 0:
+        return []
+
+    # Odenmemis tum taksitleri sil
+    KursiyerTaksit.query.filter_by(
+        kursiyer_id=kursiyer.id, odendi_mi=False,
+    ).delete(synchronize_session=False)
+    db.session.flush()
+
+    # Yeni sira basla
+    son_sira = db.session.query(
+        func.coalesce(func.max(KursiyerTaksit.sira), 0)
+    ).filter(KursiyerTaksit.kursiyer_id == kursiyer.id).scalar() or 0
+
+    ilk_vade = ilk_vade or date.today()
+
+    if taksit_sayisi == 1:
+        tutar_list = [kalan]
+    else:
+        tek = (kalan / Decimal(taksit_sayisi)).quantize(Decimal('0.01'))
+        son = kalan - tek * (taksit_sayisi - 1)
+        tutar_list = [tek] * (taksit_sayisi - 1) + [son]
+
+    olusturulanlar = []
+    for i in range(taksit_sayisi):
+        vade = _vade_artir_ay(ilk_vade, i)
+        not_metin = f'{i+1}/{taksit_sayisi}. taksit'
+        t = KursiyerTaksit(
+            kursiyer_id=kursiyer.id,
+            kursiyer_ehliyet_id=None,  # ortak plan
+            sira=int(son_sira) + 1 + i,
+            vade_tarihi=vade,
+            tutar=tutar_list[i],
+            odendi_mi=False,
+            odeme_notu=not_metin,
+        )
+        db.session.add(t)
+        olusturulanlar.append(t)
+    db.session.flush()
+    return olusturulanlar
+
+
+@surucu_kursu_bp.route(
+    '/kursiyer/<int:kursiyer_id>/taksitlendir', methods=['POST'])
+@login_required
+def kursiyer_taksitlendir(kursiyer_id):
+    """Kursiyerin toplam borcu uzerinden taksit plani olustur veya
+    yeniden olustur. Odenmis taksitler korunur, odenmemis olanlar
+    silinip kalan tutar N taksite bolustur.
+    """
+    _surucu_kursu_tenant_required()
+    k = Kursiyer.query.get_or_404(kursiyer_id)
+
+    taksit_sayisi = _int_or_none(request.form.get('taksit_sayisi')) or 1
+    if taksit_sayisi < 1:
+        taksit_sayisi = 1
+    if taksit_sayisi > 36:
+        taksit_sayisi = 36
+    ilk_vade = _date_or_none(request.form.get('ilk_vade')) or date.today()
+
+    if not k.fiyat or k.fiyat <= 0:
+        flash('Kursiyere henüz ehliyet eklenmemiş veya toplam fiyat 0. '
+              'Önce profilden ehliyet ekleyin.', 'warning')
+        return redirect(url_for('surucu_kursu.kursiyer_detay',
+                                 kursiyer_id=kursiyer_id))
+
+    yeni_taksitler = _kursiyer_toplu_taksitlendir(k, taksit_sayisi, ilk_vade)
+    db.session.commit()
+
+    if not yeni_taksitler:
+        flash('Tüm tutar zaten ödenmiş — yeni taksit oluşturulmadı.', 'info')
+    elif len(yeni_taksitler) == 1:
+        flash(f'Borç planı oluşturuldu: tek taksit '
+              f'{yeni_taksitler[0].tutar} ₺.', 'success')
+    else:
+        toplam_yeni = sum((t.tutar or Decimal('0'))
+                           for t in yeni_taksitler)
+        flash(f'Borç planı oluşturuldu: {len(yeni_taksitler)} taksit, '
+              f'toplam {toplam_yeni} ₺ '
+              f'(ödenmemiş eski taksitler silindi). Vadeleri elle '
+              f'düzenleyebilirsiniz.', 'success')
+    return redirect(url_for('surucu_kursu.kursiyer_detay',
+                             kursiyer_id=kursiyer_id))
+
+
 @surucu_kursu_bp.route(
     '/kursiyer/<int:kursiyer_id>/ehliyet-ekle', methods=['POST'])
 @login_required
@@ -1943,25 +2057,13 @@ def kursiyer_ehliyet_ekle(kursiyer_id):
     db.session.add(e)
     db.session.flush()
     _kursiyer_fiyat_recalc(k)
-    # Otomatik borc taksitleri olustur (fiyat>0 ise N adet)
-    yeni_taksitler = _ehliyet_borc_taksiti_olustur(
-        e, taksit_sayisi=taksit_sayisi, ilk_vade=ilk_vade,
-    )
     db.session.commit()
-    if yeni_taksitler:
-        if len(yeni_taksitler) == 1:
-            flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi. '
-                  f'Borç olarak {yeni_taksitler[0].tutar} ₺ taksit '
-                  f'oluşturuldu.', 'success')
-        else:
-            flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi. '
-                  f'{len(yeni_taksitler)} aylık taksite bölündü '
-                  f'(toplam {e.fiyat} ₺). İsterseniz vade tarihlerini '
-                  f'taksitler tablosundan elle düzenleyebilirsiniz.',
-                  'success')
-    else:
-        flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi.',
-              'success')
+    # NOT: Yeni akista ehliyet eklerken otomatik taksit OLUSMAZ.
+    # Kullanici tum ehliyetleri ekledikten sonra 'Taksitlendir'
+    # butonuyla toplam borctan tek seferde plan yapar.
+    flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi. '
+          f'Tüm ehliyetleri ekledikten sonra "Taksitlendir" butonuyla '
+          f'borç planı oluşturabilirsiniz.', 'success')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
                              kursiyer_id=kursiyer_id))
 
@@ -1989,10 +2091,12 @@ def kursiyer_ehliyet_duzenle(kursiyer_id, ehliyet_id):
     e.notlar = (request.form.get('notlar') or '').strip() or None
 
     _kursiyer_fiyat_recalc(e.kursiyer)
-    # Odenmemis linkli taksitleri yeniden hesapla (odenmis olanlar korunur)
-    _ehliyet_borc_taksiti_sync(e)
     db.session.commit()
-    flash(f'"{e.ehliyet_sinifi_str}" ehliyeti güncellendi.', 'success')
+    # NOT: Otomatik taksit senkronu artik yapilmaz. Fiyat degistiyse
+    # kullanici 'Taksitlendir' butonuyla planini yeniden olusturur.
+    flash(f'"{e.ehliyet_sinifi_str}" ehliyeti güncellendi. '
+          f'Fiyat değiştiyse taksit planını "Taksitlendir" butonundan '
+          f'yeniden oluşturabilirsiniz.', 'success')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
                              kursiyer_id=kursiyer_id))
 

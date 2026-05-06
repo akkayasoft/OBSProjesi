@@ -334,14 +334,23 @@
     <!-- SOL: Egitim ucreti taksitleri -->
     <div class="col-lg-7">
         <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-cash-stack me-1"></i>Eğitim Ücreti Taksitleri
-                </h6>
-                <small class="text-muted">
-                    Ödenen <strong class="text-success">{{ '%.2f'|format(toplam_odenen) }} ₺</strong>
-                    · Kalan <strong class="text-danger">{{ '%.2f'|format(egitim_kalan) }} ₺</strong>
-                </small>
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h6 class="mb-0">
+                        <i class="bi bi-cash-stack me-1"></i>Eğitim Ücreti Taksitleri
+                    </h6>
+                    <small class="text-muted">
+                        Toplam Borç <strong>{{ '%.2f'|format(kursiyer.fiyat or 0) }} ₺</strong>
+                        · Ödenen <strong class="text-success">{{ '%.2f'|format(toplam_odenen) }} ₺</strong>
+                        · Kalan <strong class="text-danger">{{ '%.2f'|format(egitim_kalan) }} ₺</strong>
+                    </small>
+                </div>
+                {% if not salt_goruntu_modu and (kursiyer.fiyat or 0) > 0 %}
+                <button type="button" class="btn btn-sm btn-success"
+                        data-bs-toggle="modal" data-bs-target="#taksitlendirModal">
+                    <i class="bi bi-calendar-range me-1"></i>Taksitlendir
+                </button>
+                {% endif %}
             </div>
             <div class="card-body p-0">
                 {% if taksitler %}
@@ -706,6 +715,78 @@
     </div>
 {% endfor %}
 
+<!-- Toplu Taksitlendirme modali (toplam borc uzerinden) -->
+<div class="modal fade" id="taksitlendirModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST"
+                  action="{{ url_for('surucu_kursu.kursiyer_taksitlendir', kursiyer_id=kursiyer.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="bi bi-calendar-range me-1"></i>Taksitlendir
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info small mb-3">
+                        <strong>{{ kursiyer.tam_ad }}</strong> için toplam borç
+                        <strong>{{ '%.2f'|format(kursiyer.fiyat or 0) }} ₺</strong>
+                        <br>
+                        <small>
+                            (Ödenen: {{ '%.2f'|format(toplam_odenen) }} ₺
+                            · Kalan: <strong>{{ '%.2f'|format(egitim_kalan) }} ₺</strong>)
+                        </small>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Taksit Sayısı *</label>
+                            <input type="number" name="taksit_sayisi"
+                                   min="1" max="36" required
+                                   class="form-control form-control-sm"
+                                   value="{{ kursiyer.taksitler.filter_by(odendi_mi=False).count() or 1 }}">
+                            <small class="text-muted">
+                                1 = peşin, N = aylık vadeli eşit dağıtım
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">İlk Taksit Vade Tarihi</label>
+                            <input type="date" name="ilk_vade"
+                                   class="form-control form-control-sm"
+                                   value="{{ bugun.isoformat() }}">
+                            <small class="text-muted">
+                                Sonraki taksitler 1'er ay sonraya planlanır
+                            </small>
+                        </div>
+                    </div>
+                    {% if egitim_kalan != (kursiyer.fiyat or 0) %}
+                    <div class="alert alert-warning small mt-3 mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Halihazırda <strong>{{ '%.2f'|format(toplam_odenen) }} ₺</strong>
+                        ödeme yapılmış. Yalnızca <strong>kalan {{ '%.2f'|format(egitim_kalan) }} ₺</strong>
+                        yeni taksitlere bölünür; ödenmemiş eski taksitler silinir,
+                        ödenmiş olanlar korunur.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning small mt-3 mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Mevcut ödenmemiş taksitler silinip yeni plan oluşturulur.
+                        Vadeleri sonradan tek tek elle düzenleyebilirsiniz.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="bi bi-check-lg me-1"></i>Taksit Planı Oluştur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Ek Ehliyet Ekleme modali (tek tane) -->
 <div class="modal fade" id="ehliyetEkleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -747,29 +828,6 @@
                                    placeholder="örn. 7500.00">
                         </div>
                     </div>
-                    <div class="row g-2 mt-1">
-                        <div class="col-md-6">
-                            <label class="form-label small">
-                                Taksit Sayısı *
-                                <span class="text-muted">(otomatik bölünür)</span>
-                            </label>
-                            <input type="number" name="taksit_sayisi" min="1" max="36"
-                                   class="form-control form-control-sm"
-                                   value="1" required>
-                            <small class="text-muted">
-                                1 = peşin (tek taksit). N = aylık vadeli, eşit dağıtılır.
-                            </small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">İlk Taksit Vade Tarihi</label>
-                            <input type="date" name="ilk_vade"
-                                   class="form-control form-control-sm"
-                                   value="{{ bugun.isoformat() }}">
-                            <small class="text-muted">
-                                Sonraki taksitler 1'er ay sonraya planlanır.
-                            </small>
-                        </div>
-                    </div>
                     <div class="mt-2">
                         <label class="form-label small">Eğitmen</label>
                         <select name="egitmen_id" class="form-select form-select-sm">
@@ -786,11 +844,9 @@
                     </div>
                     <div class="alert alert-info small mt-3 mb-0">
                         <i class="bi bi-info-circle me-1"></i>
-                        Ehliyet eklendiğinde taksit sayısına göre eşit
-                        bölünerek <strong>borç taksitleri</strong> otomatik
-                        oluşur. Vade tarihlerini sonradan
-                        <strong>Eğitim Ücreti Taksitleri</strong> tablosundan
-                        elle düzenleyebilirsiniz.
+                        Tüm ehliyetleri ekledikten sonra
+                        <strong>"Taksitlendir"</strong> butonuyla toplam
+                        borç üzerinden taksit planı oluşturabilirsiniz.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -822,24 +878,17 @@
                 </div>
                 <div class="modal-body">
                     <div class="row g-2">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label small">Ders Sayısı</label>
                             <input type="number" name="ders_sayisi" min="0"
                                    class="form-control form-control-sm"
                                    value="{{ e.ders_sayisi if e.ders_sayisi is not none else '' }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label small">Fiyat (₺)</label>
                             <input type="text" name="fiyat"
                                    class="form-control form-control-sm"
                                    value="{{ '%.2f'|format(e.fiyat or 0) }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small">Taksit Sayısı</label>
-                            <input type="number" name="taksit_sayisi"
-                                   min="1" max="36"
-                                   class="form-control form-control-sm"
-                                   value="{{ e.taksit_sayisi or 1 }}">
                         </div>
                     </div>
                     <div class="mt-2">
@@ -867,11 +916,11 @@
                                class="form-control form-control-sm" maxlength="200"
                                value="{{ e.notlar or '' }}">
                     </div>
-                    <div class="alert alert-warning small mt-3 mb-0">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Fiyat veya taksit sayısı değişirse <strong>ödenmemiş
-                        borç taksitleri</strong> yeniden hesaplanır
-                        (ödenmiş taksitler korunur).
+                    <div class="alert alert-info small mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Fiyat değişirse toplam borç güncellenir.
+                        Taksit planını yeniden oluşturmak için
+                        <strong>"Taksitlendir"</strong> butonunu kullanın.
                     </div>
                 </div>
                 <div class="modal-footer">

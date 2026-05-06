@@ -20,7 +20,7 @@
         <form method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <h6 class="mb-3"><i class="bi bi-person-badge me-1"></i>Kimlik Bilgileri</h6>
+            <h6 class="mb-3"><i class="bi bi-person-badge me-1"></i>Kişisel Bilgiler</h6>
             <div class="row g-2 mb-3">
                 <div class="col-md-4">
                     <label class="form-label small">Ad *</label>
@@ -47,77 +47,10 @@
                     <input type="tel" name="telefon" class="form-control form-control-sm"
                            value="{{ form.telefon }}" placeholder="0555 555 55 55">
                 </div>
-            </div>
-
-            <h6 class="mb-3 mt-4"><i class="bi bi-car-front me-1"></i>Eğitim Bilgileri</h6>
-            <div class="row g-2 mb-3">
                 <div class="col-md-4">
                     <label class="form-label small">Kayıt Tarihi *</label>
                     <input type="date" name="kayit_tarihi" class="form-control form-control-sm"
                            value="{{ form.kayit_tarihi }}" required>
-                </div>
-                <div class="col-md-8">
-                    <label class="form-label small">Birincil Ehliyet Sınıfı *</label>
-                    <select name="ehliyet_sinifi" class="form-select form-select-sm" required>
-                        <option value="">— Seçiniz —</option>
-                        {% for kod, ad in ehliyet_siniflari %}
-                        <option value="{{ kod }}" {% if form.ehliyet_sinifi == kod %}selected{% endif %}>
-                            {{ ad }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% if not kursiyer %}
-                <div class="col-12">
-                    <label class="form-label small">
-                        Ek Ehliyetler / SRC / Psikoteknik
-                        <span class="text-muted">(birden fazla seçilebilir)</span>
-                    </label>
-                    <div class="border rounded p-2 bg-light"
-                         style="max-height:220px;overflow-y:auto;">
-                        <div class="row g-1">
-                            {% for kod, ad in ehliyet_siniflari %}
-                            <div class="col-md-6 col-lg-4">
-                                <div class="form-check form-check-sm">
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           name="ek_ehliyetler"
-                                           value="{{ kod }}"
-                                           id="ehl_{{ kod }}">
-                                    <label class="form-check-label small"
-                                           for="ehl_{{ kod }}">{{ ad }}</label>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <small class="text-muted">
-                        Birincil seçtiğiniz ehliyet otomatik atanır,
-                        burada işaretlediklerinizden farklı olanlar
-                        ek ehliyet olarak eklenir.
-                    </small>
-                </div>
-                {% endif %}
-                <div class="col-md-3">
-                    <label class="form-label small">Ders Sayısı</label>
-                    <input type="number" name="ders_sayisi" min="0" class="form-control form-control-sm"
-                           value="{{ form.ders_sayisi }}" placeholder="örn. 32">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small">Toplam Eğitim Ücreti (₺)</label>
-                    <input type="text" name="fiyat" class="form-control form-control-sm"
-                           value="{{ form.fiyat }}" placeholder="örn. 12500.00">
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label small">Eğitmen</label>
-                    <select name="egitmen_id" class="form-select form-select-sm">
-                        <option value="">— Seçiniz —</option>
-                        {% for e in egitmenler %}
-                        <option value="{{ e.id }}" {% if form.egitmen_id == e.id|string %}selected{% endif %}>
-                            {{ e.tam_ad }} ({{ e.rol }})
-                        </option>
-                        {% endfor %}
-                    </select>
                 </div>
             </div>
 
@@ -144,7 +77,14 @@
 
 <small class="text-muted d-block mt-2">
     <i class="bi bi-info-circle me-1"></i>
-    <strong>Not:</strong> Toplam eğitim ücreti adaya özeldir; sınav harçları
-    bu hesaba dahil değildir, ayrı tutulur.
+    <strong>Not:</strong>
+    {% if kursiyer %}
+    Ehliyet, ders sayısı ve ücret bilgileri kursiyer profilinin
+    "Ehliyetler" bölümünden yönetilir.
+    {% else %}
+    Kayıt tamamlandıktan sonra açılan profil sayfasından kursiyere
+    ait ehliyet sınıflarını, ders sayılarını ve ücretleri tek tek
+    ekleyebilirsiniz.
+    {% endif %}
 </small>
 {% endblock %}

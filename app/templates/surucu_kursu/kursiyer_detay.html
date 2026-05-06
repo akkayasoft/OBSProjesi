@@ -69,19 +69,24 @@
                 <div>{{ kursiyer.telefon or '—' }}</div>
             </div>
             <div class="col-md-3">
-                <small class="text-muted">Ehliyet Sınıfı</small>
+                <small class="text-muted">Ehliyet</small>
                 <div>
+                    {% if kursiyer.ehliyet_sinifi %}
                     <span class="badge bg-info text-dark">
                         {{ ehliyet_dict.get(kursiyer.ehliyet_sinifi, kursiyer.ehliyet_sinifi) }}
                     </span>
+                    {% else %}
+                    {% set ek_say = kursiyer.ek_ehliyetler.count() %}
+                    {% if ek_say %}
+                    <span class="badge bg-info text-dark">{{ ek_say }} ehliyet</span>
+                    {% else %}
+                    <small class="text-muted">— eklenmedi</small>
+                    {% endif %}
+                    {% endif %}
                 </div>
             </div>
             <div class="col-md-2">
-                <small class="text-muted">Ders Sayısı</small>
-                <div>{{ kursiyer.ders_sayisi if kursiyer.ders_sayisi is not none else '—' }}</div>
-            </div>
-            <div class="col-md-2">
-                <small class="text-muted">Eğitim Ücreti</small>
+                <small class="text-muted">Toplam Ücret</small>
                 <div><strong>{{ '%.2f'|format(kursiyer.fiyat or 0) }} ₺</strong></div>
             </div>
             <div class="col-md-2">
@@ -98,23 +103,23 @@
     </div>
 </div>
 
-<!-- Ek Ehliyetler (cogu kursiyer tek ehliyet alir, ama bazilari B+A2 gibi coklu) -->
+<!-- Ehliyetler (kursiyere ait tum ehliyet/SRC/psikoteknik kayitlari) -->
 <div class="card shadow-sm mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0">
-            <i class="bi bi-stack me-1 text-info"></i>Ek Ehliyetler
+            <i class="bi bi-stack me-1 text-info"></i>Ehliyetler
             {% set ek_ehliyetler = kursiyer.ek_ehliyetler.all() %}
             {% if ek_ehliyetler %}
             <span class="badge bg-info text-dark ms-2">{{ ek_ehliyetler|length }}</span>
             {% endif %}
         </h6>
-        <button type="button" class="btn btn-sm btn-outline-primary"
+        <button type="button" class="btn btn-sm btn-success"
                 data-bs-toggle="modal" data-bs-target="#ehliyetEkleModal">
-            <i class="bi bi-plus-lg me-1"></i>Ek Ehliyet Ata
+            <i class="bi bi-plus-lg me-1"></i>Ehliyet Ekle
         </button>
     </div>
     <div class="card-body p-0">
-        {% if ek_ehliyetler %}
+        {% if kursiyer.ehliyet_sinifi or ek_ehliyetler %}
         <table class="table table-sm table-hover mb-0 align-middle">
             <thead>
                 <tr>
@@ -127,6 +132,25 @@
                 </tr>
             </thead>
             <tbody>
+                {% if kursiyer.ehliyet_sinifi %}
+                <tr class="table-light">
+                    <td>
+                        <span class="badge bg-info text-dark">{{ kursiyer.ehliyet_sinifi }}</span>
+                        <small class="text-muted ms-1">{{ kursiyer.ehliyet_sinifi_str }}</small>
+                        <span class="badge bg-secondary ms-1" style="font-size:0.65rem;">İlk kayıt</span>
+                    </td>
+                    <td><small>{{ kursiyer.ders_sayisi if kursiyer.ders_sayisi is not none else '—' }}</small></td>
+                    <td><strong>{{ '%.2f'|format(kursiyer.fiyat or 0) }} ₺</strong></td>
+                    <td><small>{{ kursiyer.egitmen.tam_ad if kursiyer.egitmen else '—' }}</small></td>
+                    <td>
+                        {% if kursiyer.aktif %}<span class="badge bg-success">Aktif</span>
+                        {% else %}<span class="badge bg-secondary">Pasif</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        <small class="text-muted">Profilden düzenlenir</small>
+                    </td>
+                </tr>
+                {% endif %}
                 {% for e in ek_ehliyetler %}
                 <tr>
                     <td>
@@ -163,9 +187,15 @@
             </tbody>
         </table>
         {% else %}
-        <div class="text-center text-muted py-3">
-            <small>Bu kursiyere ek ehliyet atanmamış. Ana ehliyet:
-                <strong>{{ kursiyer.ehliyet_sinifi_str }}</strong></small>
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-stack fs-2 d-block mb-2 opacity-50"></i>
+            <small>Bu kursiyere henüz ehliyet eklenmemiş.</small>
+            <div class="mt-2">
+                <button type="button" class="btn btn-sm btn-success"
+                        data-bs-toggle="modal" data-bs-target="#ehliyetEkleModal">
+                    <i class="bi bi-plus-lg me-1"></i>İlk Ehliyeti Ekle
+                </button>
+            </div>
         </div>
         {% endif %}
     </div>
@@ -685,7 +715,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-header">
                     <h6 class="modal-title">
-                        <i class="bi bi-plus-circle me-1"></i>{{ kursiyer.tam_ad }} — Ek Ehliyet Ata
+                        <i class="bi bi-plus-circle me-1"></i>{{ kursiyer.tam_ad }} — Ehliyet Ekle
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>

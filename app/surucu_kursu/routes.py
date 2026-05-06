@@ -307,7 +307,16 @@ def kursiyer_liste():
         q = q.filter(Kursiyer.aktif.is_(False))
 
     if sinif and sinif in EHLIYET_SINIF_DICT:
-        q = q.filter(Kursiyer.ehliyet_sinifi == sinif)
+        # Hem birincil ehliyet (geriye uyum) hem de KursiyerEhliyet
+        # uzerinden eslesme - kursiyer iki yerden de gozukmesin diye
+        # exists subquery kullaniyoruz.
+        ek_eslesme = db.session.query(KursiyerEhliyet.kursiyer_id).filter(
+            KursiyerEhliyet.ehliyet_sinifi == sinif,
+        ).subquery()
+        q = q.filter(or_(
+            Kursiyer.ehliyet_sinifi == sinif,
+            Kursiyer.id.in_(ek_eslesme),
+        ))
 
     donem_id_str = (request.args.get('donem') or '').strip()
     donem_id = None
@@ -351,20 +360,16 @@ def kursiyer_liste():
 @surucu_kursu_bp.route('/kursiyer/yeni', methods=['GET', 'POST'])
 @login_required
 def kursiyer_yeni():
-    _surucu_kursu_tenant_required()
+    """Yeni kursiyer kaydi - SADECE kisisel bilgiler.
 
-    egitmenler = User.query.filter(
-        User.aktif.is_(True),
-        User.rol.in_(['admin', 'yonetici', 'ogretmen']),
-    ).order_by(User.ad, User.soyad).all()
+    Ehliyet/ders/fiyat/egitmen bilgileri kayit sonrasi detay sayfasinda
+    'Ehliyetler' kartindan eklenir.
+    """
+    _surucu_kursu_tenant_required()
 
     form_data = {
         'ad': '', 'soyad': '', 'tc_kimlik': '', 'telefon': '',
         'kayit_tarihi': date.today().isoformat(),
-        'ehliyet_sinifi': '',
-        'ders_sayisi': '',
-        'fiyat': '',
-        'egitmen_id': '',
         'notlar': '',
     }
     hata = None
@@ -376,13 +381,10 @@ def kursiyer_yeni():
         ad = form_data['ad']
         soyad = form_data['soyad']
         tc_kimlik = form_data['tc_kimlik']
-        ehliyet_sinifi = form_data['ehliyet_sinifi']
         kayit_tarihi = _date_or_none(form_data['kayit_tarihi']) or date.today()
 
         if not ad or not soyad:
             hata = 'Ad ve soyad zorunludur.'
-        elif ehliyet_sinifi not in EHLIYET_SINIF_DICT:
-            hata = 'Geçerli bir ehliyet sınıfı seçin.'
         else:
             tc_ok, tc_hata = _tc_kimlik_dogrula(tc_kimlik)
             if not tc_ok:
@@ -392,8 +394,7 @@ def kursiyer_yeni():
             return render_template(
                 'surucu_kursu/kursiyer_form.html',
                 hata=hata, form=form_data,
-                ehliyet_siniflari=EHLIYET_SINIFLARI,
-                egitmenler=egitmenler, baslik='Yeni Kursiyer',
+                baslik='Yeni Kursiyer',
             )
 
         # Donem - kayit_tarihi'ne gore otomatik atama
@@ -405,46 +406,25 @@ def kursiyer_yeni():
             tc_kimlik=tc_kimlik or None,
             telefon=form_data['telefon'] or None,
             kayit_tarihi=kayit_tarihi,
-            ehliyet_sinifi=ehliyet_sinifi,
-            ders_sayisi=_int_or_none(form_data['ders_sayisi']),
-            fiyat=_decimal_or_none(form_data['fiyat']) or 0,
-            egitmen_id=_int_or_none(form_data['egitmen_id']),
+            ehliyet_sinifi=None,   # ehliyetler sonra eklenecek
+            ders_sayisi=None,
+            fiyat=0,
+            egitmen_id=None,
             notlar=form_data['notlar'] or None,
             donem_id=donem.id,
             aktif=True,
         )
         db.session.add(k)
-        db.session.flush()  # k.id icin
-
-        # Cogul ehliyet (checkbox'lardan gelenler) - birincil olani hariç
-        ek_kodlar = request.form.getlist('ek_ehliyetler')
-        eklenen = 0
-        for kod in ek_kodlar:
-            kod = (kod or '').strip()
-            if not kod or kod == ehliyet_sinifi:
-                continue
-            if kod not in EHLIYET_SINIF_DICT:
-                continue
-            db.session.add(KursiyerEhliyet(
-                kursiyer_id=k.id, ehliyet_sinifi=kod,
-                durum='aktif',
-            ))
-            eklenen += 1
-
         db.session.commit()
-        if eklenen:
-            flash(f'"{k.tam_ad}" eklendi ({eklenen} ek ehliyet ile).',
-                  'success')
-        else:
-            flash(f'"{k.tam_ad}" eklendi.', 'success')
+        flash(f'"{k.tam_ad}" kaydedildi. Şimdi profilden ehliyetlerini '
+              f'ekleyebilirsiniz.', 'success')
         return redirect(url_for('surucu_kursu.kursiyer_detay',
                                 kursiyer_id=k.id))
 
     return render_template(
         'surucu_kursu/kursiyer_form.html',
         hata=None, form=form_data,
-        ehliyet_siniflari=EHLIYET_SINIFLARI,
-        egitmenler=egitmenler, baslik='Yeni Kursiyer',
+        baslik='Yeni Kursiyer',
     )
 
 
@@ -484,23 +464,18 @@ def kursiyer_detay(kursiyer_id):
                         methods=['GET', 'POST'])
 @login_required
 def kursiyer_duzenle(kursiyer_id):
+    """Kursiyer kisisel bilgilerini duzenle.
+
+    Ehliyet/ders/fiyat/egitmen detay sayfasindan yonetilir.
+    """
     _surucu_kursu_tenant_required()
     k = Kursiyer.query.get_or_404(kursiyer_id)
-
-    egitmenler = User.query.filter(
-        User.aktif.is_(True),
-        User.rol.in_(['admin', 'yonetici', 'ogretmen']),
-    ).order_by(User.ad, User.soyad).all()
 
     form_data = {
         'ad': k.ad, 'soyad': k.soyad,
         'tc_kimlik': k.tc_kimlik or '',
         'telefon': k.telefon or '',
         'kayit_tarihi': k.kayit_tarihi.isoformat() if k.kayit_tarihi else '',
-        'ehliyet_sinifi': k.ehliyet_sinifi,
-        'ders_sayisi': str(k.ders_sayisi) if k.ders_sayisi is not None else '',
-        'fiyat': str(k.fiyat) if k.fiyat is not None else '',
-        'egitmen_id': str(k.egitmen_id) if k.egitmen_id else '',
         'notlar': k.notlar or '',
     }
     hata = None
@@ -512,13 +487,10 @@ def kursiyer_duzenle(kursiyer_id):
         ad = form_data['ad']
         soyad = form_data['soyad']
         tc_kimlik = form_data['tc_kimlik']
-        ehliyet_sinifi = form_data['ehliyet_sinifi']
         kayit_tarihi = _date_or_none(form_data['kayit_tarihi']) or k.kayit_tarihi
 
         if not ad or not soyad:
             hata = 'Ad ve soyad zorunludur.'
-        elif ehliyet_sinifi not in EHLIYET_SINIF_DICT:
-            hata = 'Geçerli bir ehliyet sınıfı seçin.'
         else:
             tc_ok, tc_hata = _tc_kimlik_dogrula(tc_kimlik)
             if not tc_ok:
@@ -538,10 +510,6 @@ def kursiyer_duzenle(kursiyer_id):
                 d = _donem_getir_veya_olustur(kayit_tarihi.year,
                                                 kayit_tarihi.month)
                 k.donem_id = d.id
-            k.ehliyet_sinifi = ehliyet_sinifi
-            k.ders_sayisi = _int_or_none(form_data['ders_sayisi'])
-            k.fiyat = _decimal_or_none(form_data['fiyat']) or 0
-            k.egitmen_id = _int_or_none(form_data['egitmen_id'])
             k.notlar = form_data['notlar'] or None
             db.session.commit()
             flash('Kursiyer güncellendi.', 'success')
@@ -551,8 +519,6 @@ def kursiyer_duzenle(kursiyer_id):
     return render_template(
         'surucu_kursu/kursiyer_form.html',
         hata=hata, form=form_data,
-        ehliyet_siniflari=EHLIYET_SINIFLARI,
-        egitmenler=egitmenler,
         baslik=f'Kursiyer Düzenle — {k.tam_ad}',
         kursiyer=k,
     )
@@ -1606,12 +1572,28 @@ def _kursiyer_toplu_kaydet_post():
 
 # === Kursiyer ek ehliyetleri (Faz 3.D) ===
 
+def _kursiyer_fiyat_recalc(kursiyer):
+    """Kursiyer.fiyat'i tum ehliyet (birincil + ek) fiyatlarinin
+    toplami olarak yeniden hesapla. Ekle/duzenle/sil sonrasinda cagrilir.
+    """
+    toplam = Decimal('0')
+    # Birincil ehliyet (eski akis - geriye uyumluluk)
+    # NOTE: Yeni akista Kursiyer.fiyat zaten hep KursiyerEhliyet'lerden
+    # geliyor. Eski kursiyerlerde Kursiyer.fiyat manuel girilmis olabilir;
+    # eger ek_ehliyetler hic yoksa eski fiyati koru.
+    eski_fiyatlar = [e.fiyat or Decimal('0') for e in kursiyer.ek_ehliyetler]
+    if eski_fiyatlar:
+        toplam = sum(eski_fiyatlar, Decimal('0'))
+        kursiyer.fiyat = toplam
+
+
 @surucu_kursu_bp.route(
     '/kursiyer/<int:kursiyer_id>/ehliyet-ekle', methods=['POST'])
 @login_required
 def kursiyer_ehliyet_ekle(kursiyer_id):
-    """Kursiyer'a ek ehliyet ata (B + A2 gibi). Ana ehliyet ve mevcut
-    ek ehliyetlerle ayni olamaz."""
+    """Kursiyere ehliyet ekle. Yeni akis: bu rota tum ehliyetleri
+    yonetir (B + A2 + SRC vs.). Ayni kursiyerde ayni ehliyet 2 kez
+    eklenemez (UNIQUE)."""
     _surucu_kursu_tenant_required()
     k = Kursiyer.query.get_or_404(kursiyer_id)
 
@@ -1626,9 +1608,9 @@ def kursiyer_ehliyet_ekle(kursiyer_id):
         return redirect(url_for('surucu_kursu.kursiyer_detay',
                                  kursiyer_id=kursiyer_id))
 
-    # Ana ehliyet veya mevcut ek ile cakisma kontrolu
+    # Eski akista ehliyet_sinifi ile cakisma kontrolu (geriye uyum)
     if k.ehliyet_sinifi == sinif:
-        flash('Bu ehliyet zaten ana ehliyet olarak atanmış.', 'warning')
+        flash('Bu ehliyet kursiyere zaten atanmış.', 'warning')
         return redirect(url_for('surucu_kursu.kursiyer_detay',
                                  kursiyer_id=kursiyer_id))
 
@@ -1650,6 +1632,8 @@ def kursiyer_ehliyet_ekle(kursiyer_id):
         durum='aktif',
     )
     db.session.add(e)
+    db.session.flush()
+    _kursiyer_fiyat_recalc(k)
     db.session.commit()
     flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi.', 'success')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
@@ -1661,7 +1645,7 @@ def kursiyer_ehliyet_ekle(kursiyer_id):
     methods=['POST'])
 @login_required
 def kursiyer_ehliyet_duzenle(kursiyer_id, ehliyet_id):
-    """Ek ehliyetin fiyat/ders/egitmen/durum bilgisini guncelle."""
+    """Ehliyet fiyat/ders/egitmen/durum bilgisini guncelle."""
     _surucu_kursu_tenant_required()
     e = KursiyerEhliyet.query.filter_by(
         id=ehliyet_id, kursiyer_id=kursiyer_id
@@ -1675,6 +1659,7 @@ def kursiyer_ehliyet_duzenle(kursiyer_id, ehliyet_id):
         e.durum = yeni_durum
     e.notlar = (request.form.get('notlar') or '').strip() or None
 
+    _kursiyer_fiyat_recalc(e.kursiyer)
     db.session.commit()
     flash(f'"{e.ehliyet_sinifi_str}" ehliyeti güncellendi.', 'success')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
@@ -1686,13 +1671,16 @@ def kursiyer_ehliyet_duzenle(kursiyer_id, ehliyet_id):
     methods=['POST'])
 @login_required
 def kursiyer_ehliyet_sil(kursiyer_id, ehliyet_id):
-    """Ek ehliyeti sil."""
+    """Ehliyeti sil."""
     _surucu_kursu_tenant_required()
     e = KursiyerEhliyet.query.filter_by(
         id=ehliyet_id, kursiyer_id=kursiyer_id
     ).first_or_404()
     sinif_str = e.ehliyet_sinifi_str
+    kursiyer = e.kursiyer
     db.session.delete(e)
+    db.session.flush()
+    _kursiyer_fiyat_recalc(kursiyer)
     db.session.commit()
     flash(f'"{sinif_str}" ehliyeti silindi.', 'info')
     return redirect(url_for('surucu_kursu.kursiyer_detay',

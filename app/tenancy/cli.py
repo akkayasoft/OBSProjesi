@@ -97,7 +97,8 @@ def tenant_kolonlarini_backfill_et(engine, surucu_kursu: bool = False):
     """Verilen tenant engine'inde TENANT_KOLON_BACKFILL_LISTESI
     icindeki ALTER TABLE'lari calistir. Idempotent.
 
-    surucu_kursu=True ise donem backfill de calisir.
+    surucu_kursu=True ise donem backfill ve ehliyet_sinifi NOT NULL
+    kaldirma da calisir.
     """
     from sqlalchemy import text as _text
     with engine.begin() as conn:
@@ -112,6 +113,15 @@ def tenant_kolonlarini_backfill_et(engine, surucu_kursu: bool = False):
         if surucu_kursu:
             try:
                 _surucu_donem_backfill(conn)
+            except Exception:
+                pass
+            # ehliyet_sinifi artik nullable - eski tenant'larda NOT NULL
+            # constrainti kaldir (idempotent: zaten NULL ise no-op)
+            try:
+                conn.execute(_text(
+                    'ALTER TABLE kursiyerler '
+                    'ALTER COLUMN ehliyet_sinifi DROP NOT NULL'
+                ))
             except Exception:
                 pass
 

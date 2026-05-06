@@ -129,7 +129,11 @@ class Kursiyer(db.Model):
     # Kayit donemi: ay/yil bazli (form'da date input ama gun ignore edilir)
     kayit_tarihi = db.Column(db.Date, nullable=False, default=datetime.utcnow)
 
-    ehliyet_sinifi = db.Column(db.String(20), nullable=False, index=True)
+    # NOT: Eskiden zorunluydu; yeni akista kursiyer kaydedilirken
+    # ehliyet sinifi alinmiyor — kayit sonrasi KursiyerEhliyet uzerinden
+    # ehliyetler eklenir. Geriye uyumluluk icin nullable; mevcut
+    # kursiyerlerde dolu kalir.
+    ehliyet_sinifi = db.Column(db.String(20), nullable=True, index=True)
 
     # Aday bu kurs icin kac saat ders alacak (her sinifa gore degisir)
     ders_sayisi = db.Column(db.Integer, nullable=True)

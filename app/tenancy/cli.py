@@ -79,6 +79,8 @@ TENANT_KOLON_BACKFILL_LISTESI = [
     ('kursiyer_taksitleri', 'odeyen_ad', 'VARCHAR(150)'),
     ('kursiyer_taksitleri', 'teslim_alan_id', 'INTEGER'),
     ('kursiyer_taksitleri', 'makbuz_no', 'VARCHAR(50)'),
+    # Otomatik borc taksiti -> KursiyerEhliyet linki
+    ('kursiyer_taksitleri', 'kursiyer_ehliyet_id', 'INTEGER'),
     # Sinav harc makbuz alanlari (kursiyer taksitiyle ayni desen)
     ('surucu_sinav_harci_kayitlari', 'odeme_turu', 'VARCHAR(20)'),
     ('surucu_sinav_harci_kayitlari', 'odeyen_ad', 'VARCHAR(150)'),

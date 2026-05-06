@@ -253,6 +253,15 @@ class KursiyerTaksit(db.Model):
 
     olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Bu taksit hangi ehliyet kaydindan otomatik olusturuldu?
+    # NULL ise eski/manuel taksit (uzaki taksit plani gibi). Linkli
+    # taksitler ehliyet ekle/duzenle/sil sirasinda otomatik senkron edilir.
+    kursiyer_ehliyet_id = db.Column(
+        db.Integer,
+        db.ForeignKey('kursiyer_ehliyetleri.id', ondelete='SET NULL'),
+        nullable=True, index=True,
+    )
+
     # Tahsil edildiginde otomatik 'Sürücü Kursu Geliri' kategorisinde
     # GelirGiderKaydi olusur. Geri alinirsa kayit silinir.
     gelir_gider_kayit_id = db.Column(
@@ -262,6 +271,8 @@ class KursiyerTaksit(db.Model):
     )
 
     teslim_alan = db.relationship('User', foreign_keys=[teslim_alan_id])
+    kursiyer_ehliyet = db.relationship('KursiyerEhliyet',
+                                        foreign_keys=[kursiyer_ehliyet_id])
 
     ODEME_TURLERI = [
         ('nakit', 'Nakit'),

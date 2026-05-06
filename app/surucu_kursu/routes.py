@@ -1748,14 +1748,86 @@ def _kursiyer_fiyat_recalc(kursiyer):
     toplami olarak yeniden hesapla. Ekle/duzenle/sil sonrasinda cagrilir.
     """
     toplam = Decimal('0')
-    # Birincil ehliyet (eski akis - geriye uyumluluk)
-    # NOTE: Yeni akista Kursiyer.fiyat zaten hep KursiyerEhliyet'lerden
-    # geliyor. Eski kursiyerlerde Kursiyer.fiyat manuel girilmis olabilir;
-    # eger ek_ehliyetler hic yoksa eski fiyati koru.
     eski_fiyatlar = [e.fiyat or Decimal('0') for e in kursiyer.ek_ehliyetler]
     if eski_fiyatlar:
         toplam = sum(eski_fiyatlar, Decimal('0'))
         kursiyer.fiyat = toplam
+
+
+def _ehliyet_borc_taksiti_olustur(ehliyet):
+    """Yeni eklenen ehliyet icin otomatik borc taksiti olustur.
+
+    Vade=bugun, tutar=ehliyet.fiyat, sira=mevcut max+1.
+    Eger fiyat 0 veya None ise hicbir sey yapma.
+    Idempotent: zaten linkli taksit varsa atla.
+    """
+    if not ehliyet.fiyat or ehliyet.fiyat <= 0:
+        return None
+    mevcut = KursiyerTaksit.query.filter_by(
+        kursiyer_ehliyet_id=ehliyet.id,
+    ).first()
+    if mevcut:
+        return mevcut
+
+    # sira hesapla (kursiyerin tum taksitlerinin max'ina +1)
+    son_sira = db.session.query(
+        func.coalesce(func.max(KursiyerTaksit.sira), 0)
+    ).filter(KursiyerTaksit.kursiyer_id == ehliyet.kursiyer_id).scalar() or 0
+    not_metin = f'{ehliyet.ehliyet_sinifi_str} eğitim ücreti'
+    t = KursiyerTaksit(
+        kursiyer_id=ehliyet.kursiyer_id,
+        kursiyer_ehliyet_id=ehliyet.id,
+        sira=int(son_sira) + 1,
+        vade_tarihi=date.today(),
+        tutar=ehliyet.fiyat,
+        odendi_mi=False,
+        odeme_notu=not_metin,
+    )
+    db.session.add(t)
+    db.session.flush()
+    return t
+
+
+def _ehliyet_borc_taksiti_sync(ehliyet):
+    """Ehliyet duzenlendiginde linkli taksit varsa tutari/notu guncelle.
+
+    - Linkli taksit yoksa ve fiyat>0 ise yeni olustur.
+    - Linkli taksit varsa ve odenmemisse fiyatla esitle.
+    - Linkli taksit varsa ama odenmisse DOKUNMA (gecmisi koru).
+    - Fiyat 0/None ise ve linkli ode-memis taksit varsa sil.
+    """
+    linkli = KursiyerTaksit.query.filter_by(
+        kursiyer_ehliyet_id=ehliyet.id,
+    ).first()
+    yeni_fiyat = ehliyet.fiyat or Decimal('0')
+    not_metin = f'{ehliyet.ehliyet_sinifi_str} eğitim ücreti'
+
+    if linkli is None:
+        if yeni_fiyat > 0:
+            _ehliyet_borc_taksiti_olustur(ehliyet)
+        return
+    # Linkli taksit var
+    if linkli.odendi_mi:
+        return  # odenmis taksite dokunma
+    if yeni_fiyat <= 0:
+        # Fiyat artik 0 - taksiti sil
+        db.session.delete(linkli)
+        return
+    linkli.tutar = yeni_fiyat
+    linkli.odeme_notu = not_metin
+
+
+def _ehliyet_borc_taksiti_sil(ehliyet_id):
+    """Ehliyet silindiginde linkli taksiti sil (sadece odenmemis).
+
+    Odenmis taksit FK SET NULL ile orphan'a duser, gecmis korunur.
+    """
+    linkli = KursiyerTaksit.query.filter_by(
+        kursiyer_ehliyet_id=ehliyet_id,
+        odendi_mi=False,
+    ).first()
+    if linkli:
+        db.session.delete(linkli)
 
 
 @surucu_kursu_bp.route(
@@ -1805,8 +1877,16 @@ def kursiyer_ehliyet_ekle(kursiyer_id):
     db.session.add(e)
     db.session.flush()
     _kursiyer_fiyat_recalc(k)
+    # Otomatik borc taksiti olustur (fiyat>0 ise)
+    yeni_taksit = _ehliyet_borc_taksiti_olustur(e)
     db.session.commit()
-    flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi.', 'success')
+    if yeni_taksit:
+        flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi. '
+              f'Borç olarak {yeni_taksit.tutar} ₺ taksit oluşturuldu.',
+              'success')
+    else:
+        flash(f'"{EHLIYET_SINIF_DICT[sinif]}" ehliyeti eklendi.',
+              'success')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
                              kursiyer_id=kursiyer_id))
 
@@ -1831,6 +1911,8 @@ def kursiyer_ehliyet_duzenle(kursiyer_id, ehliyet_id):
     e.notlar = (request.form.get('notlar') or '').strip() or None
 
     _kursiyer_fiyat_recalc(e.kursiyer)
+    # Linkli borc taksitini fiyatla senkronize et (odenmemisse)
+    _ehliyet_borc_taksiti_sync(e)
     db.session.commit()
     flash(f'"{e.ehliyet_sinifi_str}" ehliyeti güncellendi.', 'success')
     return redirect(url_for('surucu_kursu.kursiyer_detay',
@@ -1842,13 +1924,16 @@ def kursiyer_ehliyet_duzenle(kursiyer_id, ehliyet_id):
     methods=['POST'])
 @login_required
 def kursiyer_ehliyet_sil(kursiyer_id, ehliyet_id):
-    """Ehliyeti sil."""
+    """Ehliyeti sil. Linkli odenmemis borc taksiti varsa o da silinir;
+    odenmis taksit FK SET NULL ile orphan kalir (gecmis korunur)."""
     _surucu_kursu_tenant_required()
     e = KursiyerEhliyet.query.filter_by(
         id=ehliyet_id, kursiyer_id=kursiyer_id
     ).first_or_404()
     sinif_str = e.ehliyet_sinifi_str
     kursiyer = e.kursiyer
+    # Once linkli odenmemis taksit varsa sil
+    _ehliyet_borc_taksiti_sil(e.id)
     db.session.delete(e)
     db.session.flush()
     _kursiyer_fiyat_recalc(kursiyer)

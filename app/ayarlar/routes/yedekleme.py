@@ -16,7 +16,7 @@ from datetime import datetime
 from urllib.parse import urlparse, unquote
 
 from flask import (Blueprint, render_template, send_file, flash, redirect,
-                   url_for, current_app, g, after_this_request)
+                   url_for, current_app, g, after_this_request, request)
 from flask_login import login_required
 from sqlalchemy import text
 

@@ -430,7 +430,24 @@ def geri_yukle():
                 )
                 continue
 
-        # 4) DROP + CREATE
+        # 4) Flask-SQLAlchemy session/engine + tenant engine cache temizle
+        #    DROP edilecek DB'ye aktif baglanti kalmasin (aksi halde
+        #    teardown'da 'SSL connection closed unexpectedly' hatasi gelir)
+        try:
+            db.session.remove()
+        except Exception:
+            pass
+        try:
+            db.engine.dispose()
+        except Exception:
+            pass
+        try:
+            from app.tenancy.engines import dispose_all as _dispose_tenant_engines
+            _dispose_tenant_engines()
+        except Exception:
+            pass
+
+        # 4b) DROP + CREATE
         try:
             _pg_drop_create(db_name)
         except Exception as e:

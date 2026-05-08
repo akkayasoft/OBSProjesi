@@ -266,9 +266,13 @@ def tenant_yeni():
                 kurum_tipler=KURUM_TIPLERI,
             )
 
-        # 3.5) Modele eklenmis ama Alembic migrasyonu yazilmamis kolonlari
-        #      yeni tenant'a uygula (idempotent). Aksi takdirde / route'unda
-        #      'column ... does not exist' hatasi verir.
+        # 3.5) Modele eklenmis ama Alembic migrasyonu yazilmamis tablo/
+        #      kolonlari yeni tenant'a uygula (idempotent).
+        #      - create_all: surucu kursu tablolari (kursiyerler, donem,
+        #        kursiyer_taksitleri vs.) Alembic'te degil, sadece
+        #        db.metadata.create_all ile olusur. Yoksa /surucu-kursu/
+        #        ilk acilista 'relation kursiyerler does not exist' verir.
+        #      - ALTER TABLE backfill: model'e sonradan eklenmis kolonlar
         try:
             from app.tenancy.engines import get_tenant_engine
             from app.tenancy.cli import tenant_kolonlarini_backfill_et
@@ -276,10 +280,11 @@ def tenant_yeni():
             tenant_kolonlarini_backfill_et(
                 yeni_engine,
                 surucu_kursu=(form_data['kurum_tipi'] == 'surucu_kursu'),
+                create_tables=True,
             )
         except Exception as e:
             current_app.logger.warning(
-                f'tenant_yeni backfill basarisiz ({db_name}): {e}'
+                f'tenant_yeni create_all/backfill basarisiz ({db_name}): {e}'
             )
 
         # 4) Master DB'ye Tenant kaydi

@@ -97,14 +97,22 @@ TENANT_KOLON_BACKFILL_LISTESI = [
 ]
 
 
-def tenant_kolonlarini_backfill_et(engine, surucu_kursu: bool = False):
+def tenant_kolonlarini_backfill_et(engine, surucu_kursu: bool = False,
+                                     create_tables: bool = False):
     """Verilen tenant engine'inde TENANT_KOLON_BACKFILL_LISTESI
     icindeki ALTER TABLE'lari calistir. Idempotent.
+
+    create_tables=True ise once db.metadata.create_all() ile tum
+    tablolari yaratir (Alembic'te olmayan modeller dahil - ozellikle
+    surucu kursu tablolari Alembic disinda yonetiliyor).
 
     surucu_kursu=True ise donem backfill ve ehliyet_sinifi NOT NULL
     kaldirma da calisir.
     """
     from sqlalchemy import text as _text
+    if create_tables:
+        from app.extensions import db as _db
+        _db.metadata.create_all(bind=engine)
     with engine.begin() as conn:
         for tablo, kolon, tip in TENANT_KOLON_BACKFILL_LISTESI:
             try:

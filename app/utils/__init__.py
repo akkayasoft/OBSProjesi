@@ -6,14 +6,11 @@ from flask_login import current_user
 def role_required(*roles):
     """Belirtilen rollerden birine sahip olma zorunlulugu.
 
-    Ozel durum: 'yonetici' rolu 'admin' rolunun hakki olan yerlere
-    URL prefix'ine gore modul izni varsa erisebilir. Boylece mevcut
-    @role_required('admin') dekoratorleri tek tek degistirilmeden
-    yonetici de kendi izinli modullerine girer.
-
-    Sistem-ozel moduller (kullanici, denetim, ayarlar) varsayilan olarak
-    yoneticiye acilmaz (kurumsal preset icinde bile yok). Admin orada
-    devam eder.
+    NOT (mussteri istegi 2026-05-08): 'yonetici' rolu artik 'admin'
+    ile esit yetkilere sahip. Admin'in girebildigi her yere yonetici
+    de girebilir; modul_key veya URL prefix kontrolu yapilmadan
+    dogrudan gecer. Tum @role_required('admin') dekoratorleri otomatik
+    olarak yoneticiyi de kapsar.
     """
     def decorator(f):
         @wraps(f)
@@ -25,12 +22,9 @@ def role_required(*roles):
             if current_user.rol in roles:
                 return f(*args, **kwargs)
 
-            # 2) Admin sayfasina yonetici geliyorsa modul izni ile ac
+            # 2) Admin gerektiren yerlere yonetici de girebilir (admin esiti)
             if current_user.rol == 'yonetici' and 'admin' in roles:
-                from app.module_registry import url_to_modul_key
-                modul_key = url_to_modul_key(request.path)
-                if modul_key and current_user.can_access(modul_key):
-                    return f(*args, **kwargs)
+                return f(*args, **kwargs)
 
             abort(403)
         return decorated_function

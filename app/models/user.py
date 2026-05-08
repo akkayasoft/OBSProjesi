@@ -75,36 +75,32 @@ class User(UserMixin, db.Model):
         """Bu kullanicinin belirtilen module erisim izni var mi?
 
         Oncelik sirasi:
-          1. admin -> her zaman True (izin kaydi acikca False degilse)
-          2. yonetici -> kullanicinin kendi KullaniciModulIzin kaydi
-          3. diger roller -> RolModulIzin (rol bazli)
+          1. admin / yonetici -> her zaman True (admin ile esit yetki)
+          2. diger roller -> RolModulIzin (rol bazli)
+
+        NOT (mussteri istegi 2026-05-08): yonetici rolu artik admin'in
+        TUM yetkilerine sahip. KullaniciModulIzin tablosu yok sayilir;
+        her iki rol de tum modullere erisir.
         """
         if not modul_key:
             return True  # modul_key yoksa genel bir sayfa, herkes erisebilir
 
-        if self.rol == 'admin':
-            # Admin her seye erisir (opsiyonel olarak devre disi birakilmadikca)
+        if self.rol in ('admin', 'yonetici'):
             from app.models.ayarlar import RolModulIzin
             return RolModulIzin.izin_var_mi('admin', modul_key)
-
-        if self.rol == 'yonetici':
-            from app.models.ayarlar import KullaniciModulIzin
-            return KullaniciModulIzin.kullanici_izinli_mi(self.id, modul_key)
 
         # Diger roller (ogretmen, veli, ogrenci, muhasebeci)
         from app.models.ayarlar import RolModulIzin
         return RolModulIzin.izin_var_mi(self.rol, modul_key)
 
     def erisebildigi_moduller(self):
-        """Bu kullanicinin erisebildigi tum modul key'lerini set olarak dondur."""
-        if self.rol == 'admin':
-            from app.models.ayarlar import RolModulIzin
-            # Admin icin: devre disi birakilmamis olanlar
-            return RolModulIzin.rol_izinleri('admin') or set(RolModulIzin.MODULLER.keys())
+        """Bu kullanicinin erisebildigi tum modul key'lerini set olarak dondur.
 
-        if self.rol == 'yonetici':
-            from app.models.ayarlar import KullaniciModulIzin
-            return KullaniciModulIzin.kullanici_izinleri(self.id)
+        Admin ve yonetici icin: tum sistemdeki modul keyleri.
+        """
+        if self.rol in ('admin', 'yonetici'):
+            from app.models.ayarlar import RolModulIzin
+            return RolModulIzin.rol_izinleri('admin') or set(RolModulIzin.MODULLER.keys())
 
         from app.models.ayarlar import RolModulIzin
         return RolModulIzin.rol_izinleri(self.rol)

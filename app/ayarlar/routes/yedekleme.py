@@ -411,20 +411,24 @@ def geri_yukle():
             pass  # validation best-effort, gec
 
         # 3) ONCESI yedek (rollback icin) — opsiyonel ama tavsiyye
+        # /var/backups/obs_restore'i dene, yazilamazsa /tmp'a dus
         oncesi_path = None
-        try:
-            oncesi_dir = '/var/backups/obs_restore'
-            os.makedirs(oncesi_dir, exist_ok=True)
-            tarih = datetime.now().strftime('%Y%m%d_%H%M%S')
-            oncesi_path = os.path.join(
-                oncesi_dir, f'oncesi_{db_name}_{tarih}.sql.gz'
-            )
-            ok = _pg_dump_to_file(db_name, parts, oncesi_path)
-            if not ok:
-                oncesi_path = None
-        except Exception as e:
-            current_app.logger.warning('Oncesi yedek alinamadi: %s', e)
-            oncesi_path = None
+        for kok_dizin in ('/var/backups/obs_restore', '/tmp'):
+            try:
+                os.makedirs(kok_dizin, exist_ok=True)
+                tarih = datetime.now().strftime('%Y%m%d_%H%M%S')
+                yol = os.path.join(
+                    kok_dizin, f'oncesi_{db_name}_{tarih}.sql.gz'
+                )
+                ok = _pg_dump_to_file(db_name, parts, yol)
+                if ok:
+                    oncesi_path = yol
+                    break
+            except Exception as e:
+                current_app.logger.warning(
+                    'Oncesi yedek %s yoluna alinamadi: %s', kok_dizin, e
+                )
+                continue
 
         # 4) DROP + CREATE
         try:

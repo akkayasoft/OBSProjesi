@@ -88,6 +88,95 @@
     </div>
 </div>
 
+<!-- ============= GERI YUKLEME (RESTORE) ============= -->
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-white border-bottom border-danger">
+                <h6 class="mb-0 text-danger">
+                    <i class="bi bi-cloud-arrow-up me-2"></i>Yedeği Geri Yükle
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger small">
+                    <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    Dikkat:</strong> Bu işlem mevcut tüm verilerinizi
+                    <strong>siler</strong> ve seçtiğiniz yedekteki haline
+                    döndürür. Geri alınamaz. İşlem öncesi sistem otomatik
+                    olarak mevcut durumun yedeğini almaya çalışacak (sunucu
+                    diskinde saklanır), ama yine de işlemi
+                    <strong>başka kimse sistemde çalışmazken</strong>
+                    yapın.
+                </div>
+                <form method="POST"
+                      action="{{ url_for('ayarlar.yedekleme.geri_yukle') }}"
+                      enctype="multipart/form-data"
+                      onsubmit="return confirm('Geri yükleme başlatılacak. ÖNEMLİ: Mevcut tüm veri silinecek. Devam edilsin mi?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label small">
+                            Yedek Dosyası (<code>.sql.gz</code> veya
+                            <code>.sql</code>) *
+                        </label>
+                        <input type="file" name="yedek_dosyasi"
+                               accept=".sql,.gz,.sql.gz"
+                               class="form-control" required>
+                        <small class="text-muted">
+                            Maksimum 200 MB. <strong>pg_dump</strong>
+                            çıktısı olan dosyalar kabul edilir.
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Onay Metni *</label>
+                        <input type="text" name="onay" required
+                               class="form-control"
+                               placeholder='Tam olarak şunu yazın: GERI YUKLE'>
+                        <small class="text-muted">
+                            Yanlışlıkla geri yüklemeyi engellemek için
+                            büyük harfle <strong>GERI YUKLE</strong> yazın.
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-cloud-arrow-up me-1"></i>
+                        Yedeği Geri Yükle
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Nasıl Geri Yüklenir?
+                </h6>
+            </div>
+            <div class="card-body small">
+                <ol class="ps-3 mb-2">
+                    <li>Daha önce indirdiğiniz <code>.sql.gz</code>
+                        dosyasını seçin</li>
+                    <li><strong>GERI YUKLE</strong> yazın</li>
+                    <li>"Yedeği Geri Yükle" butonuna basın</li>
+                    <li>İşlem bitince login sayfasına yönlendirilirsiniz —
+                        tekrar giriş yapın</li>
+                </ol>
+                <hr>
+                <p class="text-muted mb-2">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Otomatik öncesi yedek
+                    <code>/var/backups/obs_restore</code> altında saklanır.
+                    Hata olursa sistem yöneticinize başvurun, oradan elle
+                    geri dönülebilir.
+                </p>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-clock me-1"></i>
+                    Büyük yedeklerde 1-2 dakika sürebilir. Sayfayı kapatmayın.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="mt-3">
     <a href="{{ url_for('ayarlar.dashboard.index') }}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i>Ayarlara Dön

@@ -243,3 +243,246 @@ def indir():
         download_name=indirme_adi,
         mimetype='application/gzip',
     )
+
+
+# ---------------------------------------------------------------------------
+# Geri yukleme (RESTORE) — destructive operation, sadece admin/yonetici
+# ---------------------------------------------------------------------------
+
+ONAY_METNI = 'GERI YUKLE'
+MAX_YEDEK_BOYUT_MB = 200
+
+
+def _admin_psql_url():
+    """CREATE/DROP DATABASE icin admin baglantisi."""
+    cfg = current_app.config
+    return cfg.get('TENANT_ADMIN_DATABASE_URL') or \
+        cfg.get('MASTER_DATABASE_URL')
+
+
+def _pg_drop_create(db_name: str):
+    """Tenant DB'sini DROP + CREATE et. Aktif baglantilari terminate eder."""
+    import psycopg2
+    admin_url = _admin_psql_url()
+    if not admin_url:
+        raise RuntimeError('Admin DB URL bulunamadi.')
+    parts = _parse_pg_url(admin_url)
+    conn = psycopg2.connect(
+        host=parts['host'], port=parts['port'],
+        user=parts['user'], password=parts['password'],
+        dbname=parts['dbname'] or 'postgres',
+    )
+    conn.autocommit = True
+    cur = conn.cursor()
+    try:
+        # Aktif tum baglantilari terminate et
+        cur.execute("""
+            SELECT pg_terminate_backend(pid)
+              FROM pg_stat_activity
+             WHERE datname = %s AND pid <> pg_backend_pid()
+        """, (db_name,))
+        cur.execute(f'DROP DATABASE IF EXISTS "{db_name}"')
+        cur.execute(f'CREATE DATABASE "{db_name}"')
+    finally:
+        cur.close()
+        conn.close()
+
+
+def _pg_dump_to_file(db_name: str, parts: dict, out_path: str) -> bool:
+    """pg_dump | gzip -> out_path. True=ok, False=hata."""
+    env = os.environ.copy()
+    if parts.get('password'):
+        env['PGPASSWORD'] = parts['password']
+    try:
+        with open(out_path, 'wb') as out:
+            pg = subprocess.Popen(
+                ['pg_dump', '-h', parts['host'], '-p', parts['port'],
+                 '-U', parts['user'], '--no-owner', '--no-privileges',
+                 '--format=plain', db_name],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
+            )
+            gz = subprocess.Popen(
+                ['gzip', '-c'], stdin=pg.stdout, stdout=out,
+                stderr=subprocess.PIPE,
+            )
+            if pg.stdout:
+                pg.stdout.close()
+            gz.communicate()
+            pg.wait()
+            gz.wait()
+            return pg.returncode == 0 and gz.returncode == 0
+    except Exception:
+        return False
+
+
+@bp.route('/yedekleme/geri-yukle', methods=['POST'])
+@login_required
+@role_required('admin', 'yonetici')
+def geri_yukle():
+    """Aktif tenant DB'sine yedek geri yukle.
+
+    Akis:
+      1) Onay metni dogrulamasi ('GERI YUKLE')
+      2) Yuklenmis dosya kontrolu (.sql veya .sql.gz, < 200 MB)
+      3) Otomatik 'oncesi' yedek (hata olursa elle restore icin)
+      4) Tenant DB'sini DROP + CREATE
+      5) Yedeği psql ile yukle
+      6) Kullaniciyi cikisa zorla
+    """
+    onay = (request.form.get('onay') or '').strip().upper()
+    if onay != ONAY_METNI:
+        flash(f'Onay metni hatalı. Geri yüklemek için "{ONAY_METNI}" '
+              f'yazmanız gerekir.', 'danger')
+        return redirect(url_for('ayarlar.yedekleme.index'))
+
+    yuklenen = request.files.get('yedek_dosyasi')
+    if not yuklenen or not yuklenen.filename:
+        flash('Yedek dosyası seçilmedi.', 'danger')
+        return redirect(url_for('ayarlar.yedekleme.index'))
+
+    fname = yuklenen.filename
+    if not (fname.endswith('.sql') or fname.endswith('.sql.gz')):
+        flash('Yedek dosyası .sql veya .sql.gz formatında olmalı.', 'danger')
+        return redirect(url_for('ayarlar.yedekleme.index'))
+
+    url = _aktif_db_url()
+    if not url or not url.startswith('postgresql'):
+        flash('Bu işlem yalnızca PostgreSQL veritabanlarında çalışır.',
+              'danger')
+        return redirect(url_for('ayarlar.yedekleme.index'))
+    parts = _parse_pg_url(url)
+    db_name = parts['dbname']
+    if not db_name:
+        flash('Veritabanı adı çözümlenemedi.', 'danger')
+        return redirect(url_for('ayarlar.yedekleme.index'))
+
+    # 1) Yuklenen dosyayi gecici dizine kaydet
+    suffix = '.sql.gz' if fname.endswith('.sql.gz') else '.sql'
+    fd, yedek_yolu = tempfile.mkstemp(prefix='obs_restore_', suffix=suffix)
+    os.close(fd)
+    try:
+        yuklenen.save(yedek_yolu)
+        boyut_mb = os.path.getsize(yedek_yolu) / (1024 * 1024)
+        if boyut_mb > MAX_YEDEK_BOYUT_MB:
+            os.unlink(yedek_yolu)
+            flash(f'Yedek dosyası çok büyük ({boyut_mb:.1f} MB). '
+                  f'Üst sınır {MAX_YEDEK_BOYUT_MB} MB.', 'danger')
+            return redirect(url_for('ayarlar.yedekleme.index'))
+
+        # .gz ise unzip et
+        if suffix == '.sql.gz':
+            sql_yolu = yedek_yolu[:-3]  # .gz uzantisini kaldir
+            try:
+                with subprocess.Popen(
+                    ['gunzip', '-c', yedek_yolu], stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                ) as gz:
+                    out, err = gz.communicate()
+                    if gz.returncode != 0:
+                        raise RuntimeError(
+                            f'gunzip hata: {err.decode("utf-8", "replace")}'
+                        )
+                with open(sql_yolu, 'wb') as f:
+                    f.write(out)
+            except Exception as e:
+                current_app.logger.exception('gunzip hata: %s', e)
+                os.unlink(yedek_yolu)
+                flash('Yedek dosyası açılamadı (gunzip hatası).', 'danger')
+                return redirect(url_for('ayarlar.yedekleme.index'))
+            try:
+                os.unlink(yedek_yolu)
+            except Exception:
+                pass
+        else:
+            sql_yolu = yedek_yolu
+
+        # 2) Format dogrulamasi: ilk 4KB'da PostgreSQL dump signature ara
+        try:
+            with open(sql_yolu, 'rb') as f:
+                bas = f.read(4096).decode('utf-8', errors='replace')
+            if 'PostgreSQL database dump' not in bas and \
+                    'CREATE TABLE' not in bas.upper() and \
+                    'COPY ' not in bas.upper():
+                os.unlink(sql_yolu)
+                flash('Dosya geçerli bir PostgreSQL yedeği gibi görünmüyor. '
+                      'pg_dump çıktısı olmalıdır.', 'danger')
+                return redirect(url_for('ayarlar.yedekleme.index'))
+        except Exception:
+            pass  # validation best-effort, gec
+
+        # 3) ONCESI yedek (rollback icin) — opsiyonel ama tavsiyye
+        oncesi_path = None
+        try:
+            oncesi_dir = '/var/backups/obs_restore'
+            os.makedirs(oncesi_dir, exist_ok=True)
+            tarih = datetime.now().strftime('%Y%m%d_%H%M%S')
+            oncesi_path = os.path.join(
+                oncesi_dir, f'oncesi_{db_name}_{tarih}.sql.gz'
+            )
+            ok = _pg_dump_to_file(db_name, parts, oncesi_path)
+            if not ok:
+                oncesi_path = None
+        except Exception as e:
+            current_app.logger.warning('Oncesi yedek alinamadi: %s', e)
+            oncesi_path = None
+
+        # 4) DROP + CREATE
+        try:
+            _pg_drop_create(db_name)
+        except Exception as e:
+            current_app.logger.exception('DROP/CREATE basarisiz: %s', e)
+            try:
+                os.unlink(sql_yolu)
+            except Exception:
+                pass
+            flash(f'Veritabanı yeniden oluşturulamadı: {e}', 'danger')
+            return redirect(url_for('ayarlar.yedekleme.index'))
+
+        # 5) psql -f sql_yolu ile uygula
+        env = os.environ.copy()
+        if parts.get('password'):
+            env['PGPASSWORD'] = parts['password']
+        try:
+            sonuc = subprocess.run(
+                ['psql', '-h', parts['host'], '-p', parts['port'],
+                 '-U', parts['user'], '-d', db_name,
+                 '-v', 'ON_ERROR_STOP=1', '-q', '-f', sql_yolu],
+                env=env, capture_output=True, text=True, timeout=600,
+            )
+            if sonuc.returncode != 0:
+                current_app.logger.error(
+                    'psql restore hata (rc=%s): %s',
+                    sonuc.returncode,
+                    (sonuc.stderr or sonuc.stdout)[:2000],
+                )
+                msg = ('Yedek geri yüklenirken hata oluştu. '
+                       'Veritabanı boş olabilir; yöneticiye başvurun.')
+                if oncesi_path:
+                    msg += (f' Önceki durumu sunucudan geri yüklemek için '
+                            f'şu dosya kullanılabilir: {oncesi_path}')
+                flash(msg, 'danger')
+                return redirect(url_for('ayarlar.yedekleme.index'))
+        except subprocess.TimeoutExpired:
+            flash('Geri yükleme zaman aşımına uğradı (>10 dk).', 'danger')
+            return redirect(url_for('ayarlar.yedekleme.index'))
+        except Exception as e:
+            current_app.logger.exception('psql restore hata: %s', e)
+            flash(f'Geri yükleme başarısız: {e}', 'danger')
+            return redirect(url_for('ayarlar.yedekleme.index'))
+        finally:
+            try:
+                os.unlink(sql_yolu)
+            except Exception:
+                pass
+
+    except Exception as e:
+        current_app.logger.exception('Geri yukleme akisi hatasi: %s', e)
+        flash(f'Beklenmeyen hata: {e}', 'danger')
+        return redirect(url_for('ayarlar.yedekleme.index'))
+
+    # 6) Cikisa zorla — session bozulmus olabilir
+    from flask_login import logout_user
+    logout_user()
+    flash('Yedek başarıyla geri yüklendi. Lütfen tekrar giriş yapın.',
+          'success')
+    return redirect(url_for('auth.giris'))

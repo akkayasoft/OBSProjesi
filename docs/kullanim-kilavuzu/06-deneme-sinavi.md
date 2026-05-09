@@ -26,7 +26,7 @@ Sınav bittikten sonra:
 - **Optik okuyucu çıktısı (CSV)**: tek dosya yükle
 - **Manuel giriş**: her öğrencinin doğru/yanlış sayısını gir
 
-![Dosya seç + sürükle-bırak alanı](gorseller/06-cevap-yukleme.svg)
+![Dosya seç + sürükle-bırak alanı](gorseller/06-cevap-yukleme.png)
 
 ## 6.3. Otomatik puanlama ve net hesaplama
 
@@ -43,7 +43,7 @@ Sistem otomatik:
 
 **Deneme detayı → Sıralama** sekmesi:
 
-![Sınıf bazlı, dershane bazlı top sıralama](gorseller/06-siralama-tablosu.svg)
+![Sınıf bazlı, dershane bazlı top sıralama](gorseller/06-siralama-tablosu.png)
 
 - Sınıf içi sıra
 - Dershane geneli sıra
@@ -53,7 +53,7 @@ Sistem otomatik:
 
 Her öğrencinin kendi sayfasında:
 
-![Ders bazlı doğru/yanlış/boş + gelişim grafiği](gorseller/06-net-analizi.svg)
+![Ders bazlı doğru/yanlış/boş + gelişim grafiği](gorseller/06-net-analizi.png)
 
 - Ders bazlı doğru/yanlış/boş sayısı
 - Son 5 denemede net trendi (line chart)
@@ -77,7 +77,7 @@ Sınıf içi quiz veya konu testi için:
 çoktan seçmeli sınav oluşturur. Öğrencilere link gönderilir, kendi
 telefonlarından girerler.
 
-![Öğrenci telefonunda sınav ekranı](gorseller/06-online-sinav.svg)
+![Öğrenci telefonunda sınav ekranı](gorseller/06-online-sinav.png)
 
 > 💡 Online sınav otomatik puanlama yapar; sonuçlar Not Defteri'ne
 > tek tıkla aktarılabilir.

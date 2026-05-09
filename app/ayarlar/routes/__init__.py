@@ -7,6 +7,7 @@ def register_routes(bp):
     from app.ayarlar.routes import guvenlik  # noqa: F401
     from app.ayarlar.routes import yedekleme  # noqa: F401
     from app.ayarlar.routes import yetkilendirme  # noqa: F401
+    from app.ayarlar.routes import kilavuz  # noqa: F401
 
     bp.register_blueprint(dashboard.bp)
     bp.register_blueprint(genel.bp)
@@ -16,3 +17,4 @@ def register_routes(bp):
     bp.register_blueprint(guvenlik.bp)
     bp.register_blueprint(yedekleme.bp)
     bp.register_blueprint(yetkilendirme.bp)
+    bp.register_blueprint(kilavuz.bp)

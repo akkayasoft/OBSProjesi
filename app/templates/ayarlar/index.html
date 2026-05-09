@@ -252,10 +252,32 @@
     </div>
 </div>
 
-<!-- Yedekleme linki -->
-<div class="mt-4">
+<!-- Yedekleme + Kılavuz linkleri -->
+<div class="mt-4 d-flex flex-wrap gap-2">
     <a href="{{ url_for('ayarlar.yedekleme.index') }}" class="btn btn-outline-secondary">
         <i class="bi bi-download me-1"></i>Yedekleme
     </a>
+    <a href="{{ url_for('ayarlar.kilavuz.index') }}" class="btn btn-primary">
+        <i class="bi bi-book me-1"></i>Uygulama Kılavuzu
+    </a>
+</div>
+
+<!-- Kılavuz çağrı kartı -->
+<div class="card shadow-sm mt-4 border-primary" style="border-width: 2px;">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center gap-3">
+            <div style="font-size: 2.5rem; line-height: 1;">📖</div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1">Yeni mi başlıyorsunuz? Uygulama Kılavuzu'nu okuyun.</h6>
+                <small class="text-muted">
+                    11 bölümlük resimli rehberle giriş yapma, öğrenci kaydı, devamsızlık, not girişi,
+                    deneme sınavları, muhasebe, raporlar ve yedekleme süreçlerini öğrenin.
+                </small>
+            </div>
+            <a href="{{ url_for('ayarlar.kilavuz.index') }}" class="btn btn-primary">
+                Kılavuzu Aç →
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}

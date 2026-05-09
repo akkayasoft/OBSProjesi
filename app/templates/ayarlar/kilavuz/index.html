@@ -1,0 +1,124 @@
+{% extends "ayarlar/_layout.html" %}
+
+{% block title %}Uygulama Kılavuzu{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Uygulama Kılavuzu</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.kilavuz-icerik h1, .kilavuz-icerik h2, .kilavuz-icerik h3 {
+    margin-top: 1.4rem;
+}
+.kilavuz-icerik h1 { font-size: 1.8rem; }
+.kilavuz-icerik h2 { font-size: 1.4rem; border-bottom: 2px solid #dee2e6; padding-bottom: .3rem; }
+.kilavuz-icerik h3 { font-size: 1.15rem; color: #495057; }
+.kilavuz-icerik table {
+    width: 100%; border-collapse: collapse; margin: 1rem 0;
+    font-size: 0.9rem;
+}
+.kilavuz-icerik th, .kilavuz-icerik td {
+    border: 1px solid #dee2e6; padding: 8px 12px; text-align: left;
+}
+.kilavuz-icerik th { background: #f8f9fa; font-weight: 600; }
+.kilavuz-icerik blockquote {
+    border-left: 4px solid #0d6efd;
+    background: #e3f2fd; padding: 12px 16px;
+    margin: 1rem 0; border-radius: 4px;
+}
+.kilavuz-icerik img {
+    max-width: 100%; height: auto;
+    border: 1px solid #dee2e6; border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin: 1rem 0;
+}
+.kilavuz-icerik code {
+    background: #f1f3f5; padding: 2px 6px; border-radius: 3px;
+    font-size: 0.88em; color: #d63384;
+}
+.kilavuz-icerik pre {
+    background: #212529; color: #f8f9fa; padding: 12px;
+    border-radius: 6px; overflow-x: auto;
+}
+.kilavuz-icerik pre code {
+    background: transparent; color: inherit; padding: 0;
+}
+.kilavuz-bolum-kart {
+    transition: all 0.15s ease;
+    border-left: 4px solid transparent;
+}
+.kilavuz-bolum-kart:hover {
+    border-left-color: #0d6efd;
+    background: #f8f9fa;
+    transform: translateX(2px);
+}
+</style>
+{% endblock %}
+
+{% block ayarlar_content %}
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="bi bi-book me-2 text-primary"></i>Uygulama Kılavuzu
+            </h4>
+            <small class="text-muted">11 bölüm · Resimli adım adım kullanım</small>
+        </div>
+        <p class="text-muted mt-2">
+            OBS sisteminin tüm modüllerini öğrenmek için aşağıdaki bölümleri sırayla
+            okuyabilir, her bölümün sonundaki <strong>"Sonraki →"</strong> butonu ile
+            kılavuzu adım adım takip edebilirsiniz.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sol: bölüm listesi (büyük kartlar) -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-list-ol me-2"></i>Bölümler
+                </h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for b in bolumler %}
+                <a href="{{ url_for('ayarlar.kilavuz.bolum', slug=b.slug) }}"
+                   class="list-group-item list-group-item-action kilavuz-bolum-kart py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold">BÖLÜM {{ b.no }}</small>
+                            <h6 class="mb-0 mt-1">{{ b.baslik }}</h6>
+                        </div>
+                        <i class="bi bi-arrow-right-circle fs-4 text-primary"></i>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 1. bölümle başla butonu -->
+        {% if bolumler %}
+        <div class="text-center mt-3">
+            <a href="{{ url_for('ayarlar.kilavuz.bolum', slug=bolumler[0].slug) }}"
+               class="btn btn-primary btn-lg">
+                <i class="bi bi-play-circle me-2"></i>İlk Bölümle Başla: {{ bolumler[0].baslik }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sağ: kılavuz hakkında bilgi -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Kılavuz Hakkında</h6>
+            </div>
+            <div class="card-body kilavuz-icerik">
+                {{ icerik_html | safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

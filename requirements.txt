@@ -18,3 +18,5 @@ reportlab==4.2.5
 Pillow>=10.3.0
 # Yayinci deneme sonuc PDF'lerinin metinsel parse'i icin
 pdfplumber==0.11.9
+# Uygulama ici kilavuz icin markdown -> HTML donusum
+Markdown==3.7

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">💬 Mesajlar (Veli ↔ Öğretmen)</text>
+
+  <!-- Conversation list left -->
+  <rect x="270" y="140" width="320" height="440" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="170" font-size="13" font-weight="700" fill="#212529">SOHBETLER</text>
+
+  <g font-size="12">
+    <rect x="280" y="185" width="300" height="60" rx="4" fill="#e3f2fd"/>
+    <text x="295" y="208" font-weight="700" fill="#212529">Demo Veli 1</text>
+    <text x="295" y="226" fill="#6c757d" font-size="11">Sınav saati hakkında...</text>
+    <text x="565" y="208" text-anchor="end" font-size="10" fill="#0d6efd">9:14</text>
+    <circle cx="570" cy="226" r="9" fill="#dc3545"/>
+    <text x="570" y="230" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">2</text>
+
+    <rect x="280" y="250" width="300" height="60" rx="4" fill="#fff"/>
+    <text x="295" y="273" font-weight="600" fill="#212529">Demo Veli 5</text>
+    <text x="295" y="291" fill="#6c757d" font-size="11">Çocuğumun devamsızlığı...</text>
+    <text x="565" y="273" text-anchor="end" font-size="10" fill="#adb5bd">Dün</text>
+
+    <rect x="280" y="315" width="300" height="60" rx="4" fill="#fff"/>
+    <text x="295" y="338" font-weight="600" fill="#212529">Demo Veli 12</text>
+    <text x="295" y="356" fill="#6c757d" font-size="11">Karne için teşekkürler!</text>
+    <text x="565" y="338" text-anchor="end" font-size="10" fill="#adb5bd">2 gün önce</text>
+
+    <rect x="280" y="380" width="300" height="60" rx="4" fill="#fff"/>
+    <text x="295" y="403" font-weight="600" fill="#212529">Demo Veli 22</text>
+    <text x="295" y="421" fill="#6c757d" font-size="11">Etüt programı sorusu</text>
+    <text x="565" y="403" text-anchor="end" font-size="10" fill="#adb5bd">3 gün önce</text>
+  </g>
+
+  <!-- Chat right -->
+  <rect x="610" y="140" width="650" height="440" rx="6" fill="#fff" stroke="#dee2e6"/>
+
+  <!-- Chat header -->
+  <rect x="610" y="140" width="650" height="60" rx="6" fill="#f8f9fa"/>
+  <line x1="610" y1="200" x2="1260" y2="200" stroke="#dee2e6"/>
+  <circle cx="640" cy="170" r="20" fill="#0d6efd" opacity="0.15"/>
+  <text x="640" y="178" text-anchor="middle" font-size="18">👤</text>
+  <text x="675" y="172" font-size="14" font-weight="700" fill="#212529">Demo Veli 1</text>
+  <text x="675" y="190" font-size="11" fill="#6c757d">Veli · Demo Öğrenci 1 (9-A)</text>
+
+  <!-- Messages -->
+  <g font-size="12">
+    <rect x="630" y="225" width="300" height="50" rx="10" fill="#e9ecef"/>
+    <text x="645" y="248" fill="#212529">Merhaba, yarınki sınav saat kaçta?</text>
+    <text x="645" y="265" font-size="10" fill="#6c757d">Demo Veli 1 · 09:14</text>
+
+    <rect x="630" y="290" width="280" height="50" rx="10" fill="#e9ecef"/>
+    <text x="645" y="313" fill="#212529">Ayrıca konuya nasıl çalışsın?</text>
+    <text x="645" y="330" font-size="10" fill="#6c757d">Demo Veli 1 · 09:15</text>
+
+    <rect x="800" y="355" width="440" height="70" rx="10" fill="#0d6efd"/>
+    <text x="815" y="378" fill="#fff">Merhaba! Sınav 09:00'da başlayacak.</text>
+    <text x="815" y="396" fill="#fff">Türev konusu için 12. ünite testlerini</text>
+    <text x="815" y="414" fill="#fff">çözmesi yeterli olacaktır.</text>
+    <text x="815" y="430" font-size="10" fill="#fff" opacity="0.8">Ali Yılmaz · 09:18 · ✓✓</text>
+
+    <rect x="800" y="445" width="180" height="40" rx="10" fill="#0d6efd"/>
+    <text x="815" y="470" fill="#fff">İyi çalışmalar dilerim 👍</text>
+    <text x="815" y="478" font-size="10" fill="#fff" opacity="0.8">09:19 · ✓✓</text>
+  </g>
+
+  <!-- Input -->
+  <line x1="610" y1="510" x2="1260" y2="510" stroke="#dee2e6"/>
+  <rect x="630" y="530" width="500" height="36" rx="4" fill="#f8f9fa" stroke="#dee2e6"/>
+  <text x="645" y="552" font-size="12" fill="#adb5bd">Mesajınızı yazın...</text>
+  <text x="1100" y="551" font-size="16">📎</text>
+  <rect x="1140" y="525" width="100" height="44" rx="22" fill="#0d6efd"/>
+  <text x="1190" y="552" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">📤 Gönder</text>
+</svg>

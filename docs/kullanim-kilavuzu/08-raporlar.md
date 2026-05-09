@@ -6,7 +6,7 @@
 
 Sol menü → **Raporlama** (veya bazı kurum tiplerinde **Raporlar**).
 
-**[Görsel: 08-rapor-anasayfa.png — KPI kartları + grafik bölümleri]**
+![KPI kartları + grafik bölümleri](gorseller/08-rapor-anasayfa.svg)
 
 KPI kartları:
 - Aktif öğrenci / personel
@@ -18,7 +18,7 @@ KPI kartları:
 
 KPI kartına tıklayınca → **`/rapor/bekleyen-tahsilat`** sayfası.
 
-**[Görsel: 08-bekleyen-tahsilat.png — Tablo: kim ne kadar borçlu, geciken kırmızı]**
+![Tablo: kim ne kadar borçlu, geciken kırmızı](gorseller/08-bekleyen-tahsilat.svg)
 
 ### Üst kartlar
 - Borçlu öğrenci sayısı
@@ -48,7 +48,7 @@ Geciken kursiyerlerin satırı kırmızı (`table-danger`) ile vurgulanır.
 
 Rapor sayfasının altında trend grafikleri:
 
-**[Görsel: 08-mali-trend.png — 6 ay gelir/gider/net çizgi grafiği]**
+![6 ay gelir/gider/net çizgi grafiği](gorseller/08-mali-trend.svg)
 
 - **Mali trend** (son 6 ay): gelir/gider/net çizgisi
 - **Aylık tahsilat trendi**: kursiyer ödemelerinin ay başına toplamı
@@ -56,7 +56,7 @@ Rapor sayfasının altında trend grafikleri:
 
 ## 8.4. Sınıf / Dönem bazlı raporlar
 
-**[Görsel: 08-sinif-bazli.png — Sınıf adı, öğrenci sayısı, toplam ücret, tahsilat]**
+![Sınıf adı, öğrenci sayısı, toplam ücret, tahsilat](gorseller/08-sinif-bazli.svg)
 
 - Sınıf bazlı doluluk
 - Sınıf bazlı tahsilat oranı
@@ -66,7 +66,7 @@ Rapor sayfasının altında trend grafikleri:
 
 **Raporlar → Eğitmen Performansı**:
 
-**[Görsel: 08-egitmen-rapor.png]**
+![08-egitmen-rapor](gorseller/08-egitmen-rapor.svg)
 
 - Öğretmen başına aktif öğrenci sayısı
 - Toplam ciro
@@ -74,7 +74,7 @@ Rapor sayfasının altında trend grafikleri:
 
 ## 8.6. Yıl bazı sınav harç toplamı
 
-**[Görsel: 08-sinav-harc-yillik.png]**
+![08-sinav-harc-yillik](gorseller/08-sinav-harc-yillik.svg)
 
 - Tahsil edilen toplam (yeşil)
 - Bekleyen toplam (sarı)
@@ -84,7 +84,7 @@ Rapor sayfasının altında trend grafikleri:
 
 Sürücü kursu tenant'larında ek bölüm:
 
-**[Görsel: 08-komisyon-ozeti.png — 2 yan yana kart]**
+![2 yan yana kart](gorseller/08-komisyon-ozeti.svg)
 
 - **Yönlendirme Komisyonu** (gelir): toplam / tahsil edilen / bekleyen
 - **Komisyon Ödemeleri** (gider): toplam / ödenen / bekleyen
@@ -94,7 +94,7 @@ Sürücü kursu tenant'larında ek bölüm:
 Hemen her rapor sayfasında **"Excel'e Aktar"** veya **"PDF Olarak İndir"**
 butonu mevcuttur. Yönetim toplantısına götürmek için kullanışlı.
 
-**[Görsel: 08-disa-aktar.png — Excel/PDF butonları]**
+![Excel/PDF butonları](gorseller/08-disa-aktar.svg)
 
 > 💡 **Tarayıcı yazdırma** ile her rapor sayfası A4 PDF'e dökülebilir.
 > Sayfa altındaki gereksiz öğeler @media print CSS ile gizlenir.

@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 700" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="700" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="640" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">⏳ Bekleyen Tahsilatlar</text>
+  <text x="270" y="124" font-size="13" fill="#6c757d">Kim ne kadar borçlu? — kursiyer/öğrenci bazlı detay</text>
+
+  <!-- 4 KPI -->
+  <g>
+    <rect x="270" y="150" width="240" height="80" rx="6" fill="#fff" stroke="#fd7e14"/>
+    <text x="290" y="175" font-size="11" fill="#6c757d" font-weight="600">BORÇLU SAYISI</text>
+    <text x="290" y="210" font-size="26" font-weight="700" fill="#fd7e14">37</text>
+    <rect x="530" y="150" width="240" height="80" rx="6" fill="#fff" stroke="#fd7e14"/>
+    <text x="550" y="175" font-size="11" fill="#6c757d" font-weight="600">TOPLAM BEKLEYEN</text>
+    <text x="550" y="210" font-size="22" font-weight="700" fill="#fd7e14">38.500 ₺</text>
+    <rect x="790" y="150" width="240" height="80" rx="6" fill="#fff" stroke="#dc3545"/>
+    <text x="810" y="175" font-size="11" fill="#6c757d" font-weight="600">GECİKEN TUTAR</text>
+    <text x="810" y="210" font-size="22" font-weight="700" fill="#dc3545">8.450 ₺</text>
+    <rect x="1050" y="150" width="210" height="80" rx="6" fill="#fff" stroke="#dc3545"/>
+    <text x="1070" y="175" font-size="11" fill="#6c757d" font-weight="600">GECİKEN TAKSİT</text>
+    <text x="1070" y="210" font-size="22" font-weight="700" fill="#dc3545">12 adet</text>
+  </g>
+
+  <!-- Filters -->
+  <rect x="270" y="245" width="990" height="50" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="290" y="258" width="180" height="26" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="302" y="275" font-size="11" fill="#495057">Dönem: 2026 Bahar ▾</text>
+  <rect x="490" y="258" width="180" height="26" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="502" y="275" font-size="11" fill="#495057">Sınıf: Tümü ▾</text>
+  <rect x="690" y="258" width="220" height="26" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="702" y="275" font-size="11" fill="#495057">Sırala: Kalan tutar ↓ ▾</text>
+  <rect x="930" y="258" width="100" height="26" rx="4" fill="#0d6efd"/>
+  <text x="980" y="275" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">Filtrele</text>
+
+  <!-- Table -->
+  <rect x="270" y="310" width="990" height="370" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="310" width="990" height="36" fill="#f8f9fa"/>
+  <line x1="270" y1="346" x2="1260" y2="346" stroke="#dee2e6"/>
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="333">ÖĞRENCİ</text>
+    <text x="510" y="333">TELEFON</text>
+    <text x="660" y="333">SINIF</text>
+    <text x="730" y="333">BORÇLU TKS.</text>
+    <text x="850" y="333">GECİKEN</text>
+    <text x="950" y="333">EN YAKIN VADE</text>
+    <text x="1100" y="333">BEKLEYEN</text>
+    <text x="1220" y="333">İŞLEM</text>
+  </g>
+
+  <g font-size="12">
+    <!-- Geciken (kırmızı) -->
+    <rect x="270" y="346" width="990" height="36" fill="#f8d7da" opacity="0.5"/>
+    <text x="290" y="368" fill="#212529" font-weight="700">Demo Öğrenci 5</text>
+    <text x="510" y="368" fill="#495057">0532 555 11 11</text>
+    <text x="660" y="368" fill="#495057">9-A</text>
+    <text x="730" y="368" fill="#495057">3</text>
+    <rect x="845" y="354" width="40" height="20" rx="10" fill="#dc3545"/>
+    <text x="865" y="368" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">3</text>
+    <text x="950" y="368" fill="#dc3545" font-weight="700">⚠️ 28.04.2026</text>
+    <text x="1170" y="368" text-anchor="end" fill="#dc3545" font-weight="700">4.500 ₺</text>
+    <text x="1220" y="368" fill="#0d6efd">Aç ›</text>
+    <line x1="270" y1="382" x2="1260" y2="382" stroke="#fff"/>
+
+    <rect x="270" y="382" width="990" height="36" fill="#f8d7da" opacity="0.5"/>
+    <text x="290" y="404" fill="#212529" font-weight="700">Demo Öğrenci 17</text>
+    <text x="510" y="404" fill="#495057">0533 555 22 22</text>
+    <text x="660" y="404" fill="#495057">11-A</text>
+    <text x="730" y="404" fill="#495057">2</text>
+    <rect x="845" y="390" width="40" height="20" rx="10" fill="#dc3545"/>
+    <text x="865" y="404" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">2</text>
+    <text x="950" y="404" fill="#dc3545" font-weight="700">⚠️ 02.05.2026</text>
+    <text x="1170" y="404" text-anchor="end" fill="#dc3545" font-weight="700">2.500 ₺</text>
+    <text x="1220" y="404" fill="#0d6efd">Aç ›</text>
+    <line x1="270" y1="418" x2="1260" y2="418" stroke="#fff"/>
+
+    <rect x="270" y="418" width="990" height="36" fill="#fff3cd" opacity="0.5"/>
+    <text x="290" y="440" fill="#212529" font-weight="600">Demo Öğrenci 22</text>
+    <text x="510" y="440" fill="#495057">0534 555 33 33</text>
+    <text x="660" y="440" fill="#495057">10-B</text>
+    <text x="730" y="440" fill="#495057">3</text>
+    <text x="855" y="440" fill="#6c757d">—</text>
+    <text x="950" y="440" fill="#fd7e14">10.05.2026</text>
+    <text x="1170" y="440" text-anchor="end" fill="#fd7e14" font-weight="700">2.250 ₺</text>
+    <text x="1220" y="440" fill="#0d6efd">Aç ›</text>
+    <line x1="270" y1="454" x2="1260" y2="454" stroke="#fff"/>
+
+    <text x="290" y="476" fill="#212529" font-weight="600">Demo Öğrenci 8</text>
+    <text x="510" y="476" fill="#495057">0535 555 44 44</text>
+    <text x="660" y="476" fill="#495057">10-A</text>
+    <text x="730" y="476" fill="#495057">5</text>
+    <text x="855" y="476" fill="#6c757d">—</text>
+    <text x="950" y="476" fill="#495057">12.05.2026</text>
+    <text x="1170" y="476" text-anchor="end" fill="#212529" font-weight="700">7.500 ₺</text>
+    <text x="1220" y="476" fill="#0d6efd">Aç ›</text>
+    <line x1="270" y1="490" x2="1260" y2="490" stroke="#f1f3f5"/>
+
+    <text x="290" y="512" fill="#212529" font-weight="600">Demo Öğrenci 12</text>
+    <text x="510" y="512" fill="#495057">0536 555 55 55</text>
+    <text x="660" y="512" fill="#495057">9-B</text>
+    <text x="730" y="512" fill="#495057">4</text>
+    <text x="855" y="512" fill="#6c757d">—</text>
+    <text x="950" y="512" fill="#495057">15.05.2026</text>
+    <text x="1170" y="512" text-anchor="end" fill="#212529" font-weight="700">5.000 ₺</text>
+    <text x="1220" y="512" fill="#0d6efd">Aç ›</text>
+    <line x1="270" y1="526" x2="1260" y2="526" stroke="#f1f3f5"/>
+
+    <text x="290" y="548" fill="#212529" font-weight="600">Demo Öğrenci 1</text>
+    <text x="510" y="548" fill="#495057">0532 111 22 33</text>
+    <text x="660" y="548" fill="#495057">9-A</text>
+    <text x="730" y="548" fill="#495057">5</text>
+    <text x="855" y="548" fill="#6c757d">—</text>
+    <text x="950" y="548" fill="#495057">10.05.2026</text>
+    <text x="1170" y="548" text-anchor="end" fill="#212529" font-weight="700">7.500 ₺</text>
+    <text x="1220" y="548" fill="#0d6efd">Aç ›</text>
+    <line x1="270" y1="562" x2="1260" y2="562" stroke="#f1f3f5"/>
+
+    <text x="290" y="588" fill="#adb5bd" font-style="italic">... 31 borçlu daha</text>
+
+    <!-- Footer total -->
+    <line x1="270" y1="630" x2="1260" y2="630" stroke="#0d6efd" stroke-width="2"/>
+    <text x="290" y="655" fill="#212529" font-weight="700" font-size="13">TOPLAM (37 öğrenci)</text>
+    <text x="1170" y="655" text-anchor="end" fill="#fd7e14" font-weight="700" font-size="14">38.500 ₺</text>
+  </g>
+</svg>

@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 720" font-family="Inter, system-ui, sans-serif">
+  <rect width="420" height="720" fill="#e9ecef"/>
+  <rect x="20" y="20" width="380" height="680" rx="32" fill="#212529"/>
+  <rect x="34" y="34" width="352" height="652" rx="22" fill="#fff"/>
+  <rect x="160" y="40" width="100" height="22" rx="11" fill="#212529"/>
+
+  <!-- Top: timer -->
+  <rect x="34" y="70" width="352" height="60" fill="#0d6efd"/>
+  <text x="50" y="95" font-size="11" fill="#fff" opacity="0.9">Matematik · Konu Testi</text>
+  <text x="50" y="118" font-size="14" font-weight="700" fill="#fff">Soru 5 / 20</text>
+  <text x="370" y="100" text-anchor="end" font-size="11" fill="#fff" opacity="0.9">KALAN SÜRE</text>
+  <text x="370" y="120" text-anchor="end" font-size="20" fill="#fff" font-weight="700">⏱ 14:32</text>
+
+  <!-- Progress -->
+  <rect x="34" y="130" width="352" height="6" fill="rgba(255,255,255,0.2)"/>
+  <rect x="34" y="130" width="88" height="6" fill="#fff"/>
+
+  <!-- Question -->
+  <text x="50" y="170" font-size="11" fill="#6c757d" font-weight="600">SORU 5 — MATEMATIK</text>
+  <text x="50" y="200" font-size="14" font-weight="700" fill="#212529">Bir bisikletçi 60 km'lik mesafeyi</text>
+  <text x="50" y="222" font-size="14" font-weight="700" fill="#212529">3 saatte tamamlıyor.</text>
+  <text x="50" y="248" font-size="14" font-weight="700" fill="#212529">Aynı hızla 100 km'yi kaç saatte</text>
+  <text x="50" y="270" font-size="14" font-weight="700" fill="#212529">tamamlar?</text>
+
+  <!-- Options -->
+  <g font-size="13">
+    <rect x="50" y="295" width="320" height="48" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <circle cx="72" cy="319" r="10" fill="#fff" stroke="#ced4da" stroke-width="2"/>
+    <text x="72" y="324" text-anchor="middle" font-size="11" font-weight="700" fill="#6c757d">A</text>
+    <text x="98" y="324" fill="#212529">3 saat</text>
+
+    <rect x="50" y="353" width="320" height="48" rx="6" fill="#e3f2fd" stroke="#0d6efd" stroke-width="2"/>
+    <circle cx="72" cy="377" r="10" fill="#0d6efd"/>
+    <text x="72" y="382" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">B</text>
+    <text x="98" y="382" fill="#0d6efd" font-weight="600">5 saat ✓</text>
+
+    <rect x="50" y="411" width="320" height="48" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <circle cx="72" cy="435" r="10" fill="#fff" stroke="#ced4da" stroke-width="2"/>
+    <text x="72" y="440" text-anchor="middle" font-size="11" font-weight="700" fill="#6c757d">C</text>
+    <text x="98" y="440" fill="#212529">6 saat</text>
+
+    <rect x="50" y="469" width="320" height="48" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <circle cx="72" cy="493" r="10" fill="#fff" stroke="#ced4da" stroke-width="2"/>
+    <text x="72" y="498" text-anchor="middle" font-size="11" font-weight="700" fill="#6c757d">D</text>
+    <text x="98" y="498" fill="#212529">7 saat</text>
+  </g>
+
+  <!-- Question navigator -->
+  <text x="50" y="555" font-size="11" font-weight="600" fill="#495057">SORULAR (5/20 yanıtlandı)</text>
+  <g>
+    <g font-size="9">
+      <rect x="50" y="565" width="22" height="22" rx="3" fill="#198754"/>
+      <text x="61" y="580" text-anchor="middle" fill="#fff" font-weight="700">1</text>
+      <rect x="78" y="565" width="22" height="22" rx="3" fill="#198754"/>
+      <text x="89" y="580" text-anchor="middle" fill="#fff" font-weight="700">2</text>
+      <rect x="106" y="565" width="22" height="22" rx="3" fill="#198754"/>
+      <text x="117" y="580" text-anchor="middle" fill="#fff" font-weight="700">3</text>
+      <rect x="134" y="565" width="22" height="22" rx="3" fill="#198754"/>
+      <text x="145" y="580" text-anchor="middle" fill="#fff" font-weight="700">4</text>
+      <rect x="162" y="565" width="22" height="22" rx="3" fill="#0d6efd"/>
+      <text x="173" y="580" text-anchor="middle" fill="#fff" font-weight="700">5</text>
+      <rect x="190" y="565" width="22" height="22" rx="3" fill="#fff" stroke="#dee2e6"/>
+      <text x="201" y="580" text-anchor="middle" fill="#6c757d">6</text>
+      <rect x="218" y="565" width="22" height="22" rx="3" fill="#fff" stroke="#dee2e6"/>
+      <text x="229" y="580" text-anchor="middle" fill="#6c757d">7</text>
+      <rect x="246" y="565" width="22" height="22" rx="3" fill="#fff" stroke="#dee2e6"/>
+      <text x="257" y="580" text-anchor="middle" fill="#6c757d">8</text>
+      <rect x="274" y="565" width="22" height="22" rx="3" fill="#fff" stroke="#dee2e6"/>
+      <text x="285" y="580" text-anchor="middle" fill="#6c757d">...</text>
+      <rect x="302" y="565" width="22" height="22" rx="3" fill="#fff" stroke="#dee2e6"/>
+      <text x="313" y="580" text-anchor="middle" fill="#6c757d">19</text>
+      <rect x="330" y="565" width="22" height="22" rx="3" fill="#fff" stroke="#dee2e6"/>
+      <text x="341" y="580" text-anchor="middle" fill="#6c757d">20</text>
+    </g>
+  </g>
+
+  <!-- Buttons -->
+  <rect x="50" y="615" width="150" height="46" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="125" y="643" text-anchor="middle" font-size="13" fill="#495057">‹ Önceki</text>
+  <rect x="220" y="615" width="150" height="46" rx="6" fill="#0d6efd"/>
+  <text x="295" y="643" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">Sonraki ›</text>
+
+  <text x="210" y="685" text-anchor="middle" font-size="9" fill="#6c757d">— Online sınav (öğrenci telefonu) —</text>
+</svg>

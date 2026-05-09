@@ -7,7 +7,7 @@ buradadır.
 
 ## 2.1. Üst banner ve sol menü
 
-**[Görsel: 02-genel-yerlesim.png — Tüm sayfa: navbar + sol menü + içerik]**
+![Tüm sayfa: navbar + sol menü + içerik](gorseller/02-genel-yerlesim.svg)
 
 - **Üst banner (mavi)**: dershanenizin adı + bildirim çanı + kullanıcı menüsü
 - **Sol sidebar**: tüm modüllerin menüsü (rol bazlı filtrelenmiş)
@@ -17,7 +17,7 @@ buradadır.
 
 Sayfanın üstünde 4 sayısal özet kartı:
 
-**[Görsel: 02-kpi-kartlari.png — 4 KPI kartı]**
+![4 KPI kartı](gorseller/02-kpi-kartlari.svg)
 
 | Kart | Anlamı |
 |---|---|
@@ -33,7 +33,7 @@ KPI'ların altında:
 - **Son Duyurular**: yeni eklenen duyuruların özet listesi
 - **Yaklaşan Ödemeler**: önümüzdeki 30 günde vadesi gelen taksitler
 
-**[Görsel: 02-hizli-erisim.png — Bu üç kart yan yana]**
+![Bu üç kart yan yana](gorseller/02-hizli-erisim.svg)
 
 ## 2.4. Bildirim Çanı
 
@@ -44,7 +44,7 @@ bildirim adedidir. Tıklayınca açılan listede:
 - Yeni veli mesajları
 - Sistem duyuruları
 
-**[Görsel: 02-bildirim-cani.png — Çan açıldığında çıkan bildirim listesi]**
+![Çan açıldığında çıkan bildirim listesi](gorseller/02-bildirim-cani.svg)
 
 > Detaylı kullanım için [Bölüm 9 — Bildirimler](09-bildirim.md).
 
@@ -52,7 +52,7 @@ bildirim adedidir. Tıklayınca açılan listede:
 
 Telefonda sol menü otomatik gizlenir; sol üstteki ☰ butonuyla açılır.
 
-**[Görsel: 02-mobil-gorunum.png — iPhone simülatörü ile yan yana 2 ekran]**
+![iPhone simülatörü ile yan yana 2 ekran](gorseller/02-mobil-gorunum.svg)
 
 ---
 

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 350" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="350" fill="#f4f6f9"/>
+  <text x="40" y="40" font-size="18" font-weight="700" fill="#212529">💼 Komisyon Özeti (Sürücü Kursu)</text>
+
+  <!-- Card 1 -->
+  <rect x="40" y="70" width="600" height="240" rx="10" fill="#fff" stroke="#198754" stroke-width="2"/>
+  <rect x="40" y="70" width="600" height="50" fill="#198754"/>
+  <text x="60" y="102" font-size="14" font-weight="700" fill="#fff">📈 GELİR — Yönlendirme Komisyonu</text>
+  <text x="620" y="102" text-anchor="end" font-size="11" fill="#fff" opacity="0.9">Bizim yönlendirdiklerimiz</text>
+
+  <g font-size="12">
+    <text x="60" y="155" fill="#6c757d">TOPLAM:</text>
+    <text x="610" y="155" text-anchor="end" fill="#212529" font-weight="700" font-size="16">8.500 ₺</text>
+
+    <text x="60" y="195" fill="#6c757d">Tahsil Edilen:</text>
+    <text x="610" y="195" text-anchor="end" fill="#198754" font-weight="700" font-size="16">+6.200 ₺</text>
+    <rect x="60" y="200" width="550" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="60" y="200" width="401" height="6" rx="3" fill="#198754"/>
+
+    <text x="60" y="240" fill="#6c757d">Bekleyen:</text>
+    <text x="610" y="240" text-anchor="end" fill="#fd7e14" font-weight="700" font-size="16">2.300 ₺</text>
+    <text x="60" y="265" font-size="11" fill="#198754" font-weight="600">✓ Tahsilat oranı: 73%</text>
+
+    <rect x="450" y="280" width="170" height="20" rx="4" fill="#198754" opacity="0.15"/>
+    <text x="535" y="295" text-anchor="middle" font-size="11" fill="#198754" font-weight="600">Tüm Yönlendirmeler →</text>
+  </g>
+
+  <!-- Card 2 -->
+  <rect x="660" y="70" width="600" height="240" rx="10" fill="#fff" stroke="#dc3545" stroke-width="2"/>
+  <rect x="660" y="70" width="600" height="50" fill="#dc3545"/>
+  <text x="680" y="102" font-size="14" font-weight="700" fill="#fff">📉 GİDER — Komisyon Ödemeleri</text>
+  <text x="1240" y="102" text-anchor="end" font-size="11" fill="#fff" opacity="0.9">Bize yönlendirilenler</text>
+
+  <g font-size="12">
+    <text x="680" y="155" fill="#6c757d">TOPLAM:</text>
+    <text x="1230" y="155" text-anchor="end" fill="#212529" font-weight="700" font-size="16">5.200 ₺</text>
+
+    <text x="680" y="195" fill="#6c757d">Ödenen:</text>
+    <text x="1230" y="195" text-anchor="end" fill="#198754" font-weight="700" font-size="16">+3.500 ₺</text>
+    <rect x="680" y="200" width="550" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="680" y="200" width="370" height="6" rx="3" fill="#198754"/>
+
+    <text x="680" y="240" fill="#6c757d">Bekleyen Ödeme:</text>
+    <text x="1230" y="240" text-anchor="end" fill="#dc3545" font-weight="700" font-size="16">1.700 ₺</text>
+    <text x="680" y="265" font-size="11" fill="#fd7e14" font-weight="600">⏳ 4 kursa ödeme bekliyor</text>
+
+    <rect x="1070" y="280" width="170" height="20" rx="4" fill="#dc3545" opacity="0.15"/>
+    <text x="1155" y="295" text-anchor="middle" font-size="11" fill="#dc3545" font-weight="600">Komisyon Ödemeleri →</text>
+  </g>
+</svg>

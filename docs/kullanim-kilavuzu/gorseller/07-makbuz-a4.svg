@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" font-family="Inter, system-ui, sans-serif">
+  <rect width="800" height="1000" fill="#e9ecef"/>
+
+  <!-- A4 paper -->
+  <g filter="url(#sh)">
+    <rect x="80" y="40" width="640" height="900" fill="#fff"/>
+  </g>
+  <defs>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Header -->
+  <rect x="100" y="70" width="600" height="80" fill="#0d6efd"/>
+  <circle cx="135" cy="110" r="22" fill="#fff"/>
+  <text x="135" y="118" text-anchor="middle" font-size="22" fill="#0d6efd">🎓</text>
+  <text x="170" y="100" font-size="18" font-weight="700" fill="#fff">BİLFEN DERSHANESİ</text>
+  <text x="170" y="120" font-size="11" fill="#fff" opacity="0.9">Atatürk Mah. Cumhuriyet Cd. No:42 Çankaya/Ankara</text>
+  <text x="170" y="138" font-size="11" fill="#fff" opacity="0.9">📞 0312 555 12 34   ✉️ info@bilfen.com</text>
+
+  <!-- Title -->
+  <text x="400" y="200" text-anchor="middle" font-size="22" font-weight="700" fill="#212529">TAHSİLAT MAKBUZU</text>
+  <line x1="200" y1="220" x2="600" y2="220" stroke="#0d6efd" stroke-width="2"/>
+
+  <!-- Top right: makbuz no -->
+  <rect x="540" y="170" width="160" height="70" rx="6" fill="#fff" stroke="#0d6efd" stroke-width="2"/>
+  <text x="620" y="195" text-anchor="middle" font-size="10" fill="#6c757d" font-weight="600">MAKBUZ NO</text>
+  <text x="620" y="220" text-anchor="middle" font-size="14" font-weight="700" fill="#0d6efd" font-family="monospace">KS-20260508</text>
+  <text x="620" y="234" text-anchor="middle" font-size="10" fill="#0d6efd" font-family="monospace">-0042</text>
+
+  <!-- Tarih -->
+  <text x="100" y="265" font-size="12" font-weight="600" fill="#6c757d">TARİH</text>
+  <text x="180" y="265" font-size="13" font-weight="700" fill="#212529">08.05.2026</text>
+
+  <!-- Öğrenci kartı -->
+  <rect x="100" y="290" width="600" height="120" rx="6" fill="#f8f9fa"/>
+  <text x="120" y="320" font-size="11" fill="#6c757d" font-weight="600">ÖĞRENCİ BİLGİLERİ</text>
+  <line x1="120" y1="330" x2="680" y2="330" stroke="#dee2e6"/>
+  <g font-size="12">
+    <text x="120" y="355" fill="#6c757d">Ad Soyad:</text>
+    <text x="220" y="355" fill="#212529" font-weight="700">Demo Öğrenci 1</text>
+
+    <text x="450" y="355" fill="#6c757d">Sınıf:</text>
+    <text x="500" y="355" fill="#212529" font-weight="700">9-A</text>
+
+    <text x="120" y="378" fill="#6c757d">TC Kimlik:</text>
+    <text x="220" y="378" fill="#212529" font-family="monospace">12345678901</text>
+
+    <text x="450" y="378" fill="#6c757d">Numara:</text>
+    <text x="500" y="378" fill="#212529" font-family="monospace">101</text>
+
+    <text x="120" y="400" fill="#6c757d">Veli:</text>
+    <text x="220" y="400" fill="#212529">Demo Veli 1 (0532 111 22 33)</text>
+  </g>
+
+  <!-- Ödeme detayı -->
+  <text x="100" y="450" font-size="12" font-weight="700" fill="#0d6efd">ÖDEME DETAYLARI</text>
+  <line x1="100" y1="460" x2="700" y2="460" stroke="#dee2e6"/>
+
+  <rect x="100" y="475" width="600" height="40" fill="#0d6efd"/>
+  <g font-size="11" fill="#fff" font-weight="600">
+    <text x="120" y="500">TAKSİT</text>
+    <text x="240" y="500">VADE TARİHİ</text>
+    <text x="380" y="500">ÖDEME TÜRÜ</text>
+    <text x="520" y="500">ÖDEYEN</text>
+    <text x="680" y="500" text-anchor="end">TUTAR</text>
+  </g>
+
+  <rect x="100" y="515" width="600" height="44" fill="#fff" stroke="#dee2e6"/>
+  <g font-size="13">
+    <text x="120" y="542" fill="#212529" font-weight="600">4 / 8</text>
+    <text x="240" y="542" fill="#212529">10.05.2026</text>
+    <rect x="375" y="528" width="100" height="22" rx="11" fill="#e3f2fd"/>
+    <text x="425" y="542" text-anchor="middle" font-size="11" fill="#0d6efd" font-weight="700">💵 NAKİT</text>
+    <text x="520" y="542" fill="#212529">Demo Veli 1</text>
+    <text x="680" y="542" text-anchor="end" fill="#198754" font-weight="700">1.500,00 ₺</text>
+  </g>
+
+  <!-- Toplam -->
+  <rect x="100" y="580" width="600" height="50" fill="#198754"/>
+  <text x="120" y="612" font-size="14" fill="#fff" font-weight="700">TOPLAM TAHSİL EDİLEN</text>
+  <text x="680" y="612" text-anchor="end" font-size="22" fill="#fff" font-weight="700">1.500,00 ₺</text>
+
+  <!-- Açıklama -->
+  <text x="100" y="660" font-size="11" fill="#6c757d" font-weight="600">AÇIKLAMA</text>
+  <rect x="100" y="670" width="600" height="60" rx="4" fill="#f8f9fa" stroke="#dee2e6"/>
+  <text x="120" y="695" font-size="12" fill="#212529">2025-2026 Bahar Dönemi · Mayıs ayı 4. taksit</text>
+  <text x="120" y="713" font-size="11" fill="#6c757d" font-style="italic">Yalnız: Bin Beş Yüz Türk Lirası</text>
+
+  <!-- İmza alanları -->
+  <rect x="100" y="780" width="280" height="100" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="240" y="800" text-anchor="middle" font-size="11" fill="#6c757d" font-weight="600">ÖDEYEN</text>
+  <line x1="120" y1="855" x2="360" y2="855" stroke="#212529"/>
+  <text x="240" y="870" text-anchor="middle" font-size="11" fill="#212529">Demo Veli 1</text>
+
+  <rect x="420" y="780" width="280" height="100" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="560" y="800" text-anchor="middle" font-size="11" fill="#6c757d" font-weight="600">TESLİM ALAN</text>
+  <line x1="440" y1="855" x2="680" y2="855" stroke="#212529"/>
+  <text x="560" y="870" text-anchor="middle" font-size="11" fill="#212529">Ahmet Yılmaz (Muhasebe)</text>
+
+  <!-- Footer -->
+  <text x="400" y="915" text-anchor="middle" font-size="10" fill="#adb5bd">Bu makbuz dijital olarak üretilmiştir · obs.akkayasoft.com</text>
+</svg>

@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="720" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="660" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">🛡️ Yetkilendirme Matrisi</text>
+  <text x="270" y="124" font-size="13" fill="#6c757d">Hangi rol hangi modülü görebilir?</text>
+
+  <!-- Matrix table -->
+  <rect x="270" y="150" width="990" height="510" rx="6" fill="#fff" stroke="#dee2e6"/>
+
+  <!-- Header -->
+  <rect x="270" y="150" width="990" height="60" fill="#0d6efd"/>
+  <text x="290" y="187" font-size="13" fill="#fff" font-weight="700">MODÜL</text>
+  <g font-size="11" fill="#fff" font-weight="600">
+    <text x="535" y="180" text-anchor="middle">SİSTEM YÖN.</text>
+    <text x="535" y="195" text-anchor="middle" opacity="0.8">(admin)</text>
+    <text x="685" y="180" text-anchor="middle">YÖNETİCİ</text>
+    <text x="685" y="195" text-anchor="middle" opacity="0.8">(manager)</text>
+    <text x="835" y="180" text-anchor="middle">ÖĞRETMEN</text>
+    <text x="835" y="195" text-anchor="middle" opacity="0.8">(teacher)</text>
+    <text x="985" y="180" text-anchor="middle">MUHASEBECİ</text>
+    <text x="985" y="195" text-anchor="middle" opacity="0.8">(accountant)</text>
+    <text x="1135" y="180" text-anchor="middle">VELİ</text>
+    <text x="1135" y="195" text-anchor="middle" opacity="0.8">(parent)</text>
+  </g>
+
+  <g font-size="12">
+    <!-- Row template -->
+    <line x1="270" y1="240" x2="1260" y2="240" stroke="#f1f3f5"/>
+    <text x="290" y="232" fill="#212529" font-weight="600">📋 Kayıt Yönetimi</text>
+    <rect x="525" y="220" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="535" y="234" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="220" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="685" y="234" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="220" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="975" y="220" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="985" y="234" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="1125" y="220" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="270" x2="1260" y2="270" stroke="#f1f3f5"/>
+    <text x="290" y="262" fill="#212529" font-weight="600">📅 Devamsızlık</text>
+    <rect x="525" y="250" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="535" y="264" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="250" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="685" y="264" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="250" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="835" y="264" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="975" y="250" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="1125" y="250" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="300" x2="1260" y2="300" stroke="#f1f3f5"/>
+    <text x="290" y="292" fill="#212529" font-weight="600">📝 Not Defteri</text>
+    <rect x="525" y="280" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="535" y="294" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="280" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="685" y="294" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="280" width="20" height="20" rx="3" fill="#198754"/>
+    <text x="835" y="294" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="975" y="280" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="1125" y="280" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="330" x2="1260" y2="330" stroke="#f1f3f5"/>
+    <text x="290" y="322" fill="#212529" font-weight="600">📊 Deneme Sınavı</text>
+    <rect x="525" y="310" width="20" height="20" rx="3" fill="#198754"/><text x="535" y="324" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="310" width="20" height="20" rx="3" fill="#198754"/><text x="685" y="324" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="310" width="20" height="20" rx="3" fill="#198754"/><text x="835" y="324" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="975" y="310" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="1125" y="310" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="360" x2="1260" y2="360" stroke="#f1f3f5"/>
+    <text x="290" y="352" fill="#212529" font-weight="600">💰 Muhasebe</text>
+    <rect x="525" y="340" width="20" height="20" rx="3" fill="#198754"/><text x="535" y="354" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="340" width="20" height="20" rx="3" fill="#198754"/><text x="685" y="354" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="340" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="975" y="340" width="20" height="20" rx="3" fill="#198754"/><text x="985" y="354" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="1125" y="340" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="390" x2="1260" y2="390" stroke="#f1f3f5"/>
+    <text x="290" y="382" fill="#212529" font-weight="600">📈 Raporlar</text>
+    <rect x="525" y="370" width="20" height="20" rx="3" fill="#198754"/><text x="535" y="384" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="370" width="20" height="20" rx="3" fill="#198754"/><text x="685" y="384" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="370" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="975" y="370" width="20" height="20" rx="3" fill="#198754"/><text x="985" y="384" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="1125" y="370" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="420" x2="1260" y2="420" stroke="#f1f3f5"/>
+    <text x="290" y="412" fill="#212529" font-weight="600">👥 Kullanıcı Yön.</text>
+    <rect x="525" y="400" width="20" height="20" rx="3" fill="#198754"/><text x="535" y="414" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="400" width="20" height="20" rx="3" fill="#198754"/><text x="685" y="414" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="400" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="975" y="400" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="1125" y="400" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="450" x2="1260" y2="450" stroke="#f1f3f5"/>
+    <text x="290" y="442" fill="#212529" font-weight="600">⚙️  Sistem Ayarları</text>
+    <rect x="525" y="430" width="20" height="20" rx="3" fill="#198754"/><text x="535" y="444" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="430" width="20" height="20" rx="3" fill="#198754"/><text x="685" y="444" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="430" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="975" y="430" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="1125" y="430" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="480" x2="1260" y2="480" stroke="#f1f3f5"/>
+    <text x="290" y="472" fill="#212529" font-weight="600">📋 Denetim Kaydı</text>
+    <rect x="525" y="460" width="20" height="20" rx="3" fill="#198754"/><text x="535" y="474" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="460" width="20" height="20" rx="3" fill="#198754"/><text x="685" y="474" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="460" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="975" y="460" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="1125" y="460" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="510" x2="1260" y2="510" stroke="#f1f3f5"/>
+    <text x="290" y="502" fill="#212529" font-weight="600">📂 Belge Yönetimi</text>
+    <rect x="525" y="490" width="20" height="20" rx="3" fill="#198754"/><text x="535" y="504" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="675" y="490" width="20" height="20" rx="3" fill="#198754"/><text x="685" y="504" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="825" y="490" width="20" height="20" rx="3" fill="#198754"/><text x="835" y="504" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="975" y="490" width="20" height="20" rx="3" fill="#198754"/><text x="985" y="504" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+    <rect x="1125" y="490" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+
+    <line x1="270" y1="540" x2="1260" y2="540" stroke="#f1f3f5"/>
+    <text x="290" y="532" fill="#212529" font-weight="600">👨‍👩‍👦 Veli Portalı</text>
+    <rect x="525" y="520" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="675" y="520" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="825" y="520" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="975" y="520" width="20" height="20" rx="3" fill="#fff" stroke="#ced4da"/>
+    <rect x="1125" y="520" width="20" height="20" rx="3" fill="#198754"/><text x="1135" y="534" text-anchor="middle" font-size="12" fill="#fff">✓</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="290" y="610" font-size="12" fill="#6c757d">⚠️ Sistem Yöneticisi sütunu kilitlidir — tüm modüller her zaman açık.</text>
+  <rect x="1100" y="600" width="160" height="40" rx="6" fill="#198754"/>
+  <text x="1180" y="625" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">✓ KAYDET</text>
+</svg>

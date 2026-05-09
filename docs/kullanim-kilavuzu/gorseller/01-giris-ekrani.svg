@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#e3f2fd"/>
+      <stop offset="1" stop-color="#bbdefb"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="600" fill="url(#bgGrad)"/>
+
+  <!-- Card -->
+  <g filter="url(#shadow)">
+    <rect x="320" y="100" width="360" height="430" rx="12" fill="#ffffff"/>
+  </g>
+
+  <!-- Logo + title -->
+  <circle cx="500" cy="160" r="36" fill="#0d6efd"/>
+  <text x="500" y="170" text-anchor="middle" font-size="32" fill="#fff" font-weight="700">🎓</text>
+  <text x="500" y="220" text-anchor="middle" font-size="22" font-weight="700" fill="#212529">OBS</text>
+  <text x="500" y="244" text-anchor="middle" font-size="13" fill="#6c757d">Öğrenci Bilgi Sistemi</text>
+
+  <!-- Username field -->
+  <text x="350" y="290" font-size="12" fill="#495057" font-weight="500">Kullanıcı Adı</text>
+  <rect x="350" y="298" width="300" height="40" rx="6" fill="#fff" stroke="#ced4da"/>
+  <text x="362" y="324" font-size="13" fill="#adb5bd">ahmet.yilmaz</text>
+
+  <!-- Password field -->
+  <text x="350" y="362" font-size="12" fill="#495057" font-weight="500">Şifre</text>
+  <rect x="350" y="370" width="300" height="40" rx="6" fill="#fff" stroke="#ced4da"/>
+  <text x="362" y="396" font-size="13" fill="#adb5bd">••••••••</text>
+  <circle cx="630" cy="390" r="2" fill="#6c757d"/>
+  <circle cx="638" cy="390" r="2" fill="#6c757d"/>
+  <circle cx="622" cy="390" r="2" fill="#6c757d"/>
+
+  <!-- Remember me -->
+  <rect x="350" y="430" width="14" height="14" rx="2" fill="#fff" stroke="#0d6efd" stroke-width="1.5"/>
+  <text x="372" y="442" font-size="12" fill="#495057">Beni hatırla</text>
+
+  <!-- Submit button -->
+  <rect x="350" y="465" width="300" height="44" rx="6" fill="#0d6efd"/>
+  <text x="500" y="492" text-anchor="middle" font-size="14" fill="#fff" font-weight="600">GİRİŞ YAP</text>
+
+  <!-- Footer -->
+  <text x="500" y="565" text-anchor="middle" font-size="11" fill="#6c757d">© 2026 OBS · akkayasoft.com</text>
+
+  <!-- Annotation arrows -->
+  <g font-size="11" fill="#dc3545">
+    <text x="80" y="310">① Kullanıcı adı</text>
+    <line x1="160" y1="305" x2="345" y2="318" stroke="#dc3545" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="80" y="385">② Şifre</text>
+    <line x1="120" y1="380" x2="345" y2="390" stroke="#dc3545" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="80" y="495">③ Giriş Yap</text>
+    <line x1="150" y1="490" x2="345" y2="488" stroke="#dc3545" stroke-width="1.5" marker-end="url(#arr)"/>
+  </g>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc3545"/>
+    </marker>
+  </defs>
+</svg>

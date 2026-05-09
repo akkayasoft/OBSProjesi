@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 200" font-family="Inter, system-ui, sans-serif">
+  <rect width="1100" height="200" fill="#f4f6f9"/>
+
+  <g>
+    <rect x="20" y="30" width="250" height="140" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="20" y="30" width="5" height="140" fill="#0d6efd"/>
+    <text x="40" y="60" font-size="11" fill="#6c757d" font-weight="600">👥 AKTİF ÖĞRENCİ</text>
+    <text x="40" y="115" font-size="40" font-weight="700" fill="#212529">247</text>
+    <text x="40" y="145" font-size="12" fill="#198754">▲ +12 bu ay yeni kayıt</text>
+  </g>
+
+  <g>
+    <rect x="290" y="30" width="250" height="140" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="290" y="30" width="5" height="140" fill="#198754"/>
+    <text x="310" y="60" font-size="11" fill="#6c757d" font-weight="600">💰 BU AY TAHSİLAT</text>
+    <text x="310" y="115" font-size="36" font-weight="700" fill="#198754">38.500 ₺</text>
+    <text x="310" y="145" font-size="12" fill="#6c757d">42 ödeme · ortalama 916 ₺</text>
+  </g>
+
+  <g>
+    <rect x="560" y="30" width="250" height="140" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="560" y="30" width="5" height="140" fill="#0dcaf0"/>
+    <text x="580" y="60" font-size="11" fill="#6c757d" font-weight="600">📅 DEVAMSIZLIK</text>
+    <text x="580" y="115" font-size="40" font-weight="700" fill="#212529">%4.2</text>
+    <text x="580" y="145" font-size="12" fill="#198754">▼ Geçen aydan -0.8</text>
+  </g>
+
+  <g>
+    <rect x="830" y="30" width="250" height="140" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="830" y="30" width="5" height="140" fill="#dc3545"/>
+    <text x="850" y="60" font-size="11" fill="#6c757d" font-weight="600">⚠️  GECİKEN TAKSİT</text>
+    <text x="850" y="115" font-size="40" font-weight="700" fill="#dc3545">12</text>
+    <text x="850" y="145" font-size="12" fill="#dc3545">8.450 ₺ bekliyor</text>
+  </g>
+</svg>

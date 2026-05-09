@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 720" font-family="Inter, system-ui, sans-serif">
+  <rect width="420" height="720" fill="#e9ecef"/>
+  <!-- Phone frame -->
+  <rect x="20" y="20" width="380" height="680" rx="32" fill="#212529"/>
+  <rect x="34" y="34" width="352" height="652" rx="22" fill="#fff"/>
+  <rect x="160" y="40" width="100" height="22" rx="11" fill="#212529"/>
+
+  <!-- Top bar -->
+  <rect x="34" y="70" width="352" height="50" fill="#0d6efd"/>
+  <text x="50" y="100" font-size="14" fill="#fff" font-weight="700">👨‍👩‍👦 Veli Portalı</text>
+  <text x="370" y="100" text-anchor="end" font-size="13" fill="#fff">🔔 2</text>
+
+  <!-- Student selector -->
+  <rect x="50" y="140" width="320" height="48" rx="6" fill="#e3f2fd"/>
+  <text x="64" y="160" font-size="10" fill="#0d6efd" font-weight="600">ÇOCUĞUM</text>
+  <text x="64" y="178" font-size="13" fill="#212529" font-weight="700">Demo Öğrenci 1 · 9-A</text>
+
+  <!-- Tabs -->
+  <rect x="50" y="200" width="80" height="32" rx="4" fill="#0d6efd"/>
+  <text x="90" y="220" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">📝 Notlar</text>
+  <rect x="138" y="200" width="80" height="32" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="178" y="220" text-anchor="middle" font-size="11" fill="#495057">📅 Devam.</text>
+  <rect x="226" y="200" width="80" height="32" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="266" y="220" text-anchor="middle" font-size="11" fill="#495057">🎓 Karne</text>
+  <rect x="314" y="200" width="56" height="32" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="342" y="220" text-anchor="middle" font-size="11" fill="#495057">💰</text>
+
+  <!-- Recent grades -->
+  <text x="50" y="260" font-size="13" font-weight="700" fill="#212529">SON SINAV NOTLARI</text>
+
+  <g transform="translate(50,275)">
+    <rect width="320" height="60" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="14" y="22" font-size="12" font-weight="600" fill="#212529">Matematik · 1. Yazılı</text>
+    <text x="14" y="38" font-size="10" fill="#6c757d">08.05.2026 · Ali Yılmaz</text>
+    <text x="14" y="52" font-size="9" fill="#198754">Sınıf ortalaması: 76.4</text>
+    <text x="306" y="40" text-anchor="end" font-size="26" font-weight="700" fill="#198754">88</text>
+  </g>
+
+  <g transform="translate(50,345)">
+    <rect width="320" height="60" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="14" y="22" font-size="12" font-weight="600" fill="#212529">Türkçe · Hafta İçi Quiz</text>
+    <text x="14" y="38" font-size="10" fill="#6c757d">02.05.2026 · Ayşe Kaya</text>
+    <text x="14" y="52" font-size="9" fill="#198754">Sınıf ortalaması: 82.1</text>
+    <text x="306" y="40" text-anchor="end" font-size="26" font-weight="700" fill="#198754">95</text>
+  </g>
+
+  <g transform="translate(50,415)">
+    <rect width="320" height="60" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="14" y="22" font-size="12" font-weight="600" fill="#212529">Fizik · 2. Yazılı</text>
+    <text x="14" y="38" font-size="10" fill="#6c757d">28.04.2026 · Mehmet Demir</text>
+    <text x="14" y="52" font-size="9" fill="#fd7e14">Sınıf ortalaması: 68.5</text>
+    <text x="306" y="40" text-anchor="end" font-size="26" font-weight="700" fill="#fd7e14">62</text>
+  </g>
+
+  <g transform="translate(50,485)">
+    <rect width="320" height="60" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="14" y="22" font-size="12" font-weight="600" fill="#212529">Kimya · Konu Testi</text>
+    <text x="14" y="38" font-size="10" fill="#6c757d">22.04.2026 · Selin Öztürk</text>
+    <text x="14" y="52" font-size="9" fill="#198754">Sınıf ortalaması: 71.8</text>
+    <text x="306" y="40" text-anchor="end" font-size="26" font-weight="700" fill="#198754">85</text>
+  </g>
+
+  <!-- Average card -->
+  <rect x="50" y="565" width="320" height="80" rx="6" fill="#0d6efd"/>
+  <text x="68" y="590" font-size="11" fill="#fff" opacity="0.9" font-weight="600">DÖNEM ORTALAMASI</text>
+  <text x="350" y="612" text-anchor="end" font-size="32" font-weight="700" fill="#fff">81.7</text>
+  <text x="68" y="635" font-size="11" fill="#fff" opacity="0.9">Sınıf içi sıra: 5/28 · ▲ 3 sıra yükseldi</text>
+
+  <text x="210" y="675" text-anchor="middle" font-size="10" fill="#6c757d">— Veli mobil portalı —</text>
+</svg>

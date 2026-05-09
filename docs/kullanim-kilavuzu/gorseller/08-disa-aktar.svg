@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" font-family="Inter, system-ui, sans-serif">
+  <rect width="800" height="280" fill="#f4f6f9"/>
+
+  <text x="40" y="40" font-size="14" font-weight="700" fill="#212529">📤 Dışa Aktarım Seçenekleri</text>
+  <text x="40" y="60" font-size="11" fill="#6c757d">Her rapor sayfasının üstünde bulunan butonlar:</text>
+
+  <g>
+    <rect x="40" y="90" width="200" height="120" rx="10" fill="#198754"/>
+    <text x="140" y="125" text-anchor="middle" font-size="36" fill="#fff">📊</text>
+    <text x="140" y="160" text-anchor="middle" font-size="14" fill="#fff" font-weight="700">Excel'e Aktar</text>
+    <text x="140" y="180" text-anchor="middle" font-size="10" fill="#fff" opacity="0.9">.xlsx formatı</text>
+    <text x="140" y="195" text-anchor="middle" font-size="10" fill="#fff" opacity="0.9">Düzenlenebilir</text>
+
+    <rect x="260" y="90" width="200" height="120" rx="10" fill="#dc3545"/>
+    <text x="360" y="125" text-anchor="middle" font-size="36" fill="#fff">📄</text>
+    <text x="360" y="160" text-anchor="middle" font-size="14" fill="#fff" font-weight="700">PDF Olarak İndir</text>
+    <text x="360" y="180" text-anchor="middle" font-size="10" fill="#fff" opacity="0.9">A4 yazdırmaya uygun</text>
+    <text x="360" y="195" text-anchor="middle" font-size="10" fill="#fff" opacity="0.9">İmza alanlarıyla</text>
+
+    <rect x="480" y="90" width="200" height="120" rx="10" fill="#0d6efd"/>
+    <text x="580" y="125" text-anchor="middle" font-size="36" fill="#fff">🖨</text>
+    <text x="580" y="160" text-anchor="middle" font-size="14" fill="#fff" font-weight="700">Yazdır</text>
+    <text x="580" y="180" text-anchor="middle" font-size="10" fill="#fff" opacity="0.9">Tarayıcıdan direkt</text>
+    <text x="580" y="195" text-anchor="middle" font-size="10" fill="#fff" opacity="0.9">@media print CSS</text>
+  </g>
+
+  <text x="40" y="240" font-size="11" fill="#6c757d">💡 İpucu: Yönetim toplantısına PDF olarak götürün; Excel'i muhasebeci işlerken düzenlesin.</text>
+</svg>

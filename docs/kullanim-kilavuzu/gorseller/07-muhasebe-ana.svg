@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">💰 Muhasebe</text>
+
+  <!-- KPI -->
+  <g>
+    <rect x="270" y="140" width="240" height="100" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="270" y="140" width="5" height="100" fill="#198754"/>
+    <text x="290" y="170" font-size="11" fill="#6c757d" font-weight="600">BU AY GELİR</text>
+    <text x="290" y="210" font-size="26" font-weight="700" fill="#198754">42.350 ₺</text>
+    <text x="290" y="230" font-size="11" fill="#6c757d">52 işlem</text>
+
+    <rect x="530" y="140" width="240" height="100" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="530" y="140" width="5" height="100" fill="#dc3545"/>
+    <text x="550" y="170" font-size="11" fill="#6c757d" font-weight="600">BU AY GİDER</text>
+    <text x="550" y="210" font-size="26" font-weight="700" fill="#dc3545">28.200 ₺</text>
+    <text x="550" y="230" font-size="11" fill="#6c757d">17 işlem</text>
+
+    <rect x="790" y="140" width="240" height="100" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="790" y="140" width="5" height="100" fill="#0d6efd"/>
+    <text x="810" y="170" font-size="11" fill="#6c757d" font-weight="600">NET</text>
+    <text x="810" y="210" font-size="26" font-weight="700" fill="#0d6efd">+14.150 ₺</text>
+    <text x="810" y="230" font-size="11" fill="#198754">▲ Artıda</text>
+
+    <rect x="1050" y="140" width="210" height="100" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="1050" y="140" width="5" height="100" fill="#fd7e14"/>
+    <text x="1070" y="170" font-size="11" fill="#6c757d" font-weight="600">BEKLEYEN TAHSİLAT</text>
+    <text x="1070" y="210" font-size="22" font-weight="700" fill="#fd7e14">38.500 ₺</text>
+    <text x="1070" y="230" font-size="11" fill="#dc3545">12 geciken</text>
+  </g>
+
+  <!-- Quick links -->
+  <text x="270" y="280" font-size="13" font-weight="700" fill="#212529">HIZLI ERİŞİM</text>
+  <g>
+    <rect x="270" y="295" width="180" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="290" y="320" font-size="22">📊</text>
+    <text x="290" y="345" font-size="12" font-weight="600" fill="#212529">Gelir / Gider</text>
+    <text x="290" y="362" font-size="10" fill="#6c757d">Tüm hareketler</text>
+
+    <rect x="465" y="295" width="180" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="485" y="320" font-size="22">💸</text>
+    <text x="485" y="345" font-size="12" font-weight="600" fill="#212529">Tahsilat</text>
+    <text x="485" y="362" font-size="10" fill="#6c757d">Öğrenci ödemesi al</text>
+
+    <rect x="660" y="295" width="180" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="680" y="320" font-size="22">🏦</text>
+    <text x="680" y="345" font-size="12" font-weight="600" fill="#212529">Banka Hesapları</text>
+    <text x="680" y="362" font-size="10" fill="#6c757d">3 hesap aktif</text>
+
+    <rect x="855" y="295" width="180" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="875" y="320" font-size="22">🏷️</text>
+    <text x="875" y="345" font-size="12" font-weight="600" fill="#212529">Kategoriler</text>
+    <text x="875" y="362" font-size="10" fill="#6c757d">Gelir/gider sınıfları</text>
+
+    <rect x="1050" y="295" width="210" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="1070" y="320" font-size="22">💼</text>
+    <text x="1070" y="345" font-size="12" font-weight="600" fill="#212529">Personel Ödeme</text>
+    <text x="1070" y="362" font-size="10" fill="#6c757d">Maaş ve gider</text>
+  </g>
+
+  <!-- Recent transactions -->
+  <text x="270" y="410" font-size="13" font-weight="700" fill="#212529">SON İŞLEMLER</text>
+  <rect x="270" y="425" width="990" height="155" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <line x1="270" y1="455" x2="1260" y2="455" stroke="#e9ecef"/>
+  <g font-size="11">
+    <text x="290" y="447" fill="#6c757d" font-weight="600">TARİH</text>
+    <text x="400" y="447" fill="#6c757d" font-weight="600">TÜR</text>
+    <text x="500" y="447" fill="#6c757d" font-weight="600">KATEGORİ</text>
+    <text x="700" y="447" fill="#6c757d" font-weight="600">AÇIKLAMA</text>
+    <text x="1100" y="447" fill="#6c757d" font-weight="600">TUTAR</text>
+
+    <text x="290" y="475" fill="#495057">08.05 14:23</text>
+    <rect x="395" y="463" width="50" height="20" rx="10" fill="#d4edda"/>
+    <text x="420" y="477" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">Gelir</text>
+    <text x="500" y="475" fill="#495057">Öğrenci Aidatı</text>
+    <text x="700" y="475" fill="#212529">Demo Öğrenci 1 — 4. taksit</text>
+    <text x="1255" y="475" text-anchor="end" fill="#198754" font-weight="700">+1.500 ₺</text>
+
+    <text x="290" y="500" fill="#495057">08.05 11:08</text>
+    <rect x="395" y="488" width="50" height="20" rx="10" fill="#d4edda"/>
+    <text x="420" y="502" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">Gelir</text>
+    <text x="500" y="500" fill="#495057">Öğrenci Aidatı</text>
+    <text x="700" y="500" fill="#212529">Demo Öğrenci 12 — 2. taksit</text>
+    <text x="1255" y="500" text-anchor="end" fill="#198754" font-weight="700">+1.250 ₺</text>
+
+    <text x="290" y="525" fill="#495057">07.05 16:45</text>
+    <rect x="395" y="513" width="55" height="20" rx="10" fill="#f8d7da"/>
+    <text x="422" y="527" text-anchor="middle" font-size="10" fill="#721c24" font-weight="600">Gider</text>
+    <text x="500" y="525" fill="#495057">Personel Maaş</text>
+    <text x="700" y="525" fill="#212529">Ali Yılmaz — Mayıs 2026 maaşı</text>
+    <text x="1255" y="525" text-anchor="end" fill="#dc3545" font-weight="700">-15.000 ₺</text>
+
+    <text x="290" y="550" fill="#495057">07.05 10:22</text>
+    <rect x="395" y="538" width="50" height="20" rx="10" fill="#d4edda"/>
+    <text x="420" y="552" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">Gelir</text>
+    <text x="500" y="550" fill="#495057">Kantin Satışı</text>
+    <text x="700" y="550" fill="#212529">Günlük kantin kapanışı</text>
+    <text x="1255" y="550" text-anchor="end" fill="#198754" font-weight="700">+340 ₺</text>
+
+    <text x="290" y="575" fill="#0d6efd" font-style="italic">Tümünü gör →</text>
+  </g>
+</svg>

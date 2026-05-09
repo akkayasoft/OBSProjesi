@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="navbarG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0d6efd"/>
+      <stop offset="1" stop-color="#0a58ca"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="720" fill="#f4f6f9"/>
+
+  <!-- Navbar -->
+  <rect x="0" y="0" width="1280" height="60" fill="url(#navbarG)"/>
+  <text x="24" y="38" font-size="22" fill="#fff">🎓</text>
+  <text x="56" y="38" font-size="18" font-weight="700" fill="#fff">Bilfen Dershanesi</text>
+  <!-- Bell -->
+  <circle cx="1180" cy="30" r="14" fill="#0d6efd" stroke="#fff" stroke-width="0"/>
+  <text x="1180" y="35" text-anchor="middle" font-size="14" fill="#fff">🔔</text>
+  <circle cx="1190" cy="22" r="8" fill="#dc3545"/>
+  <text x="1190" y="26" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">3</text>
+  <!-- User dropdown -->
+  <text x="1218" y="35" font-size="13" fill="#fff">👤 Ahmet Y.</text>
+  <text x="1255" y="35" font-size="12" fill="#fff">▼</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="60" width="240" height="660" fill="#212529"/>
+  <rect x="12" y="80" width="216" height="36" rx="6" fill="#0d6efd" opacity="0.15"/>
+  <text x="28" y="103" font-size="13" fill="#fff" font-weight="600">🏠 Ana Sayfa</text>
+
+  <g font-size="13" fill="rgba(255,255,255,0.85)">
+    <text x="28" y="148">📋 Kayıt</text>
+    <text x="28" y="178">📅 Devamsızlık</text>
+    <text x="28" y="208">📝 Not Defteri</text>
+    <text x="28" y="238">🎓 Karne</text>
+    <text x="28" y="268">📊 Deneme Sınavı</text>
+    <text x="28" y="298">💻 Online Sınav</text>
+    <text x="28" y="328">💰 Muhasebe</text>
+    <text x="28" y="358">👥 Personel</text>
+    <text x="28" y="388">📣 Duyurular</text>
+    <text x="28" y="418">📈 Raporlar</text>
+    <text x="28" y="448">🔔 Bildirim</text>
+    <text x="28" y="478">⚙️  Ayarlar</text>
+  </g>
+
+  <!-- Sidebar separator + footer -->
+  <line x1="20" y1="500" x2="220" y2="500" stroke="rgba(255,255,255,0.1)"/>
+  <text x="28" y="525" font-size="11" fill="rgba(255,255,255,0.45)">v2026.05.08</text>
+
+  <!-- Main content -->
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">Hoş geldiniz, Ahmet</text>
+  <text x="270" y="124" font-size="13" fill="#6c757d">08.05.2026 · Bugünkü özet aşağıdadır</text>
+
+  <!-- KPI cards -->
+  <g>
+    <rect x="270" y="150" width="230" height="100" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="270" y="150" width="4" height="100" fill="#0d6efd"/>
+    <text x="290" y="178" font-size="11" fill="#6c757d" font-weight="600">AKTIF ÖĞRENCİ</text>
+    <text x="290" y="218" font-size="32" font-weight="700" fill="#212529">247</text>
+    <text x="290" y="240" font-size="11" fill="#198754">+12 bu ay</text>
+
+    <rect x="510" y="150" width="230" height="100" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="510" y="150" width="4" height="100" fill="#198754"/>
+    <text x="530" y="178" font-size="11" fill="#6c757d" font-weight="600">BU AY TAHSİLAT</text>
+    <text x="530" y="218" font-size="28" font-weight="700" fill="#198754">38.500 ₺</text>
+    <text x="530" y="240" font-size="11" fill="#6c757d">42 ödeme</text>
+
+    <rect x="750" y="150" width="230" height="100" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="750" y="150" width="4" height="100" fill="#0dcaf0"/>
+    <text x="770" y="178" font-size="11" fill="#6c757d" font-weight="600">DEVAMSIZLIK ORANI</text>
+    <text x="770" y="218" font-size="32" font-weight="700" fill="#212529">%4.2</text>
+    <text x="770" y="240" font-size="11" fill="#198754">Sağlıklı</text>
+
+    <rect x="990" y="150" width="270" height="100" rx="8" fill="#fff" stroke="#dee2e6"/>
+    <rect x="990" y="150" width="4" height="100" fill="#dc3545"/>
+    <text x="1010" y="178" font-size="11" fill="#6c757d" font-weight="600">GECİKEN TAKSİT</text>
+    <text x="1010" y="218" font-size="32" font-weight="700" fill="#dc3545">12</text>
+    <text x="1010" y="240" font-size="11" fill="#dc3545">8.450 ₺ bekliyor</text>
+  </g>
+
+  <!-- Today's program -->
+  <rect x="270" y="280" width="490" height="200" rx="8" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="310" font-size="14" font-weight="700" fill="#212529">📅 Günün Ders Programı</text>
+  <line x1="290" y1="322" x2="740" y2="322" stroke="#e9ecef"/>
+  <g font-size="12" fill="#495057">
+    <text x="290" y="350">09:00–10:30</text>
+    <text x="380" y="350">9-A · Matematik · Ali Yılmaz</text>
+    <text x="290" y="378">10:45–12:15</text>
+    <text x="380" y="378">9-B · Türkçe · Ayşe Kaya</text>
+    <text x="290" y="406">13:00–14:30</text>
+    <text x="380" y="406">10-A · Fizik · Mehmet Demir</text>
+    <text x="290" y="434">14:45–16:15</text>
+    <text x="380" y="434">11-A · Kimya · Selin Öztürk</text>
+    <text x="290" y="462">16:30–18:00</text>
+    <text x="380" y="462">12-A · Biyoloji · Can Yıldız</text>
+  </g>
+
+  <!-- Recent announcements -->
+  <rect x="780" y="280" width="480" height="200" rx="8" fill="#fff" stroke="#dee2e6"/>
+  <text x="800" y="310" font-size="14" font-weight="700" fill="#212529">📣 Son Duyurular</text>
+  <line x1="800" y1="322" x2="1240" y2="322" stroke="#e9ecef"/>
+  <g font-size="12" fill="#495057">
+    <text x="800" y="348">• Yarın TYT denemesi (saat 09:00)</text>
+    <text x="800" y="372">• Veli toplantısı 12 Mayıs Cuma</text>
+    <text x="800" y="396">• Karne dağıtımı 25 Mayıs</text>
+    <text x="800" y="420">• Yaz dönemi kayıt başladı</text>
+    <text x="800" y="444">• Bayram tatili 1-3 Haziran (kapalı)</text>
+  </g>
+
+  <!-- Yaklaşan ödemeler -->
+  <rect x="270" y="510" width="990" height="180" rx="8" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="540" font-size="14" font-weight="700" fill="#212529">💸 Yaklaşan Ödemeler (önümüzdeki 30 gün)</text>
+  <line x1="290" y1="552" x2="1240" y2="552" stroke="#e9ecef"/>
+  <g font-size="12">
+    <text x="290" y="580" fill="#6c757d" font-weight="600">VADE</text>
+    <text x="380" y="580" fill="#6c757d" font-weight="600">ÖĞRENCİ</text>
+    <text x="600" y="580" fill="#6c757d" font-weight="600">SINIF</text>
+    <text x="700" y="580" fill="#6c757d" font-weight="600">TAKSİT</text>
+    <text x="850" y="580" fill="#6c757d" font-weight="600">TUTAR</text>
+
+    <text x="290" y="608" fill="#495057">10.05.2026</text>
+    <text x="380" y="608" fill="#212529" font-weight="600">Demo Öğrenci 1</text>
+    <text x="600" y="608" fill="#495057">9-A</text>
+    <text x="700" y="608" fill="#495057">2/8</text>
+    <text x="850" y="608" fill="#212529" font-weight="600">1.250 ₺</text>
+
+    <text x="290" y="634" fill="#495057">12.05.2026</text>
+    <text x="380" y="634" fill="#212529" font-weight="600">Demo Öğrenci 2</text>
+    <text x="600" y="634" fill="#495057">10-B</text>
+    <text x="700" y="634" fill="#495057">3/12</text>
+    <text x="850" y="634" fill="#212529" font-weight="600">980 ₺</text>
+
+    <text x="290" y="660" fill="#495057">15.05.2026</text>
+    <text x="380" y="660" fill="#212529" font-weight="600">Demo Öğrenci 3</text>
+    <text x="600" y="660" fill="#495057">11-A</text>
+    <text x="700" y="660" fill="#495057">5/10</text>
+    <text x="850" y="660" fill="#212529" font-weight="600">1.500 ₺</text>
+  </g>
+</svg>

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="720" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="660" fill="#212529"/>
+
+  <!-- Header card -->
+  <rect x="270" y="90" width="990" height="120" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <circle cx="330" cy="150" r="40" fill="#0d6efd" opacity="0.15"/>
+  <text x="330" y="160" text-anchor="middle" font-size="36" fill="#0d6efd">👤</text>
+
+  <text x="395" y="125" font-size="22" font-weight="700" fill="#212529">Demo Öğrenci 1</text>
+  <text x="395" y="148" font-size="12" fill="#6c757d">9-A · 16 yaş · TC: 12345678901</text>
+  <text x="395" y="170" font-size="12" fill="#495057">📞 0532 111 22 33   ✉️ ogrenci1@demo.com</text>
+  <rect x="395" y="180" width="60" height="20" rx="10" fill="#198754"/>
+  <text x="425" y="194" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Aktif</text>
+
+  <rect x="1010" y="105" width="100" height="32" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="1060" y="126" text-anchor="middle" font-size="12" fill="#495057">✏️ Düzenle</text>
+  <rect x="1118" y="105" width="100" height="32" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="1168" y="126" text-anchor="middle" font-size="12" fill="#dc3545">🚫 Pasif Et</text>
+
+  <!-- Tabs -->
+  <g>
+    <rect x="270" y="225" width="170" height="38" fill="#fff" stroke="#dee2e6"/>
+    <rect x="270" y="259" width="170" height="4" fill="#0d6efd"/>
+    <text x="355" y="250" text-anchor="middle" font-size="13" font-weight="600" fill="#0d6efd">👤 Kimlik</text>
+    <rect x="440" y="225" width="170" height="38" fill="#fff" stroke="#dee2e6"/>
+    <text x="525" y="250" text-anchor="middle" font-size="13" fill="#495057">📚 Akademik</text>
+    <rect x="610" y="225" width="170" height="38" fill="#fff" stroke="#dee2e6"/>
+    <text x="695" y="250" text-anchor="middle" font-size="13" fill="#495057">💰 Muhasebe</text>
+    <rect x="780" y="225" width="170" height="38" fill="#fff" stroke="#dee2e6"/>
+    <text x="865" y="250" text-anchor="middle" font-size="13" fill="#495057">📁 Belgeler</text>
+  </g>
+
+  <!-- Left column - kimlik -->
+  <rect x="270" y="280" width="490" height="420" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="310" font-size="13" font-weight="700" fill="#212529">KİMLİK BİLGİLERİ</text>
+  <line x1="290" y1="322" x2="740" y2="322" stroke="#e9ecef"/>
+  <g font-size="12">
+    <text x="290" y="350" fill="#6c757d">Ad Soyad</text>
+    <text x="500" y="350" fill="#212529" font-weight="600">Demo Öğrenci 1</text>
+    <text x="290" y="375" fill="#6c757d">TC Kimlik</text>
+    <text x="500" y="375" fill="#212529" font-family="monospace">12345678901</text>
+    <text x="290" y="400" fill="#6c757d">Doğum Tarihi</text>
+    <text x="500" y="400" fill="#212529">15.03.2010</text>
+    <text x="290" y="425" fill="#6c757d">Cinsiyet</text>
+    <text x="500" y="425" fill="#212529">Erkek</text>
+    <text x="290" y="450" fill="#6c757d">Telefon</text>
+    <text x="500" y="450" fill="#212529">0532 111 22 33</text>
+    <text x="290" y="475" fill="#6c757d">E-posta</text>
+    <text x="500" y="475" fill="#212529">ogrenci1@demo.com</text>
+    <text x="290" y="500" fill="#6c757d">Adres</text>
+    <text x="500" y="500" fill="#212529">Atatürk Mah. Çankaya/Ankara</text>
+  </g>
+
+  <text x="290" y="555" font-size="13" font-weight="700" fill="#212529">VELİ BİLGİLERİ</text>
+  <line x1="290" y1="567" x2="740" y2="567" stroke="#e9ecef"/>
+  <g font-size="12">
+    <text x="290" y="595" fill="#6c757d">Anne</text>
+    <text x="500" y="595" fill="#212529" font-weight="600">Demo Anne</text>
+    <text x="290" y="620" fill="#6c757d">Baba</text>
+    <text x="500" y="620" fill="#212529" font-weight="600">Demo Baba</text>
+    <text x="290" y="645" fill="#6c757d">Veli Telefon</text>
+    <text x="500" y="645" fill="#0d6efd">0533 222 33 44</text>
+    <text x="290" y="670" fill="#6c757d">Veli E-posta</text>
+    <text x="500" y="670" fill="#0d6efd">veli1@demo.com</text>
+  </g>
+
+  <!-- Right column - hizli stat -->
+  <rect x="775" y="280" width="485" height="200" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="795" y="310" font-size="13" font-weight="700" fill="#212529">📊 HIZLI ÖZET</text>
+  <line x1="795" y1="322" x2="1240" y2="322" stroke="#e9ecef"/>
+  <g font-size="12">
+    <rect x="795" y="340" width="135" height="60" rx="4" fill="#e3f2fd"/>
+    <text x="862" y="362" text-anchor="middle" font-size="10" fill="#0d6efd" font-weight="600">DEVAMSIZLIK</text>
+    <text x="862" y="388" text-anchor="middle" font-size="20" font-weight="700" fill="#0d6efd">3 gün</text>
+
+    <rect x="940" y="340" width="135" height="60" rx="4" fill="#e8f5e9"/>
+    <text x="1007" y="362" text-anchor="middle" font-size="10" fill="#198754" font-weight="600">ORTALAMA</text>
+    <text x="1007" y="388" text-anchor="middle" font-size="20" font-weight="700" fill="#198754">82.4</text>
+
+    <rect x="1085" y="340" width="135" height="60" rx="4" fill="#fff3cd"/>
+    <text x="1152" y="362" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">BEKLEYEN</text>
+    <text x="1152" y="388" text-anchor="middle" font-size="20" font-weight="700" fill="#fd7e14">3.000 ₺</text>
+
+    <text x="795" y="430" fill="#495057">Son sınav: <tspan font-weight="600">88 puan (Matematik 1.Y.)</tspan></text>
+    <text x="795" y="453" fill="#495057">Son ödeme: <tspan font-weight="600">15.04.2026 · 1.500 ₺</tspan></text>
+  </g>
+
+  <rect x="775" y="495" width="485" height="205" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="795" y="525" font-size="13" font-weight="700" fill="#212529">🕒 SON HAREKETLER</text>
+  <line x1="795" y1="537" x2="1240" y2="537" stroke="#e9ecef"/>
+  <g font-size="11" fill="#495057">
+    <text x="795" y="565">📝 1. yazılı puanı: 88 (5 saat önce)</text>
+    <text x="795" y="590">💰 4. taksit ödendi: 1.500 ₺ (3 gün önce)</text>
+    <text x="795" y="615">📅 Yoklama: VAR (bugün)</text>
+    <text x="795" y="640">📊 TYT denemesi: 92 net (8 gün önce)</text>
+    <text x="795" y="665">💌 Veliye SMS: aidat hatırlatma (12 gün önce)</text>
+    <text x="795" y="690">👤 Profil güncellendi (15 gün önce)</text>
+  </g>
+</svg>

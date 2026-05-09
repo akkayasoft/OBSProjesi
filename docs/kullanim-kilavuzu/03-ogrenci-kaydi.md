@@ -6,7 +6,7 @@
 
 Sol menüden **Kayıt Yönetimi → Öğrenci Listesi**.
 
-**[Görsel: 03-ogrenci-listesi.png — Tablo halinde öğrenci listesi + filtreler]**
+![Tablo halinde öğrenci listesi + filtreler](gorseller/03-ogrenci-listesi.svg)
 
 Tabloda:
 - Ad-soyad, sınıf, telefon, kayıt durumu
@@ -17,7 +17,7 @@ Tabloda:
 
 Listede sağ üst yeşil **"Yeni Öğrenci"** butonuna basın.
 
-**[Görsel: 03-yeni-ogrenci-formu.png — Form: kimlik, veli, sınıf, ödeme planı sekmeleri]**
+![Form: kimlik, veli, sınıf, ödeme planı sekmeleri](gorseller/03-yeni-ogrenci-formu.svg)
 
 ### 3.2.1. Kimlik bilgileri
 
@@ -45,7 +45,7 @@ Listede sağ üst yeşil **"Yeni Öğrenci"** butonuna basın.
 
 ### 3.2.4. Ödeme planı
 
-**[Görsel: 03-odeme-plani.png — Ödeme planı sekmesi: toplam, taksit, vade]**
+![Ödeme planı sekmesi: toplam, taksit, vade](gorseller/03-odeme-plani.svg)
 
 - Toplam ücret
 - Taksit sayısı
@@ -57,7 +57,7 @@ Listede sağ üst yeşil **"Yeni Öğrenci"** butonuna basın.
 
 Listeden bir öğrenciye tıklayınca açılan detay sayfası:
 
-**[Görsel: 03-ogrenci-detay.png — Detay sayfası: 4 sekme]**
+![Detay sayfası: 4 sekme](gorseller/03-ogrenci-detay.svg)
 
 Sekmeler:
 1. **Kimlik** — bilgileri, veli, adres
@@ -76,7 +76,7 @@ Sekmeler:
 5. **Önizleme** sayfasında doğru/hatalı satırları gör
 6. **"Kaydet"** ile sadece doğru satırlar veritabanına yazılır
 
-**[Görsel: 03-toplu-yukleme-onizleme.png — Önizleme tablosu, hatalı satırlar kırmızı]**
+![Önizleme tablosu, hatalı satırlar kırmızı](gorseller/03-toplu-yukleme-onizleme.svg)
 
 > 💡 İlk denemede tüm verileri kaydetmeden, **sadece 2-3 satırla**
 > şablonun çalıştığını test edin.

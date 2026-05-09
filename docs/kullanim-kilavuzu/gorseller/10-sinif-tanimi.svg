@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 400" font-family="Inter, system-ui, sans-serif">
+  <rect width="1100" height="400" fill="#f4f6f9"/>
+  <text x="40" y="40" font-size="18" font-weight="700" fill="#212529">📚 Sınıflar</text>
+  <rect x="950" y="20" width="120" height="36" rx="6" fill="#198754"/>
+  <text x="1010" y="42" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">+ Yeni Sınıf</text>
+
+  <g>
+    <rect x="40" y="70" width="240" height="120" rx="8" fill="#0d6efd"/>
+    <text x="60" y="100" font-size="14" font-weight="700" fill="#fff">9-A</text>
+    <text x="60" y="125" font-size="11" fill="#fff" opacity="0.9">9. Sınıf · A şubesi</text>
+    <text x="60" y="155" font-size="22" font-weight="700" fill="#fff">28 / 30</text>
+    <text x="60" y="178" font-size="10" fill="#fff" opacity="0.9">öğrenci · doluluk %93</text>
+
+    <rect x="295" y="70" width="240" height="120" rx="8" fill="#0d6efd"/>
+    <text x="315" y="100" font-size="14" font-weight="700" fill="#fff">9-B</text>
+    <text x="315" y="125" font-size="11" fill="#fff" opacity="0.9">9. Sınıf · B şubesi</text>
+    <text x="315" y="155" font-size="22" font-weight="700" fill="#fff">29 / 30</text>
+    <text x="315" y="178" font-size="10" fill="#fff" opacity="0.9">öğrenci · doluluk %96</text>
+
+    <rect x="550" y="70" width="240" height="120" rx="8" fill="#198754"/>
+    <text x="570" y="100" font-size="14" font-weight="700" fill="#fff">10-A</text>
+    <text x="570" y="125" font-size="11" fill="#fff" opacity="0.9">10. Sınıf · A şubesi</text>
+    <text x="570" y="155" font-size="22" font-weight="700" fill="#fff">26 / 30</text>
+    <text x="570" y="178" font-size="10" fill="#fff" opacity="0.9">öğrenci · doluluk %86</text>
+
+    <rect x="805" y="70" width="240" height="120" rx="8" fill="#fd7e14"/>
+    <text x="825" y="100" font-size="14" font-weight="700" fill="#fff">10-B</text>
+    <text x="825" y="125" font-size="11" fill="#fff" opacity="0.9">10. Sınıf · B şubesi</text>
+    <text x="825" y="155" font-size="22" font-weight="700" fill="#fff">22 / 30</text>
+    <text x="825" y="178" font-size="10" fill="#fff" opacity="0.9">öğrenci · doluluk %73</text>
+
+    <rect x="40" y="210" width="240" height="120" rx="8" fill="#0d6efd"/>
+    <text x="60" y="240" font-size="14" font-weight="700" fill="#fff">11-A</text>
+    <text x="60" y="295" font-size="22" font-weight="700" fill="#fff">24 / 25</text>
+
+    <rect x="295" y="210" width="240" height="120" rx="8" fill="#0d6efd"/>
+    <text x="315" y="240" font-size="14" font-weight="700" fill="#fff">11-B</text>
+    <text x="315" y="295" font-size="22" font-weight="700" fill="#fff">21 / 25</text>
+
+    <rect x="550" y="210" width="240" height="120" rx="8" fill="#198754"/>
+    <text x="570" y="240" font-size="14" font-weight="700" fill="#fff">12-A</text>
+    <text x="570" y="295" font-size="22" font-weight="700" fill="#fff">28 / 30</text>
+
+    <rect x="805" y="210" width="240" height="120" rx="8" fill="#198754"/>
+    <text x="825" y="240" font-size="14" font-weight="700" fill="#fff">12-B</text>
+    <text x="825" y="295" font-size="22" font-weight="700" fill="#fff">19 / 25</text>
+  </g>
+
+  <text x="40" y="370" font-size="12" font-weight="700" fill="#212529">TOPLAM: 247 öğrenci · 8 sınıf · ortalama doluluk %86</text>
+</svg>

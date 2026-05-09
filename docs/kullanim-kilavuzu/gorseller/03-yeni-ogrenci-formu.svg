@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="720" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="660" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">Yeni Öğrenci Kaydı</text>
+
+  <!-- Tabs -->
+  <g>
+    <rect x="270" y="135" width="170" height="38" rx="6" fill="#0d6efd"/>
+    <text x="355" y="160" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">👤 Kimlik</text>
+    <rect x="445" y="135" width="170" height="38" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="530" y="160" text-anchor="middle" font-size="13" fill="#495057">👨‍👩‍👦 Veli</text>
+    <rect x="620" y="135" width="170" height="38" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="705" y="160" text-anchor="middle" font-size="13" fill="#495057">📚 Sınıf</text>
+    <rect x="795" y="135" width="170" height="38" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="880" y="160" text-anchor="middle" font-size="13" fill="#495057">💰 Ödeme Planı</text>
+  </g>
+
+  <!-- Form -->
+  <rect x="270" y="190" width="990" height="450" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="220" font-size="13" font-weight="700" fill="#212529">KİMLİK BİLGİLERİ</text>
+  <line x1="290" y1="232" x2="1240" y2="232" stroke="#e9ecef"/>
+
+  <g font-size="11" fill="#495057">
+    <text x="290" y="260">Ad *</text>
+    <rect x="290" y="270" width="290" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="302" y="293" font-size="12" fill="#212529">Demo</text>
+
+    <text x="600" y="260">Soyad *</text>
+    <rect x="600" y="270" width="290" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="612" y="293" font-size="12" fill="#212529">Öğrenci 1</text>
+
+    <text x="910" y="260">TC Kimlik</text>
+    <rect x="910" y="270" width="320" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="922" y="293" font-size="12" fill="#adb5bd" font-family="monospace">11 hane</text>
+    <text x="910" y="320" font-size="10" fill="#198754">✓ Sağlama doğru</text>
+
+    <text x="290" y="350">Doğum Tarihi</text>
+    <rect x="290" y="360" width="200" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="302" y="383" font-size="12" fill="#212529">15.03.2010</text>
+
+    <text x="510" y="350">Cinsiyet</text>
+    <rect x="510" y="360" width="170" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="522" y="383" font-size="12" fill="#212529">Erkek ▾</text>
+
+    <text x="700" y="350">Telefon</text>
+    <rect x="700" y="360" width="220" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="712" y="383" font-size="12" fill="#212529">0532 111 22 33</text>
+
+    <text x="940" y="350">Email</text>
+    <rect x="940" y="360" width="290" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="952" y="383" font-size="12" fill="#adb5bd">portal davetinde kullanılır</text>
+
+    <text x="290" y="430">Adres</text>
+    <rect x="290" y="440" width="940" height="80" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="302" y="463" font-size="12" fill="#212529">Atatürk Mah. Cumhuriyet Cad. No: 42 Daire: 5</text>
+    <text x="302" y="481" font-size="12" fill="#212529">Çankaya / Ankara</text>
+
+    <text x="290" y="555" font-size="11" fill="#dc3545">* zorunlu alanlar</text>
+  </g>
+
+  <!-- Footer buttons -->
+  <rect x="270" y="660" width="990" height="50" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="290" y="675" width="120" height="32" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="350" y="696" text-anchor="middle" font-size="12" fill="#6c757d">Vazgeç</text>
+  <rect x="1010" y="675" width="100" height="32" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="1060" y="696" text-anchor="middle" font-size="12" fill="#495057">‹ Önceki</text>
+  <rect x="1120" y="675" width="120" height="32" rx="4" fill="#0d6efd"/>
+  <text x="1180" y="696" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">Sonraki ›</text>
+</svg>

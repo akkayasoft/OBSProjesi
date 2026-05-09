@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 500" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="500" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+
+  <!-- Bell active -->
+  <circle cx="1180" cy="30" r="16" fill="rgba(255,255,255,0.2)"/>
+  <text x="1180" y="35" text-anchor="middle" font-size="16" fill="#fff">🔔</text>
+  <circle cx="1192" cy="20" r="9" fill="#dc3545"/>
+  <text x="1192" y="24" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">5</text>
+
+  <!-- Dropdown -->
+  <g filter="url(#sh)">
+    <rect x="970" y="60" width="310" height="430" rx="8" fill="#fff" stroke="#dee2e6"/>
+  </g>
+  <text x="990" y="88" font-size="14" font-weight="700" fill="#212529">Bildirimler (5 yeni)</text>
+  <text x="1240" y="88" font-size="11" fill="#0d6efd" text-anchor="end" font-weight="600">Tümünü gör →</text>
+  <line x1="980" y1="100" x2="1270" y2="100" stroke="#e9ecef"/>
+
+  <!-- Items -->
+  <g font-size="12">
+    <rect x="980" y="108" width="290" height="60" fill="#fff8e1"/>
+    <text x="990" y="128" fill="#212529" font-weight="600">⚠️  Geciken taksit</text>
+    <text x="990" y="146" fill="#6c757d">Demo Öğrenci 5 · 4 gün gecikti</text>
+    <text x="990" y="162" fill="#adb5bd">2 saat önce</text>
+
+    <rect x="980" y="170" width="290" height="60" fill="#e3f2fd"/>
+    <text x="990" y="190" fill="#212529" font-weight="600">📝 Eksik not girişi</text>
+    <text x="990" y="208" fill="#6c757d">9-A · Matematik 1. yazılı</text>
+    <text x="990" y="224" fill="#adb5bd">Bugün 10:23</text>
+
+    <rect x="980" y="232" width="290" height="60" fill="#fff"/>
+    <text x="990" y="252" fill="#212529" font-weight="600">💌 Yeni veli mesajı</text>
+    <text x="990" y="270" fill="#6c757d">Demo Veli 1 — sınav hakkında</text>
+    <text x="990" y="286" fill="#adb5bd">Bugün 09:14</text>
+
+    <rect x="980" y="294" width="290" height="60" fill="#fff"/>
+    <text x="990" y="314" fill="#212529" font-weight="600">🎓 Karne hazır</text>
+    <text x="990" y="332" fill="#6c757d">11-A sınıfı dönem karneleri</text>
+    <text x="990" y="348" fill="#adb5bd">Dün 17:45</text>
+
+    <rect x="980" y="356" width="290" height="60" fill="#fff"/>
+    <text x="990" y="376" fill="#212529" font-weight="600">👤 Yeni öğrenci</text>
+    <text x="990" y="394" fill="#6c757d">Demo Öğrenci 8 kayıt oldu</text>
+    <text x="990" y="410" fill="#adb5bd">Dün 14:02</text>
+  </g>
+
+  <line x1="980" y1="425" x2="1270" y2="425" stroke="#e9ecef"/>
+  <text x="1125" y="450" text-anchor="middle" font-size="11" fill="#6c757d">Tümünü okundu işaretle</text>
+
+  <defs>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+</svg>

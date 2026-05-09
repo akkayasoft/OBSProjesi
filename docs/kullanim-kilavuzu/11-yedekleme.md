@@ -11,7 +11,7 @@ Sol menü → **Sistem Ayarları → Veritabanı Yedekleme**.
 
 Sürücü kursunda: **Ayarlar → Veritabanı Yedekleme**.
 
-**[Görsel: 11-yedekleme-anasayfa.png — Sayfa: yedek al kartı + geri yükle kartı]**
+![Sayfa: yedek al kartı + geri yükle kartı](gorseller/11-yedekleme-anasayfa.svg)
 
 Sayfada iki kart var:
 - **Sol**: Yedek İndir
@@ -25,7 +25,7 @@ Sayfada iki kart var:
 2. Sistem `pg_dump` ile DB'nizi alır → **gzip** ile sıkıştırır
 3. Tarayıcıya `.sql.gz` dosyası iner
 
-**[Görsel: 11-yedek-indir.png — İndirme penceresi: dosya adı, boyut]**
+![İndirme penceresi: dosya adı, boyut](gorseller/11-yedek-indir.svg)
 
 Dosya adı şu formatta:
 ```
@@ -55,7 +55,7 @@ Dosya adı şu formatta:
 
 ### Adımlar
 
-**[Görsel: 11-geri-yukle-formu.png — Geri yükleme formu]**
+![Geri yükleme formu](gorseller/11-geri-yukle-formu.svg)
 
 1. **"Yedeği Geri Yükle"** kartında:
    - **Yedek dosyası** seç (`.sql.gz` veya `.sql`)
@@ -65,7 +65,7 @@ Dosya adı şu formatta:
 3. İşlem 30 sn — 2 dk arası sürer (DB boyutuna göre)
 4. Tamamlanınca otomatik **çıkışa zorlanırsınız** → tekrar giriş yapın
 
-**[Görsel: 11-geri-yukle-tamam.png — Login sayfasında "Yedek başarıyla yüklendi" mesajı]**
+![Login sayfasında "Yedek başarıyla yüklendi" mesajı](gorseller/11-geri-yukle-tamam.svg)
 
 ### Sistem otomatik olarak ne yapar?
 

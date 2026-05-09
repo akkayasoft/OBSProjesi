@@ -9,7 +9,7 @@
 
 Sol menü → **Sistem Ayarları**.
 
-**[Görsel: 10-ayarlar-anasayfa.png — Ayarlar dashboard: kart kart modüller]**
+![Ayarlar dashboard: kart kart modüller](gorseller/10-ayarlar-anasayfa.svg)
 
 Bölümler:
 - **Genel**: kurum adı, logo, iletişim
@@ -22,7 +22,7 @@ Bölümler:
 
 ## 10.2. Genel ayarlar
 
-**[Görsel: 10-genel-ayarlar.png — Form: kurum adı, logo yükleme, iletişim]**
+![Form: kurum adı, logo yükleme, iletişim](gorseller/10-genel-ayarlar.svg)
 
 | Alan | Notlar |
 |---|---|
@@ -34,19 +34,19 @@ Bölümler:
 ## 10.3. Akademik tanımlar
 
 ### Dönemler
-**[Görsel: 10-donem-tanimi.png]** — "2026-2027 Güz", tarih aralığı, aktif/pasif
+![10-donem-tanimi](gorseller/10-donem-tanimi.svg) — "2026-2027 Güz", tarih aralığı, aktif/pasif
 
 ### Sınıflar
-**[Görsel: 10-sinif-tanimi.png]** — Sınıf adı (9-A), seviye, kapasite
+![10-sinif-tanimi](gorseller/10-sinif-tanimi.svg) — Sınıf adı (9-A), seviye, kapasite
 
 ### Dersler
-**[Görsel: 10-ders-tanimi.png]** — Matematik, Türkçe, Fen, ...
+![10-ders-tanimi](gorseller/10-ders-tanimi.svg) — Matematik, Türkçe, Fen, ...
 
 ## 10.4. SMS / E-posta sağlayıcı
 
 **Ayarlar → İletişim**:
 
-**[Görsel: 10-sms-eposta-ayarlari.png]**
+![10-sms-eposta-ayarlari](gorseller/10-sms-eposta-ayarlari.svg)
 
 ### SMS
 - Sağlayıcı seç (Iletimerkezi, NetGSM, Mutlu Cep, ...)
@@ -67,7 +67,7 @@ Bölümler:
 
 **Ayarlar → Yetkilendirme**:
 
-**[Görsel: 10-yetki-matrisi.png — Rol × modül checkbox grid]**
+![Rol × modül checkbox grid](gorseller/10-yetki-matrisi.svg)
 
 - Satırlar: modüller (Muhasebe, Devamsızlık, Not Defteri, ...)
 - Sütunlar: roller (Sistem Yöneticisi, Yönetici, Öğretmen, Muhasebeci, Veli, Öğrenci)
@@ -81,7 +81,7 @@ Bölümler:
 
 ## 10.6. Güvenlik ayarları
 
-**[Görsel: 10-guvenlik.png]**
+![10-guvenlik](gorseller/10-guvenlik.svg)
 
 - Şifre minimum karakter (varsayılan 6)
 - Yanlış girişte hesap kilitleme (5 hatalı denemede 15 dk kilit)
@@ -90,7 +90,7 @@ Bölümler:
 
 ## 10.7. Denetim Kaydı (Audit Log)
 
-**[Görsel: 10-denetim-log.png]**
+![10-denetim-log](gorseller/10-denetim-log.svg)
 
 Sistemde yapılan kritik işlemlerin geçmişi:
 - Kim, ne zaman, hangi işlemi yaptı
@@ -104,7 +104,7 @@ Sistemde yapılan kritik işlemlerin geçmişi:
 
 **Sol menü → Kullanıcı Yönetimi**:
 
-**[Görsel: 10-kullanici-listesi.png]**
+![10-kullanici-listesi](gorseller/10-kullanici-listesi.svg)
 
 - Tüm kullanıcılar listesi (rol, son giriş, durum)
 - **Yeni Kullanıcı**: ad, email, rol, geçici şifre

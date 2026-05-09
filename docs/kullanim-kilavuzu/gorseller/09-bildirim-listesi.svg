@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">🔔 Bildirimler</text>
+  <text x="270" y="124" font-size="13" fill="#6c757d">Tüm bildirimler · 12 okunmamış</text>
+
+  <rect x="1100" y="85" width="160" height="40" rx="6" fill="#fff" stroke="#0d6efd"/>
+  <text x="1180" y="110" text-anchor="middle" font-size="12" fill="#0d6efd" font-weight="600">✓ Tümünü Okudu</text>
+
+  <!-- Filter tabs -->
+  <g>
+    <rect x="270" y="150" width="120" height="36" rx="6" fill="#0d6efd"/>
+    <text x="330" y="173" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">Hepsi (15)</text>
+    <rect x="395" y="150" width="120" height="36" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="455" y="173" text-anchor="middle" font-size="12" fill="#495057">Okunmamış (12)</text>
+    <rect x="520" y="150" width="100" height="36" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="570" y="173" text-anchor="middle" font-size="12" fill="#dc3545">Geciken (3)</text>
+    <rect x="625" y="150" width="100" height="36" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="675" y="173" text-anchor="middle" font-size="12" fill="#495057">Mali (5)</text>
+  </g>
+
+  <!-- List -->
+  <rect x="270" y="200" width="990" height="380" rx="6" fill="#fff" stroke="#dee2e6"/>
+
+  <g font-size="12">
+    <rect x="270" y="200" width="990" height="60" fill="#fff8e1"/>
+    <rect x="270" y="200" width="4" height="60" fill="#fd7e14"/>
+    <text x="290" y="225" fill="#212529" font-weight="700">⚠️ Geciken taksit · Demo Öğrenci 5</text>
+    <text x="290" y="244" fill="#6c757d">10-B · 4 gün gecikti · 1.500 ₺ bekliyor</text>
+    <text x="1240" y="225" text-anchor="end" fill="#adb5bd" font-size="10">2 saat önce</text>
+    <text x="1240" y="245" text-anchor="end" fill="#0d6efd" font-size="11" font-weight="600">Aç ›</text>
+
+    <rect x="270" y="260" width="990" height="60" fill="#e3f2fd"/>
+    <rect x="270" y="260" width="4" height="60" fill="#0d6efd"/>
+    <text x="290" y="285" fill="#212529" font-weight="700">📝 Eksik not girişi · Ali Yılmaz</text>
+    <text x="290" y="304" fill="#6c757d">9-A · Matematik 1. yazılı (3 öğrenci)</text>
+    <text x="1240" y="285" text-anchor="end" fill="#adb5bd" font-size="10">Bugün 10:23</text>
+    <text x="1240" y="305" text-anchor="end" fill="#0d6efd" font-size="11" font-weight="600">Aç ›</text>
+
+    <rect x="270" y="320" width="990" height="60" fill="#fff"/>
+    <text x="290" y="345" fill="#212529" font-weight="700">💌 Yeni veli mesajı · Demo Veli 1</text>
+    <text x="290" y="364" fill="#6c757d">"Yarınki sınav saatini öğrenebilir miyim?"</text>
+    <text x="1240" y="345" text-anchor="end" fill="#adb5bd" font-size="10">Bugün 09:14</text>
+    <text x="1240" y="365" text-anchor="end" fill="#0d6efd" font-size="11" font-weight="600">Yanıtla ›</text>
+    <line x1="270" y1="380" x2="1260" y2="380" stroke="#f1f3f5"/>
+
+    <text x="290" y="405" fill="#212529" font-weight="600">🎓 Karne hazır · 11-A</text>
+    <text x="290" y="424" fill="#6c757d">24 öğrencinin dönem karnesi yazdırmaya hazır</text>
+    <text x="1240" y="405" text-anchor="end" fill="#adb5bd" font-size="10">Dün 17:45</text>
+    <line x1="270" y1="440" x2="1260" y2="440" stroke="#f1f3f5"/>
+
+    <text x="290" y="465" fill="#212529" font-weight="600">👤 Yeni öğrenci · Demo Öğrenci 8</text>
+    <text x="290" y="484" fill="#6c757d">10-B sınıfına kayıt oldu (3.000 ₺ peşinat alındı)</text>
+    <text x="1240" y="465" text-anchor="end" fill="#adb5bd" font-size="10">Dün 14:02</text>
+    <line x1="270" y1="500" x2="1260" y2="500" stroke="#f1f3f5"/>
+
+    <text x="290" y="525" fill="#212529" font-weight="600">📊 TYT denemesi sonuçları açıklandı</text>
+    <text x="290" y="544" fill="#6c757d">115 öğrenci · ortalama 68.4 net · 142 veliye SMS gitti</text>
+    <text x="1240" y="525" text-anchor="end" fill="#adb5bd" font-size="10">2 gün önce</text>
+
+    <text x="765" y="572" text-anchor="middle" fill="#adb5bd" font-style="italic">... 9 bildirim daha</text>
+  </g>
+</svg>

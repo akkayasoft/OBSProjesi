@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">📱 Toplu SMS Mesajı</text>
+
+  <!-- Form -->
+  <rect x="270" y="140" width="600" height="440" rx="6" fill="#fff" stroke="#dee2e6"/>
+
+  <text x="290" y="170" font-size="11" fill="#6c757d" font-weight="600">HEDEF</text>
+  <rect x="290" y="180" width="560" height="40" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="302" y="204" font-size="13" fill="#212529">📋 Tüm 9-A sınıfı velileri (29 kişi) ▾</text>
+
+  <text x="290" y="245" font-size="11" fill="#6c757d" font-weight="600">MESAJ</text>
+  <rect x="290" y="255" width="560" height="160" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="302" y="278" font-size="13" fill="#212529">Sayın veli,</text>
+  <text x="302" y="298" font-size="13" fill="#212529">Yarın 09.05.2026 tarihinde TYT denemesi yapılacaktır.</text>
+  <text x="302" y="318" font-size="13" fill="#212529">Saat: 09:00. Lütfen çocuğunuzun yanında kalem,</text>
+  <text x="302" y="338" font-size="13" fill="#212529">silgi ve nüfus cüzdanını getirmesini sağlayınız.</text>
+  <text x="302" y="358" font-size="13" fill="#212529"></text>
+  <text x="302" y="378" font-size="13" fill="#212529">Bilfen Dershanesi</text>
+
+  <text x="840" y="245" text-anchor="end" font-size="11" fill="#198754">142 / 160 karakter</text>
+  <text x="840" y="425" text-anchor="end" font-size="11" fill="#0d6efd">1 SMS</text>
+
+  <text x="290" y="445" font-size="11" fill="#6c757d" font-weight="600">GÖNDERİCİ</text>
+  <rect x="290" y="455" width="200" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="302" y="478" font-size="13" fill="#212529">BILFEN ▾</text>
+  <text x="510" y="478" font-size="11" fill="#6c757d">(operatör onaylı başlık)</text>
+
+  <rect x="650" y="525" width="100" height="36" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="700" y="547" text-anchor="middle" font-size="12" fill="#6c757d">Vazgeç</text>
+  <rect x="760" y="525" width="90" height="36" rx="4" fill="#0d6efd"/>
+  <text x="805" y="547" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">Önizle</text>
+  <rect x="860" y="525" width="280" height="36" rx="4" fill="#198754"/>
+  <text x="1000" y="547" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">📤 GÖNDER (29 kişi · ~6 ₺)</text>
+
+  <!-- Right: preview -->
+  <rect x="900" y="140" width="360" height="440" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="920" y="170" font-size="13" font-weight="700" fill="#212529">📱 ÖNİZLEME</text>
+  <line x1="920" y1="180" x2="1240" y2="180" stroke="#e9ecef"/>
+
+  <g transform="translate(960,200)">
+    <rect width="220" height="200" rx="14" fill="#212529"/>
+    <rect x="6" y="20" width="208" height="170" rx="10" fill="#f0f0f0"/>
+    <text x="20" y="40" font-size="9" fill="#6c757d">+90 5XX XXX 1234</text>
+    <rect x="20" y="50" width="180" height="120" rx="10" fill="#fff"/>
+    <text x="32" y="70" font-size="10" fill="#212529" font-weight="700">BILFEN</text>
+    <text x="32" y="86" font-size="9" fill="#212529">Sayın veli,</text>
+    <text x="32" y="98" font-size="9" fill="#212529">Yarın 09.05.2026'da</text>
+    <text x="32" y="110" font-size="9" fill="#212529">TYT denemesi yapılacak.</text>
+    <text x="32" y="122" font-size="9" fill="#212529">Saat: 09:00. Lütfen</text>
+    <text x="32" y="134" font-size="9" fill="#212529">kalem, silgi, nüfus</text>
+    <text x="32" y="146" font-size="9" fill="#212529">cüzdanı...</text>
+    <text x="32" y="160" font-size="8" fill="#6c757d">Bugün 14:30</text>
+  </g>
+
+  <text x="1080" y="445" text-anchor="middle" font-size="11" fill="#6c757d">Veli telefonunda görünüm</text>
+
+  <text x="920" y="510" font-size="11" fill="#fd7e14" font-weight="600">⚠️  Maliyet: 29 × 0.21 ₺ = 6.09 ₺</text>
+  <text x="920" y="535" font-size="10" fill="#6c757d">Hesap bakiyesi: 245.50 ₺ (yeterli)</text>
+  <text x="920" y="555" font-size="10" fill="#6c757d">Tahmini gönderim süresi: 30-90 sn</text>
+</svg>

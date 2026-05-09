@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1000" height="600" fill="#e9ecef"/>
+  <text x="500" y="40" text-anchor="middle" font-size="14" fill="#495057" font-weight="600">🖨️ Yazdır - Önizleme (Browser)</text>
+
+  <!-- Print preview frame -->
+  <rect x="100" y="70" width="800" height="490" fill="#fff" stroke="#adb5bd"/>
+  <rect x="100" y="70" width="800" height="30" fill="#f8f9fa" stroke="#adb5bd"/>
+  <text x="120" y="90" font-size="12" fill="#495057">Sayfa 1 / 1   ·   A4 Dikey   ·   Renk</text>
+  <text x="880" y="90" text-anchor="end" font-size="12" fill="#0d6efd">⚙️</text>
+
+  <!-- Mini A4 -->
+  <rect x="220" y="120" width="560" height="430" fill="#fff" stroke="#dee2e6"/>
+  <text x="500" y="155" text-anchor="middle" font-size="14" font-weight="700" fill="#212529">BİLFEN DERSHANESİ</text>
+  <text x="500" y="175" text-anchor="middle" font-size="11" fill="#495057">Dönem Karnesi · 2025-2026</text>
+  <line x1="240" y1="190" x2="760" y2="190" stroke="#0d6efd" stroke-width="1.5"/>
+
+  <text x="240" y="215" font-size="10" fill="#6c757d">Demo Öğrenci 1 · 9-A</text>
+
+  <rect x="240" y="225" width="520" height="20" fill="#0d6efd"/>
+  <text x="250" y="240" font-size="9" fill="#fff" font-weight="600">Ders</text>
+  <text x="450" y="240" font-size="9" fill="#fff" font-weight="600">Sınav 1   Sınav 2   Proje</text>
+  <text x="700" y="240" font-size="9" fill="#fff" font-weight="600">Ort.</text>
+
+  <g font-size="9">
+    <rect x="240" y="245" width="520" height="22" fill="#fff" stroke="#dee2e6"/>
+    <text x="250" y="259" fill="#212529">Matematik</text>
+    <text x="500" y="259" fill="#495057">88   82   90</text>
+    <text x="700" y="259" fill="#198754" font-weight="700">86.7</text>
+
+    <rect x="240" y="267" width="520" height="22" fill="#f8f9fa" stroke="#dee2e6"/>
+    <text x="250" y="281" fill="#212529">Türkçe</text>
+    <text x="500" y="281" fill="#495057">95   88   85</text>
+    <text x="700" y="281" fill="#198754" font-weight="700">89.3</text>
+
+    <rect x="240" y="289" width="520" height="22" fill="#fff" stroke="#dee2e6"/>
+    <text x="250" y="303" fill="#212529">Fen</text>
+    <text x="500" y="303" fill="#495057">75   70   82</text>
+    <text x="700" y="303" font-weight="700">75.7</text>
+
+    <rect x="240" y="311" width="520" height="22" fill="#f8f9fa" stroke="#dee2e6"/>
+    <text x="250" y="325" fill="#212529">Sosyal</text>
+    <text x="500" y="325" fill="#495057">82   85   88</text>
+    <text x="700" y="325" fill="#198754" font-weight="700">85.0</text>
+
+    <rect x="240" y="333" width="520" height="22" fill="#fff" stroke="#dee2e6"/>
+    <text x="250" y="347" fill="#212529">İngilizce</text>
+    <text x="500" y="347" fill="#495057">68   72   75</text>
+    <text x="700" y="347" font-weight="700">71.7</text>
+  </g>
+
+  <rect x="240" y="375" width="520" height="60" rx="4" fill="#e3f2fd"/>
+  <text x="250" y="395" font-size="10" font-weight="700" fill="#0d6efd">DÖNEM ORTALAMASI</text>
+  <text x="750" y="408" text-anchor="end" font-size="22" font-weight="700" fill="#0d6efd">81.7</text>
+  <text x="250" y="418" font-size="9" fill="#495057">Sınıf içi sıra: 5/28 · Devamsızlık: 3 gün</text>
+
+  <text x="500" y="475" text-anchor="middle" font-size="9" fill="#6c757d">Tarih: 25.05.2026</text>
+
+  <!-- Bottom action buttons -->
+  <rect x="100" y="560" width="800" height="40" fill="#f8f9fa" stroke="#adb5bd"/>
+  <rect x="660" y="568" width="100" height="24" rx="3" fill="#fff" stroke="#dee2e6"/>
+  <text x="710" y="585" text-anchor="middle" font-size="11" fill="#495057">İptal</text>
+  <rect x="770" y="568" width="120" height="24" rx="3" fill="#0d6efd"/>
+  <text x="830" y="585" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">🖨 Yazdır</text>
+</svg>

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="720" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="660" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">Yeni Öğrenci · Ödeme Planı</text>
+
+  <g>
+    <rect x="270" y="135" width="170" height="38" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="355" y="160" text-anchor="middle" font-size="13" fill="#198754">✓ Kimlik</text>
+    <rect x="445" y="135" width="170" height="38" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="530" y="160" text-anchor="middle" font-size="13" fill="#198754">✓ Veli</text>
+    <rect x="620" y="135" width="170" height="38" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="705" y="160" text-anchor="middle" font-size="13" fill="#198754">✓ Sınıf</text>
+    <rect x="795" y="135" width="170" height="38" rx="6" fill="#0d6efd"/>
+    <text x="880" y="160" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">💰 Ödeme</text>
+  </g>
+
+  <!-- Top form -->
+  <rect x="270" y="190" width="990" height="160" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="220" font-size="13" font-weight="700" fill="#212529">PLAN PARAMETRELERİ</text>
+  <line x1="290" y1="232" x2="1240" y2="232" stroke="#e9ecef"/>
+
+  <g font-size="11" fill="#495057">
+    <text x="290" y="260">Toplam Ücret (₺) *</text>
+    <rect x="290" y="270" width="220" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="302" y="293" font-size="13" fill="#212529" font-weight="600">12.000,00</text>
+
+    <text x="530" y="260">Taksit Sayısı</text>
+    <rect x="530" y="270" width="120" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="542" y="293" font-size="13" fill="#212529" font-weight="600">8 ▾</text>
+
+    <text x="670" y="260">İndirim (₺)</text>
+    <rect x="670" y="270" width="160" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="682" y="293" font-size="13" fill="#212529">0,00</text>
+
+    <text x="850" y="260">İlk Vade Tarihi</text>
+    <rect x="850" y="270" width="180" height="36" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="862" y="293" font-size="13" fill="#212529">10.05.2026</text>
+
+    <rect x="1050" y="270" width="180" height="36" rx="4" fill="#198754"/>
+    <text x="1140" y="293" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">↻ HESAPLA</text>
+
+    <text x="290" y="330" font-size="11" fill="#198754">✓ 8 taksit × 1.500 ₺ = 12.000 ₺ (eşit dağılım)</text>
+  </g>
+
+  <!-- Generated installments table -->
+  <rect x="270" y="370" width="990" height="280" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="370" width="990" height="36" fill="#f8f9fa"/>
+  <text x="290" y="394" font-size="13" font-weight="700" fill="#212529">📋 Otomatik Üretilen Taksit Planı (elle düzenlenebilir)</text>
+  <line x1="270" y1="406" x2="1260" y2="406" stroke="#dee2e6"/>
+
+  <rect x="270" y="406" width="990" height="34" fill="#fff"/>
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="427">#</text>
+    <text x="360" y="427">VADE TARİHİ</text>
+    <text x="540" y="427">TUTAR (₺)</text>
+    <text x="720" y="427">DURUM</text>
+    <text x="950" y="427">İŞLEM</text>
+  </g>
+  <line x1="270" y1="440" x2="1260" y2="440" stroke="#dee2e6"/>
+
+  <g font-size="12">
+    <text x="290" y="463" fill="#212529" font-weight="600">1</text>
+    <text x="360" y="463" fill="#495057">10.05.2026</text>
+    <text x="540" y="463" fill="#212529" font-weight="600">1.500,00</text>
+    <rect x="710" y="450" width="75" height="22" rx="11" fill="#fff3cd"/>
+    <text x="747" y="465" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">Bekliyor</text>
+    <text x="950" y="463" fill="#0d6efd">Düzenle · Sil</text>
+
+    <text x="290" y="491" fill="#212529" font-weight="600">2</text>
+    <text x="360" y="491" fill="#495057">10.06.2026</text>
+    <text x="540" y="491" fill="#212529" font-weight="600">1.500,00</text>
+    <rect x="710" y="478" width="75" height="22" rx="11" fill="#fff3cd"/>
+    <text x="747" y="493" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">Bekliyor</text>
+    <text x="950" y="491" fill="#0d6efd">Düzenle · Sil</text>
+
+    <text x="290" y="519" fill="#212529" font-weight="600">3</text>
+    <text x="360" y="519" fill="#495057">10.07.2026</text>
+    <text x="540" y="519" fill="#212529" font-weight="600">1.500,00</text>
+    <rect x="710" y="506" width="75" height="22" rx="11" fill="#fff3cd"/>
+    <text x="747" y="521" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">Bekliyor</text>
+    <text x="950" y="519" fill="#0d6efd">Düzenle · Sil</text>
+
+    <text x="290" y="547" fill="#212529" font-weight="600">4</text>
+    <text x="360" y="547" fill="#495057">10.08.2026</text>
+    <text x="540" y="547" fill="#212529" font-weight="600">1.500,00</text>
+    <rect x="710" y="534" width="75" height="22" rx="11" fill="#fff3cd"/>
+    <text x="747" y="549" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">Bekliyor</text>
+    <text x="950" y="547" fill="#0d6efd">Düzenle · Sil</text>
+
+    <text x="290" y="580" fill="#adb5bd">5–8</text>
+    <text x="360" y="580" fill="#adb5bd">10.09.2026 → 10.12.2026</text>
+    <text x="540" y="580" fill="#adb5bd">4 × 1.500,00</text>
+  </g>
+
+  <line x1="270" y1="600" x2="1260" y2="600" stroke="#e9ecef"/>
+  <text x="290" y="625" font-size="12" fill="#212529" font-weight="600">Toplam: 12.000,00 ₺</text>
+
+  <!-- Footer -->
+  <rect x="270" y="670" width="990" height="40" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="290" y="678" width="120" height="24" rx="4" fill="#fff" stroke="#dee2e6"/>
+  <text x="350" y="694" text-anchor="middle" font-size="11" fill="#6c757d">‹ Önceki</text>
+  <rect x="1100" y="676" width="140" height="28" rx="4" fill="#198754"/>
+  <text x="1170" y="694" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">✓ KAYDI BİTİR</text>
+</svg>

@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 500" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="500" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="440" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">📊 Sınıf Bazlı Rapor</text>
+
+  <rect x="270" y="140" width="990" height="340" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="140" width="990" height="36" fill="#f8f9fa"/>
+  <line x1="270" y1="176" x2="1260" y2="176" stroke="#dee2e6"/>
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="163">SINIF</text>
+    <text x="380" y="163">ÖĞRENCİ</text>
+    <text x="490" y="163">DOLULUK</text>
+    <text x="640" y="163">TOPLAM ÜCRET</text>
+    <text x="790" y="163">TAHSİL EDİLEN</text>
+    <text x="940" y="163">BEKLEYEN</text>
+    <text x="1080" y="163">% TAHSİLAT</text>
+    <text x="1190" y="163">DEVAMSIZ.</text>
+  </g>
+
+  <g font-size="12">
+    <text x="290" y="205" fill="#212529" font-weight="700">9-A</text>
+    <text x="380" y="205" fill="#495057">28</text>
+    <rect x="450" y="195" width="120" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="450" y="195" width="120" height="6" rx="3" fill="#198754"/>
+    <text x="580" y="205" fill="#198754" font-weight="600">100%</text>
+    <text x="640" y="205" fill="#212529" font-weight="600">336.000 ₺</text>
+    <text x="790" y="205" fill="#198754" font-weight="600">298.500 ₺</text>
+    <text x="940" y="205" fill="#fd7e14" font-weight="600">37.500 ₺</text>
+    <text x="1090" y="205" fill="#198754" font-weight="700">88.8%</text>
+    <text x="1210" y="205" fill="#495057">%4.2</text>
+    <line x1="270" y1="218" x2="1260" y2="218" stroke="#f1f3f5"/>
+
+    <text x="290" y="240" fill="#212529" font-weight="700">9-B</text>
+    <text x="380" y="240" fill="#495057">29</text>
+    <rect x="450" y="230" width="120" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="450" y="230" width="120" height="6" rx="3" fill="#198754"/>
+    <text x="580" y="240" fill="#198754" font-weight="600">100%</text>
+    <text x="640" y="240" fill="#212529" font-weight="600">348.000 ₺</text>
+    <text x="790" y="240" fill="#198754" font-weight="600">312.500 ₺</text>
+    <text x="940" y="240" fill="#fd7e14" font-weight="600">35.500 ₺</text>
+    <text x="1090" y="240" fill="#198754" font-weight="700">89.8%</text>
+    <text x="1210" y="240" fill="#495057">%3.8</text>
+    <line x1="270" y1="253" x2="1260" y2="253" stroke="#f1f3f5"/>
+
+    <text x="290" y="275" fill="#212529" font-weight="700">10-A</text>
+    <text x="380" y="275" fill="#495057">26</text>
+    <rect x="450" y="265" width="120" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="450" y="265" width="115" height="6" rx="3" fill="#198754"/>
+    <text x="580" y="275" fill="#198754" font-weight="600">96%</text>
+    <text x="640" y="275" fill="#212529" font-weight="600">364.000 ₺</text>
+    <text x="790" y="275" fill="#198754" font-weight="600">310.000 ₺</text>
+    <text x="940" y="275" fill="#fd7e14" font-weight="600">54.000 ₺</text>
+    <text x="1090" y="275" fill="#fd7e14" font-weight="700">85.2%</text>
+    <text x="1210" y="275" fill="#495057">%5.1</text>
+    <line x1="270" y1="288" x2="1260" y2="288" stroke="#f1f3f5"/>
+
+    <text x="290" y="310" fill="#212529" font-weight="700">10-B</text>
+    <text x="380" y="310" fill="#495057">22</text>
+    <rect x="450" y="300" width="120" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="450" y="300" width="92" height="6" rx="3" fill="#fd7e14"/>
+    <text x="580" y="310" fill="#fd7e14" font-weight="600">76%</text>
+    <text x="640" y="310" fill="#212529" font-weight="600">308.000 ₺</text>
+    <text x="790" y="310" fill="#198754" font-weight="600">235.000 ₺</text>
+    <text x="940" y="310" fill="#dc3545" font-weight="600">73.000 ₺</text>
+    <text x="1090" y="310" fill="#dc3545" font-weight="700">76.3% ⚠️</text>
+    <text x="1210" y="310" fill="#dc3545">%9.2</text>
+    <line x1="270" y1="323" x2="1260" y2="323" stroke="#f1f3f5"/>
+
+    <text x="290" y="345" fill="#212529" font-weight="700">11-A</text>
+    <text x="380" y="345" fill="#495057">24</text>
+    <rect x="450" y="335" width="120" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="450" y="335" width="120" height="6" rx="3" fill="#198754"/>
+    <text x="580" y="345" fill="#198754" font-weight="600">100%</text>
+    <text x="640" y="345" fill="#212529" font-weight="600">336.000 ₺</text>
+    <text x="790" y="345" fill="#198754" font-weight="600">320.500 ₺</text>
+    <text x="940" y="345" fill="#fd7e14" font-weight="600">15.500 ₺</text>
+    <text x="1090" y="345" fill="#198754" font-weight="700">95.4%</text>
+    <text x="1210" y="345" fill="#495057">%2.9</text>
+    <line x1="270" y1="358" x2="1260" y2="358" stroke="#f1f3f5"/>
+
+    <text x="290" y="380" fill="#212529" font-weight="700">12-A</text>
+    <text x="380" y="380" fill="#495057">28</text>
+    <rect x="450" y="370" width="120" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="450" y="370" width="120" height="6" rx="3" fill="#198754"/>
+    <text x="580" y="380" fill="#198754" font-weight="600">100%</text>
+    <text x="640" y="380" fill="#212529" font-weight="600">392.000 ₺</text>
+    <text x="790" y="380" fill="#198754" font-weight="600">386.500 ₺</text>
+    <text x="940" y="380" fill="#198754" font-weight="600">5.500 ₺</text>
+    <text x="1090" y="380" fill="#198754" font-weight="700">98.6% ⭐</text>
+    <text x="1210" y="380" fill="#198754">%1.2</text>
+    <line x1="270" y1="395" x2="1260" y2="395" stroke="#f1f3f5"/>
+
+    <!-- Total -->
+    <line x1="270" y1="415" x2="1260" y2="415" stroke="#0d6efd" stroke-width="2"/>
+    <text x="290" y="442" fill="#212529" font-weight="700" font-size="13">TOPLAM (8 sınıf)</text>
+    <text x="380" y="442" fill="#212529" font-weight="700">247</text>
+    <text x="640" y="442" fill="#212529" font-weight="700">2.840.000 ₺</text>
+    <text x="790" y="442" fill="#198754" font-weight="700">2.516.000 ₺</text>
+    <text x="940" y="442" fill="#fd7e14" font-weight="700">324.000 ₺</text>
+    <text x="1090" y="442" fill="#0d6efd" font-weight="700">88.6%</text>
+    <text x="1210" y="442" fill="#495057">%4.05</text>
+  </g>
+</svg>

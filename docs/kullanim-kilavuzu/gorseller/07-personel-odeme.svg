@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">💼 Personel Maaş Ödemesi</text>
+  <rect x="1110" y="85" width="150" height="40" rx="6" fill="#198754"/>
+  <text x="1185" y="111" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">+ YENİ ÖDEME</text>
+
+  <!-- Period selector -->
+  <rect x="270" y="150" width="990" height="60" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="180" font-size="11" fill="#6c757d" font-weight="600">DÖNEM</text>
+  <rect x="290" y="190" width="200" height="30" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="302" y="210" font-size="13" fill="#212529">Mayıs 2026 ▾</text>
+
+  <text x="510" y="180" font-size="11" fill="#6c757d" font-weight="600">DURUM</text>
+  <rect x="510" y="190" width="160" height="30" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="522" y="210" font-size="13" fill="#212529">Tümü ▾</text>
+
+  <text x="980" y="200" font-size="13" fill="#212529" font-weight="600">Toplam: 8 personel · 78.500 ₺</text>
+
+  <!-- Stats -->
+  <g>
+    <rect x="270" y="225" width="240" height="60" rx="6" fill="#d4edda"/>
+    <text x="290" y="248" font-size="11" fill="#155724" font-weight="600">✓ ÖDENEN</text>
+    <text x="290" y="272" font-size="18" font-weight="700" fill="#155724">62.500 ₺ (5)</text>
+
+    <rect x="525" y="225" width="240" height="60" rx="6" fill="#fff3cd"/>
+    <text x="545" y="248" font-size="11" fill="#664d03" font-weight="600">⏳ BEKLİYOR</text>
+    <text x="545" y="272" font-size="18" font-weight="700" fill="#664d03">16.000 ₺ (3)</text>
+
+    <rect x="780" y="225" width="240" height="60" rx="6" fill="#e3f2fd"/>
+    <text x="800" y="248" font-size="11" fill="#0d6efd" font-weight="600">📅 SONRAKI ÖDEME</text>
+    <text x="800" y="272" font-size="14" font-weight="700" fill="#0d6efd">15.05.2026 (7 gün)</text>
+  </g>
+
+  <!-- Table -->
+  <rect x="270" y="300" width="990" height="280" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="300" width="990" height="36" fill="#f8f9fa"/>
+  <line x1="270" y1="336" x2="1260" y2="336" stroke="#dee2e6"/>
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="323">PERSONEL</text>
+    <text x="500" y="323">POZİSYON</text>
+    <text x="650" y="323">SÖZLEŞME</text>
+    <text x="780" y="323">ÖDEME TARİHİ</text>
+    <text x="920" y="323">DURUM</text>
+    <text x="1060" y="323">TUTAR</text>
+    <text x="1170" y="323">İŞLEM</text>
+  </g>
+
+  <g font-size="12">
+    <text x="290" y="360" fill="#212529" font-weight="600">Ali Yılmaz</text>
+    <text x="500" y="360" fill="#495057">Matematik Öğr.</text>
+    <text x="650" y="360" fill="#495057">15.000 ₺</text>
+    <text x="780" y="360" fill="#495057">07.05.2026</text>
+    <rect x="910" y="347" width="80" height="22" rx="11" fill="#198754"/>
+    <text x="950" y="362" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">✓ Ödendi</text>
+    <text x="1050" y="360" fill="#dc3545" font-weight="700">-15.000</text>
+    <text x="1170" y="360" fill="#0d6efd">📄 Dekont</text>
+    <line x1="270" y1="378" x2="1260" y2="378" stroke="#f1f3f5"/>
+
+    <text x="290" y="400" fill="#212529" font-weight="600">Ayşe Kaya</text>
+    <text x="500" y="400" fill="#495057">Türkçe Öğr.</text>
+    <text x="650" y="400" fill="#495057">14.000 ₺</text>
+    <text x="780" y="400" fill="#495057">07.05.2026</text>
+    <rect x="910" y="387" width="80" height="22" rx="11" fill="#198754"/>
+    <text x="950" y="402" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">✓ Ödendi</text>
+    <text x="1050" y="400" fill="#dc3545" font-weight="700">-14.000</text>
+    <text x="1170" y="400" fill="#0d6efd">📄 Dekont</text>
+    <line x1="270" y1="418" x2="1260" y2="418" stroke="#f1f3f5"/>
+
+    <text x="290" y="440" fill="#212529" font-weight="600">Mehmet Demir</text>
+    <text x="500" y="440" fill="#495057">Fizik Öğr.</text>
+    <text x="650" y="440" fill="#495057">13.500 ₺</text>
+    <text x="780" y="440" fill="#fd7e14">15.05.2026</text>
+    <rect x="910" y="427" width="80" height="22" rx="11" fill="#fff3cd"/>
+    <text x="950" y="442" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">Bekliyor</text>
+    <text x="1050" y="440" fill="#fd7e14" font-weight="700">13.500</text>
+    <rect x="1160" y="425" width="80" height="26" rx="4" fill="#198754"/>
+    <text x="1200" y="442" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">💰 Öde</text>
+    <line x1="270" y1="458" x2="1260" y2="458" stroke="#f1f3f5"/>
+
+    <text x="290" y="480" fill="#212529" font-weight="600">Selin Öztürk</text>
+    <text x="500" y="480" fill="#495057">Kimya Öğr.</text>
+    <text x="650" y="480" fill="#495057">13.500 ₺</text>
+    <text x="780" y="480" fill="#fd7e14">15.05.2026</text>
+    <rect x="910" y="467" width="80" height="22" rx="11" fill="#fff3cd"/>
+    <text x="950" y="482" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">Bekliyor</text>
+    <text x="1050" y="480" fill="#fd7e14" font-weight="700">13.500</text>
+    <rect x="1160" y="465" width="80" height="26" rx="4" fill="#198754"/>
+    <text x="1200" y="482" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">💰 Öde</text>
+    <line x1="270" y1="498" x2="1260" y2="498" stroke="#f1f3f5"/>
+
+    <text x="290" y="520" fill="#212529" font-weight="600">Ahmet Yıldız</text>
+    <text x="500" y="520" fill="#495057">Muhasebeci</text>
+    <text x="650" y="520" fill="#495057">10.000 ₺</text>
+    <text x="780" y="520" fill="#495057">01.05.2026</text>
+    <rect x="910" y="507" width="80" height="22" rx="11" fill="#198754"/>
+    <text x="950" y="522" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">✓ Ödendi</text>
+    <text x="1050" y="520" fill="#dc3545" font-weight="700">-10.000</text>
+    <text x="1170" y="520" fill="#0d6efd">📄 Dekont</text>
+    <line x1="270" y1="538" x2="1260" y2="538" stroke="#f1f3f5"/>
+
+    <text x="290" y="565" fill="#adb5bd" font-style="italic">... 3 personel daha</text>
+  </g>
+</svg>

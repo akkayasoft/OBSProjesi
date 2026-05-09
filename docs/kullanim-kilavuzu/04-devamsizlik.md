@@ -6,7 +6,7 @@
 
 Sol menü → **Devamsızlık → Yoklama Al**.
 
-**[Görsel: 04-yoklama-ekrani.png — Sınıf seçici + öğrenci kartları (var/yok/geç)]**
+![Sınıf seçici + öğrenci kartları (var/yok/geç)](gorseller/04-yoklama-ekrani.svg)
 
 1. Üstten **sınıf** seç
 2. Öğrenciler kart şeklinde dizilir
@@ -21,7 +21,7 @@ Yoklama kaydedildikten sonra **arka planda otomatik**:
 - Bugün okula gelmeyen ("yok" işaretli) öğrencilerin **velilerine SMS** gider
 - Mesaj formatı: *"Sayın veli, [çocuk adı] bugün okulda görünmüyor."*
 
-**[Görsel: 04-sms-bildirimi.png — Yoklama kaydedildikten sonra çıkan toast: "12 veliye SMS gönderildi"]**
+![Yoklama kaydedildikten sonra çıkan toast: "12 veliye SMS gönderildi"](gorseller/04-sms-bildirimi.svg)
 
 > ⚠️ SMS göndermek için sistem ayarlarında **SMS sağlayıcı**
 > tanımlı olmalı (Sistem yöneticisi yapar). [Bölüm 10'a bakın](10-ayarlar-yetki.md).
@@ -30,7 +30,7 @@ Yoklama kaydedildikten sonra **arka planda otomatik**:
 
 Her SMS'in nereye, ne zaman, hangi içerikle gittiği kayıt altında:
 
-**[Görsel: 04-sms-raporu.png — Devamsızlık → SMS Geçmişi sayfası]**
+![Devamsızlık → SMS Geçmişi sayfası](gorseller/04-sms-raporu.svg)
 
 Veli "mesaj almadım" derse bu rapordan sorgulanabilir:
 - Gönderim tarihi-saati
@@ -52,7 +52,7 @@ Yanlış yazıldıysa:
 - Öğrenci bazlı top 10 (en çok gelmeyenler)
 - PDF/Excel dışa aktarım
 
-**[Görsel: 04-aylik-rapor.png — Bar grafik + tablo]**
+![Bar grafik + tablo](gorseller/04-aylik-rapor.svg)
 
 ## 4.6. Veliye toplu duyuru gönderme
 

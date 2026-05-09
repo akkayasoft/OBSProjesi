@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="720" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="660" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">📈 Net Analizi — Demo Öğrenci 1</text>
+  <text x="270" y="124" font-size="13" fill="#6c757d">9-A · TYT son 5 deneme</text>
+
+  <!-- KPI cards -->
+  <g>
+    <rect x="270" y="150" width="230" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="290" y="175" font-size="11" fill="#6c757d" font-weight="600">SON DENEME NETİ</text>
+    <text x="290" y="210" font-size="26" font-weight="700" fill="#198754">92.0</text>
+    <text x="430" y="210" font-size="11" fill="#198754">▲ +8.5</text>
+
+    <rect x="510" y="150" width="230" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="530" y="175" font-size="11" fill="#6c757d" font-weight="600">5 DENEME ORTALAMASI</text>
+    <text x="530" y="210" font-size="26" font-weight="700" fill="#212529">82.6</text>
+
+    <rect x="750" y="150" width="230" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="770" y="175" font-size="11" fill="#6c757d" font-weight="600">SINIF SIRASI</text>
+    <text x="770" y="210" font-size="26" font-weight="700" fill="#0d6efd">4 / 28</text>
+
+    <rect x="990" y="150" width="270" height="80" rx="6" fill="#fff" stroke="#dee2e6"/>
+    <text x="1010" y="175" font-size="11" fill="#6c757d" font-weight="600">DERSHANE SIRASI</text>
+    <text x="1010" y="210" font-size="26" font-weight="700" fill="#0d6efd">12 / 115</text>
+  </g>
+
+  <!-- Trend chart -->
+  <rect x="270" y="250" width="690" height="280" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="280" font-size="13" font-weight="700" fill="#212529">📈 Net Gelişim Grafiği</text>
+  <line x1="290" y1="293" x2="940" y2="293" stroke="#e9ecef"/>
+
+  <!-- Y axis -->
+  <g font-size="9" fill="#adb5bd">
+    <text x="305" y="320">120</text>
+    <text x="305" y="365">90</text>
+    <text x="305" y="410">60</text>
+    <text x="305" y="455">30</text>
+    <text x="305" y="500">0</text>
+  </g>
+  <line x1="335" y1="315" x2="335" y2="500" stroke="#dee2e6"/>
+  <line x1="335" y1="500" x2="930" y2="500" stroke="#dee2e6"/>
+
+  <!-- Grid lines -->
+  <line x1="335" y1="320" x2="930" y2="320" stroke="#f1f3f5"/>
+  <line x1="335" y1="365" x2="930" y2="365" stroke="#f1f3f5"/>
+  <line x1="335" y1="410" x2="930" y2="410" stroke="#f1f3f5"/>
+  <line x1="335" y1="455" x2="930" y2="455" stroke="#f1f3f5"/>
+
+  <!-- Line: student net -->
+  <polyline points="395,440 510,420 625,395 740,375 855,335"
+            fill="none" stroke="#0d6efd" stroke-width="3"/>
+  <circle cx="395" cy="440" r="5" fill="#0d6efd"/>
+  <circle cx="510" cy="420" r="5" fill="#0d6efd"/>
+  <circle cx="625" cy="395" r="5" fill="#0d6efd"/>
+  <circle cx="740" cy="375" r="5" fill="#0d6efd"/>
+  <circle cx="855" cy="335" r="6" fill="#198754" stroke="#fff" stroke-width="2"/>
+
+  <!-- Line: class avg -->
+  <polyline points="395,455 510,448 625,445 740,440 855,435"
+            fill="none" stroke="#adb5bd" stroke-width="2" stroke-dasharray="4 4"/>
+
+  <!-- Net labels above points -->
+  <text x="395" y="430" text-anchor="middle" font-size="9" fill="#0d6efd" font-weight="700">62</text>
+  <text x="510" y="410" text-anchor="middle" font-size="9" fill="#0d6efd" font-weight="700">71</text>
+  <text x="625" y="385" text-anchor="middle" font-size="9" fill="#0d6efd" font-weight="700">78</text>
+  <text x="740" y="365" text-anchor="middle" font-size="9" fill="#0d6efd" font-weight="700">83.5</text>
+  <text x="855" y="320" text-anchor="middle" font-size="11" fill="#198754" font-weight="700">92.0</text>
+
+  <!-- X axis labels -->
+  <g font-size="9" fill="#6c757d">
+    <text x="395" y="520" text-anchor="middle">Şubat</text>
+    <text x="510" y="520" text-anchor="middle">Mart</text>
+    <text x="625" y="520" text-anchor="middle">Nisan</text>
+    <text x="740" y="520" text-anchor="middle">15.04</text>
+    <text x="855" y="520" text-anchor="middle">15.05</text>
+  </g>
+
+  <!-- Legend -->
+  <line x1="650" y1="295" x2="680" y2="295" stroke="#0d6efd" stroke-width="3"/>
+  <circle cx="665" cy="295" r="3" fill="#0d6efd"/>
+  <text x="690" y="300" font-size="11" fill="#495057">Öğrenci</text>
+  <line x1="780" y1="295" x2="810" y2="295" stroke="#adb5bd" stroke-width="2" stroke-dasharray="4 4"/>
+  <text x="820" y="300" font-size="11" fill="#495057">Sınıf ortalaması</text>
+
+  <!-- Right: Subject breakdown -->
+  <rect x="980" y="250" width="280" height="280" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="1000" y="280" font-size="13" font-weight="700" fill="#212529">📊 DERS BAZLI</text>
+  <line x1="1000" y1="293" x2="1240" y2="293" stroke="#e9ecef"/>
+
+  <g font-size="12">
+    <text x="1000" y="315" fill="#495057">Türkçe</text>
+    <text x="1240" y="315" text-anchor="end" fill="#198754" font-weight="700">32.0/40 (80%)</text>
+    <rect x="1000" y="320" width="240" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="1000" y="320" width="192" height="6" rx="3" fill="#198754"/>
+
+    <text x="1000" y="355" fill="#495057">Matematik</text>
+    <text x="1240" y="355" text-anchor="end" fill="#198754" font-weight="700">30.5/40 (76%)</text>
+    <rect x="1000" y="360" width="240" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="1000" y="360" width="183" height="6" rx="3" fill="#198754"/>
+
+    <text x="1000" y="395" fill="#495057">Fen</text>
+    <text x="1240" y="395" text-anchor="end" fill="#fd7e14" font-weight="700">15.0/20 (75%)</text>
+    <rect x="1000" y="400" width="240" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="1000" y="400" width="180" height="6" rx="3" fill="#fd7e14"/>
+
+    <text x="1000" y="435" fill="#495057">Sosyal</text>
+    <text x="1240" y="435" text-anchor="end" fill="#dc3545" font-weight="700">14.5/20 (72%)</text>
+    <rect x="1000" y="440" width="240" height="6" rx="3" fill="#e9ecef"/>
+    <rect x="1000" y="440" width="172" height="6" rx="3" fill="#dc3545"/>
+
+    <text x="1000" y="490" fill="#dc3545" font-weight="600">⚠️  Zayıf konular</text>
+    <text x="1000" y="510" font-size="11" fill="#495057">Sosyal: Coğrafya (-5)</text>
+  </g>
+
+  <!-- Bottom: Detayli tablo -->
+  <rect x="270" y="550" width="990" height="170" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="580" font-size="13" font-weight="700" fill="#212529">📋 DETAYLI TABLO — SON DENEME</text>
+  <line x1="290" y1="593" x2="1240" y2="593" stroke="#e9ecef"/>
+
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="615">DERS</text>
+    <text x="450" y="615">DOĞRU</text>
+    <text x="560" y="615">YANLIŞ</text>
+    <text x="670" y="615">BOŞ</text>
+    <text x="780" y="615">NET</text>
+    <text x="900" y="615">SINIF ORT.</text>
+    <text x="1020" y="615">DERSHANE ORT.</text>
+    <text x="1170" y="615">FARK</text>
+  </g>
+
+  <g font-size="12">
+    <text x="290" y="640" fill="#212529" font-weight="600">Türkçe</text>
+    <text x="450" y="640" fill="#495057">35</text>
+    <text x="560" y="640" fill="#495057">12</text>
+    <text x="670" y="640" fill="#495057">-7</text>
+    <text x="780" y="640" fill="#198754" font-weight="700">32.0</text>
+    <text x="900" y="640" fill="#6c757d">25.4</text>
+    <text x="1020" y="640" fill="#6c757d">28.1</text>
+    <text x="1170" y="640" fill="#198754" font-weight="600">+6.6</text>
+
+    <text x="290" y="665" fill="#212529" font-weight="600">Matematik</text>
+    <text x="450" y="665" fill="#495057">33</text>
+    <text x="560" y="665" fill="#495057">10</text>
+    <text x="670" y="665" fill="#495057">-3</text>
+    <text x="780" y="665" fill="#198754" font-weight="700">30.5</text>
+    <text x="900" y="665" fill="#6c757d">22.0</text>
+    <text x="1020" y="665" fill="#6c757d">25.5</text>
+    <text x="1170" y="665" fill="#198754" font-weight="600">+8.5</text>
+
+    <text x="290" y="690" fill="#212529" font-weight="600">Fen</text>
+    <text x="450" y="690" fill="#495057">16</text>
+    <text x="560" y="690" fill="#495057">4</text>
+    <text x="670" y="690" fill="#495057">-</text>
+    <text x="780" y="690" fill="#fd7e14" font-weight="700">15.0</text>
+    <text x="900" y="690" fill="#6c757d">12.8</text>
+    <text x="1020" y="690" fill="#6c757d">14.2</text>
+    <text x="1170" y="690" fill="#198754" font-weight="600">+2.2</text>
+  </g>
+</svg>

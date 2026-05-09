@@ -12,7 +12,7 @@ https://<dershane-slug>.obs.akkayasoft.com/auth/giris
 
 Örnek: `https://bilfen.obs.akkayasoft.com/auth/giris`
 
-**[Görsel: 01-giris-ekrani.png — Açılış sayfasında kullanıcı adı/şifre formu]**
+![Açılış sayfasında kullanıcı adı/şifre formu](gorseller/01-giris-ekrani.svg)
 
 ## 1.2. Giriş bilgileriyle oturum açma
 
@@ -28,7 +28,7 @@ https://<dershane-slug>.obs.akkayasoft.com/auth/giris
 Sistem yöneticinizin oluşturduğu geçici şifreyle ilk girişinizde
 sistem sizi şifre değişikliği sayfasına yönlendirir.
 
-**[Görsel: 01-sifre-degistir.png — Şifre değiştirme formu]**
+![Şifre değiştirme formu](gorseller/01-sifre-degistir.svg)
 
 - Yeni şifre en az **6 karakter** olmalı
 - Şifrenizi kimseyle paylaşmayın
@@ -51,7 +51,7 @@ sistem sizi şifre değişikliği sayfasına yönlendirir.
 
 Sağ üst köşede **adınızın** yanındaki açılır menüden **Çıkış Yap**.
 
-**[Görsel: 01-cikis-menusu.png — Sağ üst dropdown menü açık halde]**
+![Sağ üst dropdown menü açık halde](gorseller/01-cikis-menusu.svg)
 
 ---
 

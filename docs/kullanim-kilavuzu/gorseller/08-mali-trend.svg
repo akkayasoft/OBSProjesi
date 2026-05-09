@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">📊 Mali Trend (12 ay)</text>
+
+  <rect x="270" y="140" width="990" height="430" rx="6" fill="#fff" stroke="#dee2e6"/>
+
+  <!-- Y axis -->
+  <g font-size="10" fill="#adb5bd">
+    <text x="295" y="180">60K ₺</text>
+    <text x="295" y="245">40K ₺</text>
+    <text x="295" y="310">20K ₺</text>
+    <text x="295" y="375">0</text>
+    <text x="295" y="440">-20K ₺</text>
+  </g>
+
+  <!-- Grid -->
+  <g stroke="#f1f3f5">
+    <line x1="340" y1="175" x2="1230" y2="175"/>
+    <line x1="340" y1="240" x2="1230" y2="240"/>
+    <line x1="340" y1="305" x2="1230" y2="305"/>
+    <line x1="340" y1="375" x2="1230" y2="375" stroke="#212529" stroke-width="1"/>
+    <line x1="340" y1="440" x2="1230" y2="440"/>
+  </g>
+
+  <!-- Bars (gelir+gider per month) -->
+  <g>
+    <!-- Haziran -->
+    <rect x="365" y="280" width="14" height="95" fill="#198754"/>
+    <rect x="382" y="320" width="14" height="55" fill="#dc3545"/>
+    <!-- Temmuz -->
+    <rect x="430" y="295" width="14" height="80" fill="#198754"/>
+    <rect x="447" y="335" width="14" height="40" fill="#dc3545"/>
+    <!-- Ağustos -->
+    <rect x="495" y="310" width="14" height="65" fill="#198754"/>
+    <rect x="512" y="345" width="14" height="30" fill="#dc3545"/>
+    <!-- Eylül -->
+    <rect x="560" y="245" width="14" height="130" fill="#198754"/>
+    <rect x="577" y="305" width="14" height="70" fill="#dc3545"/>
+    <!-- Ekim -->
+    <rect x="625" y="225" width="14" height="150" fill="#198754"/>
+    <rect x="642" y="295" width="14" height="80" fill="#dc3545"/>
+    <!-- Kasım -->
+    <rect x="690" y="220" width="14" height="155" fill="#198754"/>
+    <rect x="707" y="290" width="14" height="85" fill="#dc3545"/>
+    <!-- Aralık -->
+    <rect x="755" y="225" width="14" height="150" fill="#198754"/>
+    <rect x="772" y="285" width="14" height="90" fill="#dc3545"/>
+    <!-- Ocak -->
+    <rect x="820" y="240" width="14" height="135" fill="#198754"/>
+    <rect x="837" y="300" width="14" height="75" fill="#dc3545"/>
+    <!-- Şubat -->
+    <rect x="885" y="200" width="14" height="175" fill="#198754"/>
+    <rect x="902" y="280" width="14" height="95" fill="#dc3545"/>
+    <!-- Mart -->
+    <rect x="950" y="195" width="14" height="180" fill="#198754"/>
+    <rect x="967" y="285" width="14" height="90" fill="#dc3545"/>
+    <!-- Nisan -->
+    <rect x="1015" y="200" width="14" height="175" fill="#198754"/>
+    <rect x="1032" y="290" width="14" height="85" fill="#dc3545"/>
+    <!-- Mayıs (current, vurgulu) -->
+    <rect x="1080" y="180" width="14" height="195" fill="#198754" stroke="#0d6efd" stroke-width="2"/>
+    <rect x="1097" y="280" width="14" height="95" fill="#dc3545" stroke="#0d6efd" stroke-width="2"/>
+  </g>
+
+  <!-- Net line overlay -->
+  <polyline points="385,330 445,335 510,355 575,285 640,260 705,255 770,260 835,275 900,235 965,230 1030,235 1100,200"
+            fill="none" stroke="#0d6efd" stroke-width="2.5" stroke-dasharray="4 4"/>
+  <g>
+    <circle cx="385" cy="330" r="3" fill="#0d6efd"/>
+    <circle cx="510" cy="355" r="3" fill="#0d6efd"/>
+    <circle cx="640" cy="260" r="3" fill="#0d6efd"/>
+    <circle cx="900" cy="235" r="3" fill="#0d6efd"/>
+    <circle cx="1100" cy="200" r="5" fill="#0d6efd" stroke="#fff" stroke-width="2"/>
+  </g>
+
+  <!-- X axis labels -->
+  <g font-size="10" fill="#6c757d">
+    <text x="382" y="465" text-anchor="middle">Haz</text>
+    <text x="447" y="465" text-anchor="middle">Tem</text>
+    <text x="512" y="465" text-anchor="middle">Ağu</text>
+    <text x="577" y="465" text-anchor="middle">Eyl</text>
+    <text x="642" y="465" text-anchor="middle">Eki</text>
+    <text x="707" y="465" text-anchor="middle">Kas</text>
+    <text x="772" y="465" text-anchor="middle">Ara</text>
+    <text x="837" y="465" text-anchor="middle">Oca</text>
+    <text x="902" y="465" text-anchor="middle">Şub</text>
+    <text x="967" y="465" text-anchor="middle">Mar</text>
+    <text x="1032" y="465" text-anchor="middle">Nis</text>
+    <text x="1097" y="465" text-anchor="middle" font-weight="700" fill="#0d6efd">May</text>
+  </g>
+
+  <!-- Legend -->
+  <g font-size="11">
+    <rect x="900" y="160" width="14" height="14" fill="#198754"/>
+    <text x="920" y="172" fill="#495057">Gelir</text>
+    <rect x="970" y="160" width="14" height="14" fill="#dc3545"/>
+    <text x="990" y="172" fill="#495057">Gider</text>
+    <line x1="1040" y1="167" x2="1070" y2="167" stroke="#0d6efd" stroke-width="2.5" stroke-dasharray="4 4"/>
+    <text x="1080" y="172" fill="#495057">Net</text>
+  </g>
+
+  <!-- Stats below -->
+  <g font-size="11">
+    <text x="350" y="510" fill="#6c757d">12 ay toplam gelir:</text>
+    <text x="500" y="510" fill="#198754" font-weight="700">487.350 ₺</text>
+    <text x="600" y="510" fill="#6c757d">12 ay gider:</text>
+    <text x="700" y="510" fill="#dc3545" font-weight="700">312.180 ₺</text>
+    <text x="820" y="510" fill="#6c757d">NET KAR:</text>
+    <text x="900" y="510" fill="#0d6efd" font-weight="700" font-size="14">+175.170 ₺</text>
+    <text x="1090" y="510" fill="#6c757d">Aylık ort net:</text>
+    <text x="1190" y="510" fill="#198754" font-weight="700">+14.598 ₺</text>
+  </g>
+
+  <text x="765" y="555" text-anchor="middle" font-size="11" fill="#6c757d">📈 Trend: son 6 ayda gelir %23 arttı, gider %8 azaldı — sağlıklı yükseliş</text>
+</svg>

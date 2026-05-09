@@ -8,7 +8,7 @@ Dershanenin kalbi: deneme sınavı yönetimi.
 
 Sol menü → **Deneme Sınavı → Yeni Deneme**.
 
-**[Görsel: 06-yeni-deneme.png — Şablon seçim, ders soru sayısı, optik form ayarı]**
+![Şablon seçim, ders soru sayısı, optik form ayarı](gorseller/06-yeni-deneme.svg)
 
 1. **Şablon seç**: TYT / AYT / LGS
 2. **Tarih**: deneme gün/saat
@@ -26,7 +26,7 @@ Sınav bittikten sonra:
 - **Optik okuyucu çıktısı (CSV)**: tek dosya yükle
 - **Manuel giriş**: her öğrencinin doğru/yanlış sayısını gir
 
-**[Görsel: 06-cevap-yukleme.png — Dosya seç + sürükle-bırak alanı]**
+![Dosya seç + sürükle-bırak alanı](gorseller/06-cevap-yukleme.svg)
 
 ## 6.3. Otomatik puanlama ve net hesaplama
 
@@ -37,13 +37,13 @@ Sistem otomatik:
 - Ders bazlı netleri hesaplar
 - Toplam net + yüzde / sıra üretir
 
-**[Görsel: 06-puanlama-tablosu.png — Öğrenci, doğru, yanlış, net kolonları]**
+![Öğrenci, doğru, yanlış, net kolonları](gorseller/06-puanlama-tablosu.svg)
 
 ## 6.4. Sıralama tablosu
 
 **Deneme detayı → Sıralama** sekmesi:
 
-**[Görsel: 06-siralama-tablosu.png — Sınıf bazlı, dershane bazlı top sıralama]**
+![Sınıf bazlı, dershane bazlı top sıralama](gorseller/06-siralama-tablosu.svg)
 
 - Sınıf içi sıra
 - Dershane geneli sıra
@@ -53,7 +53,7 @@ Sistem otomatik:
 
 Her öğrencinin kendi sayfasında:
 
-**[Görsel: 06-net-analizi.png — Ders bazlı doğru/yanlış/boş + gelişim grafiği]**
+![Ders bazlı doğru/yanlış/boş + gelişim grafiği](gorseller/06-net-analizi.svg)
 
 - Ders bazlı doğru/yanlış/boş sayısı
 - Son 5 denemede net trendi (line chart)
@@ -63,7 +63,7 @@ Her öğrencinin kendi sayfasında:
 
 Veli, çocuğunun deneme sonuçlarını otomatik görür:
 
-**[Görsel: 06-veli-deneme-rapor.png]**
+![06-veli-deneme-rapor](gorseller/06-veli-deneme-rapor.svg)
 
 - Net + sıralama
 - Önceki denemelere göre değişim (↑ ↓)
@@ -77,7 +77,7 @@ Sınıf içi quiz veya konu testi için:
 çoktan seçmeli sınav oluşturur. Öğrencilere link gönderilir, kendi
 telefonlarından girerler.
 
-**[Görsel: 06-online-sinav.png — Öğrenci telefonunda sınav ekranı]**
+![Öğrenci telefonunda sınav ekranı](gorseller/06-online-sinav.svg)
 
 > 💡 Online sınav otomatik puanlama yapar; sonuçlar Not Defteri'ne
 > tek tıkla aktarılabilir.

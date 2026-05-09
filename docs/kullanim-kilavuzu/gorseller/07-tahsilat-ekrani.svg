@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">💸 Tahsilat — Demo Öğrenci 1</text>
+
+  <!-- Left: student summary -->
+  <rect x="270" y="140" width="380" height="440" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <circle cx="350" cy="195" r="40" fill="#0d6efd" opacity="0.15"/>
+  <text x="350" y="207" text-anchor="middle" font-size="32">👤</text>
+
+  <text x="290" y="260" font-size="16" font-weight="700" fill="#212529">Demo Öğrenci 1</text>
+  <text x="290" y="280" font-size="11" fill="#6c757d">9-A · TC: 12345678901</text>
+  <text x="290" y="298" font-size="11" fill="#6c757d">📞 0532 111 22 33</text>
+
+  <line x1="290" y1="320" x2="640" y2="320" stroke="#e9ecef"/>
+
+  <text x="290" y="345" font-size="11" fill="#6c757d" font-weight="600">ÖZET</text>
+
+  <g font-size="12">
+    <text x="290" y="370" fill="#495057">Toplam Borç</text>
+    <text x="630" y="370" text-anchor="end" fill="#212529" font-weight="700">12.000 ₺</text>
+
+    <text x="290" y="392" fill="#495057">Ödenen</text>
+    <text x="630" y="392" text-anchor="end" fill="#198754" font-weight="700">+4.500 ₺</text>
+
+    <text x="290" y="414" fill="#495057">Kalan</text>
+    <text x="630" y="414" text-anchor="end" fill="#dc3545" font-weight="700">7.500 ₺</text>
+  </g>
+
+  <rect x="290" y="430" width="340" height="20" rx="10" fill="#e9ecef"/>
+  <rect x="290" y="430" width="128" height="20" rx="10" fill="#198754"/>
+  <text x="460" y="445" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">%37,5 ödendi</text>
+
+  <text x="290" y="490" font-size="11" fill="#6c757d" font-weight="600">İLETİŞİM</text>
+  <rect x="290" y="500" width="160" height="32" rx="4" fill="#0d6efd"/>
+  <text x="370" y="520" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">📞 Ara</text>
+  <rect x="460" y="500" width="170" height="32" rx="4" fill="#198754"/>
+  <text x="545" y="520" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">💌 SMS Hatırlatma</text>
+
+  <!-- Right: taksitler -->
+  <rect x="670" y="140" width="590" height="440" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="690" y="170" font-size="13" font-weight="700" fill="#212529">📋 TAKSİT LİSTESİ</text>
+  <line x1="690" y1="183" x2="1240" y2="183" stroke="#e9ecef"/>
+
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="690" y="208">#</text>
+    <text x="730" y="208">VADE</text>
+    <text x="850" y="208">TUTAR</text>
+    <text x="950" y="208">DURUM</text>
+    <text x="1100" y="208">İŞLEM</text>
+  </g>
+
+  <g font-size="12">
+    <text x="690" y="240" fill="#212529" font-weight="700">1</text>
+    <text x="730" y="240" fill="#495057">10.02.2026</text>
+    <text x="850" y="240" fill="#212529" font-weight="600">1.500 ₺</text>
+    <rect x="945" y="227" width="80" height="22" rx="11" fill="#d4edda"/>
+    <text x="985" y="242" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">✓ Ödendi</text>
+    <text x="1100" y="240" fill="#0d6efd">Makbuz</text>
+    <line x1="690" y1="255" x2="1240" y2="255" stroke="#f1f3f5"/>
+
+    <text x="690" y="278" fill="#212529" font-weight="700">2</text>
+    <text x="730" y="278" fill="#495057">10.03.2026</text>
+    <text x="850" y="278" fill="#212529" font-weight="600">1.500 ₺</text>
+    <rect x="945" y="265" width="80" height="22" rx="11" fill="#d4edda"/>
+    <text x="985" y="280" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">✓ Ödendi</text>
+    <text x="1100" y="278" fill="#0d6efd">Makbuz</text>
+    <line x1="690" y1="293" x2="1240" y2="293" stroke="#f1f3f5"/>
+
+    <text x="690" y="316" fill="#212529" font-weight="700">3</text>
+    <text x="730" y="316" fill="#495057">10.04.2026</text>
+    <text x="850" y="316" fill="#212529" font-weight="600">1.500 ₺</text>
+    <rect x="945" y="303" width="80" height="22" rx="11" fill="#d4edda"/>
+    <text x="985" y="318" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">✓ Ödendi</text>
+    <text x="1100" y="316" fill="#0d6efd">Makbuz</text>
+    <line x1="690" y1="331" x2="1240" y2="331" stroke="#f1f3f5"/>
+
+    <!-- Vurgulu sıra: bekleyen -->
+    <rect x="670" y="331" width="590" height="46" fill="#fff8e1"/>
+    <text x="690" y="358" fill="#212529" font-weight="700">4</text>
+    <text x="730" y="358" fill="#dc3545" font-weight="600">10.05.2026</text>
+    <text x="850" y="358" fill="#212529" font-weight="700">1.500 ₺</text>
+    <rect x="945" y="345" width="80" height="22" rx="11" fill="#fff3cd"/>
+    <text x="985" y="360" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">Bekliyor</text>
+    <rect x="1090" y="345" width="120" height="22" rx="4" fill="#198754"/>
+    <text x="1150" y="360" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">💰 ÖDEME AL</text>
+
+    <text x="690" y="400" fill="#495057">5</text>
+    <text x="730" y="400" fill="#6c757d">10.06.2026</text>
+    <text x="850" y="400" fill="#6c757d">1.500 ₺</text>
+    <text x="950" y="400" fill="#adb5bd" font-style="italic">Henüz vadesi gelmedi</text>
+    <line x1="690" y1="415" x2="1240" y2="415" stroke="#f1f3f5"/>
+
+    <text x="690" y="438" fill="#495057">6–8</text>
+    <text x="730" y="438" fill="#adb5bd">07–09.2026</text>
+    <text x="850" y="438" fill="#adb5bd">3 × 1.500 ₺</text>
+    <text x="950" y="438" fill="#adb5bd" font-style="italic">Vadesiz</text>
+  </g>
+
+  <line x1="670" y1="490" x2="1260" y2="490" stroke="#0d6efd" stroke-width="2"/>
+  <text x="690" y="515" font-size="13" fill="#212529" font-weight="700">TOPLAM</text>
+  <text x="850" y="515" font-size="13" fill="#212529" font-weight="700">12.000 ₺</text>
+  <text x="950" y="515" font-size="11" fill="#198754" font-weight="600">3 ödendi</text>
+  <text x="1050" y="515" font-size="11" fill="#dc3545" font-weight="600">5 bekliyor</text>
+
+  <text x="690" y="555" font-size="11" fill="#6c757d">Ödeme aldıktan sonra otomatik makbuz oluşur ve muhasebeye gelir kaydı düşer.</text>
+</svg>

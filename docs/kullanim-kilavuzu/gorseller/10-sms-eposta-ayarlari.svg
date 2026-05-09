@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">📱 SMS / E-posta Ayarları</text>
+
+  <!-- SMS card -->
+  <rect x="270" y="140" width="490" height="430" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="140" width="490" height="50" fill="#0d6efd"/>
+  <text x="290" y="172" font-size="14" font-weight="700" fill="#fff">📱 SMS Sağlayıcı</text>
+
+  <g font-size="11">
+    <text x="290" y="215" fill="#6c757d" font-weight="600">SAĞLAYICI</text>
+    <rect x="290" y="225" width="450" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="302" y="246" font-size="12" fill="#212529">Iletimerkezi ▾</text>
+
+    <text x="290" y="280" fill="#6c757d" font-weight="600">API KULLANICI ADI</text>
+    <rect x="290" y="290" width="450" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="302" y="311" font-size="12" fill="#212529" font-family="monospace">bilfen_api</text>
+
+    <text x="290" y="345" fill="#6c757d" font-weight="600">API ANAHTARI</text>
+    <rect x="290" y="355" width="450" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="302" y="376" font-size="12" fill="#212529" font-family="monospace">••••••••••••••</text>
+
+    <text x="290" y="410" fill="#6c757d" font-weight="600">GÖNDERİCİ ADI (max 11 hane)</text>
+    <rect x="290" y="420" width="200" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="302" y="441" font-size="12" fill="#212529" font-weight="700">BILFEN</text>
+    <text x="510" y="441" font-size="11" fill="#198754">✓ Operatör onayı var</text>
+
+    <text x="290" y="475" fill="#198754">✓ Bağlantı: TEST BAŞARILI</text>
+    <text x="290" y="495" fill="#6c757d" font-size="10">Son test: bugün 14:23 · Bakiye: 245.50 ₺ (1.169 SMS)</text>
+
+    <rect x="510" y="500" width="120" height="32" rx="4" fill="#0d6efd"/>
+    <text x="570" y="521" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">📤 Test SMS</text>
+    <rect x="640" y="500" width="100" height="32" rx="4" fill="#198754"/>
+    <text x="690" y="521" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">✓ Kaydet</text>
+  </g>
+
+  <!-- Email card -->
+  <rect x="780" y="140" width="480" height="430" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="780" y="140" width="480" height="50" fill="#198754"/>
+  <text x="800" y="172" font-size="14" font-weight="700" fill="#fff">✉️ SMTP (E-posta)</text>
+
+  <g font-size="11">
+    <text x="800" y="215" fill="#6c757d" font-weight="600">SUNUCU</text>
+    <rect x="800" y="225" width="440" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="812" y="246" font-size="12" fill="#212529" font-family="monospace">smtp.gmail.com</text>
+
+    <text x="800" y="280" fill="#6c757d" font-weight="600">PORT</text>
+    <rect x="800" y="290" width="120" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="812" y="311" font-size="12" fill="#212529">587</text>
+    <rect x="940" y="290" width="100" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="990" y="310" text-anchor="middle" font-size="11" fill="#212529">☑ TLS</text>
+
+    <text x="800" y="345" fill="#6c757d" font-weight="600">KULLANICI ADI</text>
+    <rect x="800" y="355" width="440" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="812" y="376" font-size="12" fill="#212529">noreply@bilfen.com</text>
+
+    <text x="800" y="410" fill="#6c757d" font-weight="600">UYGULAMA ŞİFRESİ</text>
+    <rect x="800" y="420" width="440" height="32" rx="4" fill="#fff" stroke="#ced4da"/>
+    <text x="812" y="441" font-size="12" fill="#212529" font-family="monospace">••••••••••••••</text>
+
+    <text x="800" y="475" fill="#198754">✓ SMTP bağlantısı: TEST BAŞARILI</text>
+    <text x="800" y="495" fill="#6c757d" font-size="10">Son test e-postası: bugün 14:30 · Bilfen iletişim adresine</text>
+
+    <rect x="1010" y="500" width="120" height="32" rx="4" fill="#0d6efd"/>
+    <text x="1070" y="521" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">📤 Test Mail</text>
+    <rect x="1140" y="500" width="100" height="32" rx="4" fill="#198754"/>
+    <text x="1190" y="521" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">✓ Kaydet</text>
+  </g>
+</svg>

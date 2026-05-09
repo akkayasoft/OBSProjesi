@@ -6,7 +6,7 @@
 
 Sol menü → **Muhasebe**.
 
-**[Görsel: 07-muhasebe-ana.png — Muhasebe dashboard: bu ay özeti, son işlemler]**
+![Muhasebe dashboard: bu ay özeti, son işlemler](gorseller/07-muhasebe-ana.svg)
 
 KPI kartları:
 - Bu ay gelir / gider / **net**
@@ -17,7 +17,7 @@ KPI kartları:
 
 **Muhasebe → Gelir / Gider** sayfasında tüm hareketler:
 
-**[Görsel: 07-gelir-gider-listesi.png — Kolonlar: tarih, tür, kategori, açıklama, tutar, ekleyen]**
+![Kolonlar: tarih, tür, kategori, açıklama, tutar, ekleyen](gorseller/07-gelir-gider-listesi.svg)
 
 Kolonlar:
 - Tarih
@@ -32,7 +32,7 @@ Kolonlar:
 
 Sağ üst **"Yeni Kayıt"** butonu.
 
-**[Görsel: 07-yeni-kayit-formu.png — Form: tür, kategori, tutar, tarih, açıklama, banka hesabı]**
+![Form: tür, kategori, tutar, tarih, açıklama, banka hesabı](gorseller/07-yeni-kayit-formu.svg)
 
 | Alan | Notlar |
 |---|---|
@@ -65,7 +65,7 @@ Sistem aşağıdaki işlemler için **otomatik gelir/gider kaydı oluşturur**:
 
 **Muhasebe → Banka Hesapları**:
 
-**[Görsel: 07-banka-hesaplari.png — Hesap listesi: ad, banka, IBAN, bakiye]**
+![Hesap listesi: ad, banka, IBAN, bakiye](gorseller/07-banka-hesaplari.svg)
 
 - Birden fazla banka hesabı / kasa tanımlanabilir
 - Her gelir/gider hareketinde hesap seçimi var
@@ -75,7 +75,7 @@ Sistem aşağıdaki işlemler için **otomatik gelir/gider kaydı oluşturur**:
 
 **Muhasebe → Kategoriler** ile gelir-gider kategorileri yönetilir.
 
-**[Görsel: 07-kategoriler.png — Tablo: ad, tür, aktif/pasif]**
+![Tablo: ad, tür, aktif/pasif](gorseller/07-kategoriler.svg)
 
 > Sistem ilk kurulumda standart kategorileri açar (Aidat, Maaş, Kira,
 > Kırtasiye vb.); ek kategori eklemek mümkün.
@@ -84,7 +84,7 @@ Sistem aşağıdaki işlemler için **otomatik gelir/gider kaydı oluşturur**:
 
 **Muhasebe → Tahsilat** veya öğrenci detayında **Muhasebe** sekmesi.
 
-**[Görsel: 07-tahsilat-ekrani.png — Öğrenci taksitleri + "Ödeme Al" butonu]**
+![Öğrenci taksitleri + "Ödeme Al" butonu](gorseller/07-tahsilat-ekrani.svg)
 
 1. Öğrenciyi seç (otomatik tamamlama)
 2. Hangi taksit?
@@ -97,7 +97,7 @@ Sistem aşağıdaki işlemler için **otomatik gelir/gider kaydı oluşturur**:
 
 Tahsilat sonrası A4 makbuz açılır:
 
-**[Görsel: 07-makbuz-a4.png — Yazdırılabilir A4 makbuz]**
+![Yazdırılabilir A4 makbuz](gorseller/07-makbuz-a4.svg)
 
 İçerik:
 - Dershane adı + logo (üst)
@@ -113,7 +113,7 @@ Tahsilat sonrası A4 makbuz açılır:
 
 **Muhasebe → Personel Ödeme**:
 
-**[Görsel: 07-personel-odeme.png]**
+![07-personel-odeme](gorseller/07-personel-odeme.svg)
 
 1. Personel seç
 2. Dönem (örn. "Mayıs 2026 maaşı")

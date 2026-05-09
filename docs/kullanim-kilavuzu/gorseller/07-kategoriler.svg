@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 500" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="500" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="440" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">🏷️ Gelir/Gider Kategorileri</text>
+  <rect x="1110" y="85" width="150" height="40" rx="6" fill="#198754"/>
+  <text x="1185" y="111" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">+ YENİ KATEGORİ</text>
+
+  <!-- Two column lists -->
+  <text x="270" y="155" font-size="13" font-weight="700" fill="#198754">🟢 GELİR KATEGORİLERİ (8)</text>
+
+  <rect x="270" y="170" width="480" height="320" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <g font-size="12">
+    <line x1="270" y1="200" x2="750" y2="200" stroke="#e9ecef"/>
+    <text x="290" y="194" fill="#212529" font-weight="600">Öğrenci Aidatı</text>
+    <text x="700" y="194" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="270" y1="230" x2="750" y2="230" stroke="#e9ecef"/>
+    <text x="290" y="224" fill="#212529" font-weight="600">Sınav Harç Tahsilatı</text>
+    <text x="700" y="224" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="270" y1="260" x2="750" y2="260" stroke="#e9ecef"/>
+    <text x="290" y="254" fill="#212529" font-weight="600">Yönlendirme Komisyonu</text>
+    <text x="700" y="254" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="270" y1="290" x2="750" y2="290" stroke="#e9ecef"/>
+    <text x="290" y="284" fill="#212529" font-weight="600">Kantin Satışı</text>
+    <text x="700" y="284" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="270" y1="320" x2="750" y2="320" stroke="#e9ecef"/>
+    <text x="290" y="314" fill="#212529" font-weight="600">Fotokopi / Kırtasiye</text>
+    <text x="700" y="314" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="270" y1="350" x2="750" y2="350" stroke="#e9ecef"/>
+    <text x="290" y="344" fill="#212529" font-weight="600">Kayıt Ücreti</text>
+    <text x="700" y="344" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="270" y1="380" x2="750" y2="380" stroke="#e9ecef"/>
+    <text x="290" y="374" fill="#212529" font-weight="600">Kitap Satışı</text>
+    <text x="700" y="374" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <text x="290" y="404" fill="#6c757d" font-style="italic">Etüt Ücreti</text>
+    <text x="700" y="404" text-anchor="end" fill="#6c757d">pasif</text>
+  </g>
+
+  <!-- Right: Gider -->
+  <text x="780" y="155" font-size="13" font-weight="700" fill="#dc3545">🔴 GİDER KATEGORİLERİ (12)</text>
+
+  <rect x="780" y="170" width="480" height="320" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <g font-size="12">
+    <line x1="780" y1="200" x2="1260" y2="200" stroke="#e9ecef"/>
+    <text x="800" y="194" fill="#212529" font-weight="600">Personel Maaş</text>
+    <text x="1210" y="194" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="780" y1="230" x2="1260" y2="230" stroke="#e9ecef"/>
+    <text x="800" y="224" fill="#212529" font-weight="600">Kira</text>
+    <text x="1210" y="224" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="780" y1="260" x2="1260" y2="260" stroke="#e9ecef"/>
+    <text x="800" y="254" fill="#212529" font-weight="600">Elektrik / Su / Doğalgaz</text>
+    <text x="1210" y="254" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="780" y1="290" x2="1260" y2="290" stroke="#e9ecef"/>
+    <text x="800" y="284" fill="#212529" font-weight="600">İnternet / Telefon</text>
+    <text x="1210" y="284" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="780" y1="320" x2="1260" y2="320" stroke="#e9ecef"/>
+    <text x="800" y="314" fill="#212529" font-weight="600">Yönlendirme Komisyon Gideri</text>
+    <text x="1210" y="314" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="780" y1="350" x2="1260" y2="350" stroke="#e9ecef"/>
+    <text x="800" y="344" fill="#212529" font-weight="600">Kırtasiye / Fotokopi</text>
+    <text x="1210" y="344" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <line x1="780" y1="380" x2="1260" y2="380" stroke="#e9ecef"/>
+    <text x="800" y="374" fill="#212529" font-weight="600">Reklam / Pazarlama</text>
+    <text x="1210" y="374" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <text x="800" y="404" fill="#212529" font-weight="600">SMS / Telekomünikasyon</text>
+    <text x="1210" y="404" text-anchor="end" fill="#198754" font-weight="600">aktif ✓</text>
+
+    <text x="800" y="434" fill="#adb5bd" font-style="italic">+ 4 kategori daha...</text>
+  </g>
+</svg>

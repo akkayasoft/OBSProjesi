@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">📚 Dönem Yönetimi</text>
+
+  <rect x="270" y="140" width="990" height="200" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <text x="290" y="170" font-size="13" font-weight="700" fill="#212529">2025-2026 Bahar Dönemi</text>
+  <rect x="500" y="156" width="60" height="20" rx="10" fill="#198754"/>
+  <text x="530" y="170" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">AKTİF</text>
+  <line x1="290" y1="185" x2="1240" y2="185" stroke="#e9ecef"/>
+  <g font-size="12">
+    <text x="290" y="215" fill="#6c757d">Tarih aralığı:</text>
+    <text x="430" y="215" fill="#212529" font-weight="600">01.02.2026 – 30.06.2026</text>
+
+    <text x="290" y="240" fill="#6c757d">Aktif öğrenci:</text>
+    <text x="430" y="240" fill="#212529" font-weight="600">247</text>
+
+    <text x="290" y="265" fill="#6c757d">Toplam ders günü:</text>
+    <text x="430" y="265" fill="#212529" font-weight="600">95</text>
+
+    <text x="290" y="290" fill="#6c757d">Dönem ortalaması:</text>
+    <text x="430" y="290" fill="#198754" font-weight="700">78.4</text>
+
+    <text x="290" y="315" fill="#6c757d">Karne dağıtım:</text>
+    <text x="430" y="315" fill="#fd7e14" font-weight="600">25.05.2026 (planlandı)</text>
+  </g>
+
+  <rect x="900" y="200" width="160" height="36" rx="4" fill="#0d6efd"/>
+  <text x="980" y="223" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">📥 Karneleri Üret</text>
+  <rect x="1080" y="200" width="160" height="36" rx="4" fill="#198754"/>
+  <text x="1160" y="223" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">📨 Velilere Gönder</text>
+
+  <rect x="900" y="245" width="340" height="36" rx="4" fill="#fff" stroke="#dc3545"/>
+  <text x="1070" y="268" text-anchor="middle" font-size="12" fill="#dc3545" font-weight="600">🔒 Dönemi Kapat (geri alınamaz)</text>
+
+  <text x="290" y="380" font-size="13" font-weight="700" fill="#212529">📋 GEÇMİŞ DÖNEMLER</text>
+
+  <rect x="270" y="395" width="990" height="180" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="395" width="990" height="36" fill="#f8f9fa"/>
+  <line x1="270" y1="431" x2="1260" y2="431" stroke="#dee2e6"/>
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="418">DÖNEM</text>
+    <text x="500" y="418">TARİH</text>
+    <text x="700" y="418">ÖĞRENCİ</text>
+    <text x="830" y="418">ORTALAMA</text>
+    <text x="950" y="418">DURUM</text>
+    <text x="1080" y="418">KARNE</text>
+  </g>
+  <g font-size="12">
+    <text x="290" y="455" fill="#212529">2025-2026 Güz</text>
+    <text x="500" y="455" fill="#495057">15.09 – 31.01</text>
+    <text x="700" y="455" fill="#495057">235</text>
+    <text x="830" y="455" fill="#212529" font-weight="600">76.2</text>
+    <rect x="940" y="442" width="80" height="22" rx="11" fill="#6c757d"/>
+    <text x="980" y="457" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Kapalı</text>
+    <text x="1080" y="455" fill="#0d6efd">📥 İndir</text>
+    <line x1="270" y1="471" x2="1260" y2="471" stroke="#f1f3f5"/>
+
+    <text x="290" y="491" fill="#212529">2024-2025 Bahar</text>
+    <text x="500" y="491" fill="#495057">01.02 – 30.06.2025</text>
+    <text x="700" y="491" fill="#495057">218</text>
+    <text x="830" y="491" fill="#212529" font-weight="600">74.8</text>
+    <rect x="940" y="478" width="80" height="22" rx="11" fill="#6c757d"/>
+    <text x="980" y="493" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Kapalı</text>
+    <text x="1080" y="491" fill="#0d6efd">📥 İndir</text>
+    <line x1="270" y1="507" x2="1260" y2="507" stroke="#f1f3f5"/>
+
+    <text x="290" y="527" fill="#212529">2024-2025 Güz</text>
+    <text x="500" y="527" fill="#495057">15.09 – 31.01.2025</text>
+    <text x="700" y="527" fill="#495057">204</text>
+    <text x="830" y="527" fill="#212529" font-weight="600">73.5</text>
+    <rect x="940" y="514" width="80" height="22" rx="11" fill="#6c757d"/>
+    <text x="980" y="529" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Kapalı</text>
+    <text x="1080" y="527" fill="#0d6efd">📥 İndir</text>
+  </g>
+</svg>

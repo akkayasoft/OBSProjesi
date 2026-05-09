@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">📊 Puanlama Tablosu — TYT</text>
+
+  <rect x="270" y="135" width="990" height="445" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="135" width="990" height="40" fill="#f8f9fa"/>
+  <line x1="270" y1="175" x2="1260" y2="175" stroke="#dee2e6"/>
+
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="160">SIRA</text>
+    <text x="350" y="160">ÖĞRENCİ</text>
+    <text x="540" y="160">SINIF</text>
+    <text x="620" y="160">TÜRKÇE</text>
+    <text x="730" y="160">MAT</text>
+    <text x="820" y="160">FEN</text>
+    <text x="900" y="160">SOSYAL</text>
+    <text x="1010" y="160">TOPLAM NET</text>
+    <text x="1140" y="160">% PUAN</text>
+  </g>
+
+  <g font-size="12">
+    <!-- Top student -->
+    <rect x="270" y="175" width="990" height="38" fill="#fff8e1"/>
+    <text x="290" y="199" font-size="14" fill="#fd7e14" font-weight="700">🥇 1</text>
+    <text x="350" y="199" fill="#212529" font-weight="700">Demo Öğrenci 3</text>
+    <text x="540" y="199" fill="#495057">9-A</text>
+    <text x="620" y="199" fill="#495057">38.0</text>
+    <text x="730" y="199" fill="#495057">37.5</text>
+    <text x="820" y="199" fill="#495057">19.5</text>
+    <text x="900" y="199" fill="#495057">19.0</text>
+    <text x="1010" y="199" fill="#198754" font-weight="700">114.0</text>
+    <text x="1140" y="199" fill="#198754" font-weight="700">95.0</text>
+    <line x1="270" y1="213" x2="1260" y2="213" stroke="#f1f3f5"/>
+
+    <rect x="270" y="213" width="990" height="38" fill="#f8f9fa"/>
+    <text x="290" y="237" font-size="13" fill="#adb5bd" font-weight="700">🥈 2</text>
+    <text x="350" y="237" fill="#212529" font-weight="600">Demo Öğrenci 17</text>
+    <text x="540" y="237" fill="#495057">11-A</text>
+    <text x="620" y="237" fill="#495057">36.5</text>
+    <text x="730" y="237" fill="#495057">35.0</text>
+    <text x="820" y="237" fill="#495057">18.0</text>
+    <text x="900" y="237" fill="#495057">18.5</text>
+    <text x="1010" y="237" fill="#198754" font-weight="700">108.0</text>
+    <text x="1140" y="237" fill="#198754" font-weight="600">90.0</text>
+    <line x1="270" y1="251" x2="1260" y2="251" stroke="#f1f3f5"/>
+
+    <text x="290" y="275" font-size="13" fill="#cd7f32" font-weight="700">🥉 3</text>
+    <text x="350" y="275" fill="#212529" font-weight="600">Demo Öğrenci 22</text>
+    <text x="540" y="275" fill="#495057">9-B</text>
+    <text x="620" y="275" fill="#495057">35.0</text>
+    <text x="730" y="275" fill="#495057">33.5</text>
+    <text x="820" y="275" fill="#495057">17.5</text>
+    <text x="900" y="275" fill="#495057">17.0</text>
+    <text x="1010" y="275" fill="#198754" font-weight="700">103.0</text>
+    <text x="1140" y="275" fill="#198754" font-weight="600">85.8</text>
+    <line x1="270" y1="289" x2="1260" y2="289" stroke="#f1f3f5"/>
+
+    <text x="290" y="313" fill="#495057">4</text>
+    <text x="350" y="313" fill="#212529">Demo Öğrenci 1</text>
+    <text x="540" y="313" fill="#495057">9-A</text>
+    <text x="620" y="313" fill="#495057">32.0</text>
+    <text x="730" y="313" fill="#495057">30.5</text>
+    <text x="820" y="313" fill="#495057">15.0</text>
+    <text x="900" y="313" fill="#495057">14.5</text>
+    <text x="1010" y="313" fill="#212529" font-weight="600">92.0</text>
+    <text x="1140" y="313" fill="#212529">76.7</text>
+    <line x1="270" y1="327" x2="1260" y2="327" stroke="#f1f3f5"/>
+
+    <text x="290" y="351" fill="#495057">5</text>
+    <text x="350" y="351" fill="#212529">Demo Öğrenci 8</text>
+    <text x="540" y="351" fill="#495057">10-A</text>
+    <text x="620" y="351" fill="#495057">29.5</text>
+    <text x="730" y="351" fill="#495057">28.0</text>
+    <text x="820" y="351" fill="#495057">14.0</text>
+    <text x="900" y="351" fill="#495057">15.5</text>
+    <text x="1010" y="351" fill="#212529" font-weight="600">87.0</text>
+    <text x="1140" y="351" fill="#212529">72.5</text>
+    <line x1="270" y1="365" x2="1260" y2="365" stroke="#f1f3f5"/>
+
+    <text x="290" y="389" fill="#495057">...</text>
+    <text x="350" y="389" fill="#adb5bd" font-style="italic">110 öğrenci daha</text>
+
+    <!-- Stats row -->
+    <line x1="270" y1="430" x2="1260" y2="430" stroke="#0d6efd" stroke-width="2"/>
+    <text x="290" y="455" fill="#212529" font-weight="700">İSTATİSTİK</text>
+    <text x="350" y="480" fill="#6c757d">Sınıf ortalaması</text>
+    <text x="450" y="480" fill="#212529" font-weight="700">68.4</text>
+    <text x="540" y="480" fill="#6c757d">En yüksek</text>
+    <text x="620" y="480" fill="#198754" font-weight="700">114.0</text>
+    <text x="730" y="480" fill="#6c757d">En düşük</text>
+    <text x="800" y="480" fill="#dc3545" font-weight="700">22.5</text>
+    <text x="880" y="480" fill="#6c757d">Standart sapma</text>
+    <text x="990" y="480" fill="#212529" font-weight="700">18.7</text>
+    <text x="1080" y="480" fill="#6c757d">Katılım</text>
+    <text x="1135" y="480" fill="#212529" font-weight="700">115/120</text>
+
+    <!-- Action buttons -->
+    <text x="290" y="525" fill="#6c757d" font-weight="600">İŞLEMLER:</text>
+    <rect x="380" y="510" width="160" height="32" rx="4" fill="#198754"/>
+    <text x="460" y="531" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">📊 Excel İndir</text>
+    <rect x="555" y="510" width="160" height="32" rx="4" fill="#dc3545"/>
+    <text x="635" y="531" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">📄 PDF Rapor</text>
+    <rect x="730" y="510" width="200" height="32" rx="4" fill="#0d6efd"/>
+    <text x="830" y="531" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">📨 Velilere Gönder</text>
+  </g>
+</svg>

@@ -6,7 +6,7 @@
 
 **Not Defteri → Sınav Notları → Yeni Sınav** veya mevcut sınava tıklayarak.
 
-**[Görsel: 05-not-girisi.png — Sınıfın tüm öğrencileri, yan yana kutucuklarla not girişi]**
+![Sınıfın tüm öğrencileri, yan yana kutucuklarla not girişi](gorseller/05-not-girisi.svg)
 
 1. Sınav adı (örn. "1. Yazılı — Matematik")
 2. Tarih
@@ -22,7 +22,7 @@
 
 **Not Defteri → Sınavlar** sayfasında bütün sınavlar listelenir.
 
-**[Görsel: 05-sinav-listesi.png — Tarih, ders, sınıf, ortalama kolonlu tablo]**
+![Tarih, ders, sınıf, ortalama kolonlu tablo](gorseller/05-sinav-listesi.svg)
 
 - Sınava tıklayınca düzenleme açılır
 - Sınıf ortalaması anında hesaplanır
@@ -32,7 +32,7 @@
 
 **Karne → Öğrenci Seç** veya öğrenci detayından **Akademik → Karne**.
 
-**[Görsel: 05-karne-onizleme.png — A4 hazır karne görünümü: ders, not, ortalama, başarı durumu]**
+![A4 hazır karne görünümü: ders, not, ortalama, başarı durumu](gorseller/05-karne-onizleme.svg)
 
 İçerik:
 - Ders bazlı not listesi
@@ -46,7 +46,7 @@
 - Yazıcıdan A4 dök, ya da PDF olarak indir
 - @media print CSS ile çıktıda gereksiz öğeler (menü, butonlar) gizli
 
-**[Görsel: 05-karne-pdf.png — Print preview]**
+![Print preview](gorseller/05-karne-pdf.svg)
 
 ## 5.4. Karne dağıtım dönemi
 
@@ -54,7 +54,7 @@
 - Tüm sınıflara **PDF karne** otomatik gönderilebilir (veli portala düşer)
 - E-posta ile veliye iletme: opsiyonel
 
-**[Görsel: 05-donem-yonetimi.png]**
+![05-donem-yonetimi](gorseller/05-donem-yonetimi.svg)
 
 ## 5.5. Veli portalında not görme
 
@@ -63,7 +63,7 @@ Veli, çocuğunun girişiyle açılan portalda:
 - **Karne** sekmesinde dönem karnesi
 - **Devamsızlık** sekmesinde günlük durum
 
-**[Görsel: 05-veli-portali-notlar.png]**
+![05-veli-portali-notlar](gorseller/05-veli-portali-notlar.svg)
 
 > Veliye ekstra mesaj göndermek gerekmiyor — kendi telefonuyla giriş
 > yaptığında günlük takip edebiliyor.

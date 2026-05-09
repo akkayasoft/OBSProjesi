@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#e3f2fd"/>
+      <stop offset="1" stop-color="#bbdefb"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="600" fill="url(#bg)"/>
+
+  <!-- Login card -->
+  <g filter="url(#sh)">
+    <rect x="320" y="100" width="360" height="430" rx="12" fill="#ffffff"/>
+  </g>
+
+  <!-- Success banner top -->
+  <rect x="320" y="100" width="360" height="80" rx="12" fill="#d4edda"/>
+  <text x="500" y="135" text-anchor="middle" font-size="32">✅</text>
+  <text x="500" y="165" text-anchor="middle" font-size="13" font-weight="700" fill="#155724">Yedek başarıyla geri yüklendi!</text>
+
+  <text x="500" y="220" text-anchor="middle" font-size="11" fill="#6c757d">Lütfen tekrar giriş yapın.</text>
+
+  <text x="350" y="260" font-size="12" fill="#495057" font-weight="500">Kullanıcı Adı</text>
+  <rect x="350" y="270" width="300" height="40" rx="6" fill="#fff" stroke="#ced4da"/>
+  <text x="362" y="295" font-size="13" fill="#adb5bd">ahmet.yilmaz</text>
+
+  <text x="350" y="335" font-size="12" fill="#495057" font-weight="500">Şifre</text>
+  <rect x="350" y="345" width="300" height="40" rx="6" fill="#fff" stroke="#ced4da"/>
+  <text x="362" y="370" font-size="13" fill="#adb5bd">••••••••</text>
+
+  <rect x="350" y="410" width="300" height="44" rx="6" fill="#0d6efd"/>
+  <text x="500" y="437" text-anchor="middle" font-size="14" fill="#fff" font-weight="600">GİRİŞ YAP</text>
+
+  <text x="500" y="490" text-anchor="middle" font-size="10" fill="#6c757d">Sistem yeni veritabanı durumuna geçti. Tüm veriler</text>
+  <text x="500" y="505" text-anchor="middle" font-size="10" fill="#6c757d">yedeği aldığınız tarihteki haline döndürüldü.</text>
+
+  <text x="500" y="565" text-anchor="middle" font-size="10" fill="#6c757d">© 2026 OBS</text>
+
+  <defs>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+</svg>

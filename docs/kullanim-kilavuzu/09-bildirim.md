@@ -6,7 +6,7 @@
 
 Üst banner'daki **🔔** ikonu sistemdeki tüm uyarıların merkez noktası.
 
-**[Görsel: 09-bildirim-cani-acik.png — Açılır liste]**
+![Açılır liste](gorseller/09-bildirim-cani-acik.svg)
 
 Kırmızı sayı = okunmamış bildirim adedi.
 
@@ -27,7 +27,7 @@ Kırmızı sayı = okunmamış bildirim adedi.
 
 Çanın altındaki **"Tümünü Gör"** linki tüm bildirimleri listeler.
 
-**[Görsel: 09-bildirim-listesi.png — Tablo: bildirim, tarih, okundu/okunmadı]**
+![Tablo: bildirim, tarih, okundu/okunmadı](gorseller/09-bildirim-listesi.svg)
 
 Her bildirim:
 - Başlık + kısa metin
@@ -39,7 +39,7 @@ Her bildirim:
 
 **Bildirim → Toplu Mesaj**:
 
-**[Görsel: 09-toplu-mesaj.png — Form: hedef, mesaj, önizleme]**
+![Form: hedef, mesaj, önizleme](gorseller/09-toplu-mesaj.svg)
 
 1. **Hedef**: tüm veliler / belirli sınıf / tek öğrenci
 2. **Mesaj** (160 karakter sınırı önerilir, daha fazlası 2 SMS sayılır)
@@ -54,7 +54,7 @@ Her bildirim:
 
 Veliye ya da personele toplu e-posta:
 
-**[Görsel: 09-toplu-eposta.png]**
+![09-toplu-eposta](gorseller/09-toplu-eposta.svg)
 
 - Konu + HTML içerik (basit zengin metin editörü)
 - Eklenti (PDF) gönderebilirsin
@@ -67,7 +67,7 @@ Veliye ya da personele toplu e-posta:
 - Veli toplantısı duyurusu
 - Tatil günü bildirimi
 
-**[Görsel: 09-takvim-hatirlatma.png]**
+![09-takvim-hatirlatma](gorseller/09-takvim-hatirlatma.svg)
 
 > Tüm bu otomatik bildirimler, gece çalışan zamanlanmış görev
 > tarafından gönderilir; manuel müdahale gerekmez.
@@ -76,7 +76,7 @@ Veliye ya da personele toplu e-posta:
 
 **İletişim → Mesajlar**:
 
-**[Görsel: 09-mesajlasma.png — Sohbet penceresi]**
+![Sohbet penceresi](gorseller/09-mesajlasma.svg)
 
 - Veli, çocuğunun öğretmenine portal üzerinden mesaj yazar
 - Öğretmen sistemde okur ve yanıtlar

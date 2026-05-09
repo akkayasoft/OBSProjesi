@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">📋 Denetim Kaydı (Audit Log)</text>
+
+  <rect x="270" y="140" width="990" height="60" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="290" y="156" width="200" height="28" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="302" y="176" font-size="11" fill="#495057">Tarih: 01.05 → 08.05</text>
+  <rect x="510" y="156" width="180" height="28" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="522" y="176" font-size="11" fill="#495057">Kullanıcı: Tümü ▾</text>
+  <rect x="710" y="156" width="180" height="28" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="722" y="176" font-size="11" fill="#495057">İşlem: Tümü ▾</text>
+  <rect x="910" y="156" width="100" height="28" rx="4" fill="#0d6efd"/>
+  <text x="960" y="176" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">Filtrele</text>
+
+  <rect x="270" y="220" width="990" height="365" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="220" width="990" height="36" fill="#f8f9fa"/>
+  <line x1="270" y1="256" x2="1260" y2="256" stroke="#dee2e6"/>
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="243">TARİH-SAAT</text>
+    <text x="450" y="243">KULLANICI</text>
+    <text x="600" y="243">İŞLEM</text>
+    <text x="780" y="243">DETAY</text>
+    <text x="1130" y="243">IP</text>
+  </g>
+
+  <g font-size="11">
+    <text x="290" y="285" fill="#495057">08.05 14:30</text>
+    <text x="450" y="285" fill="#212529" font-weight="600">Ahmet Yılmaz</text>
+    <rect x="595" y="272" width="120" height="22" rx="11" fill="#d4edda"/>
+    <text x="655" y="287" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">YEDEK ALDI</text>
+    <text x="780" y="285" fill="#495057">obs_bilfen → 12.4 MB</text>
+    <text x="1130" y="285" fill="#6c757d" font-family="monospace" font-size="10">192.168.1.42</text>
+    <line x1="270" y1="295" x2="1260" y2="295" stroke="#f1f3f5"/>
+
+    <text x="290" y="315" fill="#495057">08.05 14:23</text>
+    <text x="450" y="315" fill="#212529" font-weight="600">Ahmet Yılmaz</text>
+    <rect x="595" y="302" width="120" height="22" rx="11" fill="#d4edda"/>
+    <text x="655" y="317" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">ÖDEME ALDI</text>
+    <text x="780" y="315" fill="#495057">Demo Öğrenci 1 — 1.500 ₺</text>
+    <text x="1130" y="315" fill="#6c757d" font-family="monospace" font-size="10">192.168.1.42</text>
+    <line x1="270" y1="325" x2="1260" y2="325" stroke="#f1f3f5"/>
+
+    <text x="290" y="345" fill="#495057">08.05 14:18</text>
+    <text x="450" y="345" fill="#212529" font-weight="600">Ali Yılmaz</text>
+    <rect x="595" y="332" width="120" height="22" rx="11" fill="#cfe2ff"/>
+    <text x="655" y="347" text-anchor="middle" font-size="10" fill="#084298" font-weight="600">YOKLAMA</text>
+    <text x="780" y="345" fill="#495057">9-A · 25 var, 3 yok, 0 geç</text>
+    <text x="1130" y="345" fill="#6c757d" font-family="monospace" font-size="10">10.0.0.5</text>
+    <line x1="270" y1="355" x2="1260" y2="355" stroke="#f1f3f5"/>
+
+    <text x="290" y="375" fill="#495057">08.05 12:08</text>
+    <text x="450" y="375" fill="#212529" font-weight="600">Ahmet Yılmaz</text>
+    <rect x="595" y="362" width="120" height="22" rx="11" fill="#fff3cd"/>
+    <text x="655" y="377" text-anchor="middle" font-size="10" fill="#664d03" font-weight="600">YETKİ DEĞİŞTİ</text>
+    <text x="780" y="375" fill="#495057">Muhasebeci → Muhasebe modülü kapatıldı</text>
+    <text x="1130" y="375" fill="#6c757d" font-family="monospace" font-size="10">192.168.1.42</text>
+    <line x1="270" y1="385" x2="1260" y2="385" stroke="#f1f3f5"/>
+
+    <text x="290" y="405" fill="#495057">08.05 11:42</text>
+    <text x="450" y="405" fill="#212529" font-weight="600">Ahmet Yılmaz</text>
+    <rect x="595" y="392" width="120" height="22" rx="11" fill="#cfe2ff"/>
+    <text x="655" y="407" text-anchor="middle" font-size="10" fill="#084298" font-weight="600">KULLANICI</text>
+    <text x="780" y="405" fill="#495057">Yeni öğretmen oluşturuldu: Burak Şen</text>
+    <text x="1130" y="405" fill="#6c757d" font-family="monospace" font-size="10">192.168.1.42</text>
+    <line x1="270" y1="415" x2="1260" y2="415" stroke="#f1f3f5"/>
+
+    <text x="290" y="435" fill="#dc3545">08.05 02:14</text>
+    <text x="450" y="435" fill="#dc3545" font-weight="600">Bilinmeyen</text>
+    <rect x="595" y="422" width="120" height="22" rx="11" fill="#f8d7da"/>
+    <text x="655" y="437" text-anchor="middle" font-size="10" fill="#721c24" font-weight="600">GİRİŞ HATALI</text>
+    <text x="780" y="435" fill="#dc3545">5. yanlış deneme · IP engellendi</text>
+    <text x="1130" y="435" fill="#dc3545" font-family="monospace" font-size="10">x.x.x.x</text>
+    <line x1="270" y1="445" x2="1260" y2="445" stroke="#f1f3f5"/>
+
+    <text x="290" y="465" fill="#495057">07.05 18:00</text>
+    <text x="450" y="465" fill="#212529" font-weight="600">Ahmet Yılmaz</text>
+    <rect x="595" y="452" width="120" height="22" rx="11" fill="#f8d7da"/>
+    <text x="655" y="467" text-anchor="middle" font-size="10" fill="#721c24" font-weight="600">GİDER KAYDI</text>
+    <text x="780" y="465" fill="#495057">Personel maaş — 5 personel · 75.500 ₺</text>
+    <text x="1130" y="465" fill="#6c757d" font-family="monospace" font-size="10">192.168.1.42</text>
+    <line x1="270" y1="475" x2="1260" y2="475" stroke="#f1f3f5"/>
+
+    <text x="290" y="495" fill="#495057">07.05 16:45</text>
+    <text x="450" y="495" fill="#212529" font-weight="600">Ayşe Kaya</text>
+    <rect x="595" y="482" width="120" height="22" rx="11" fill="#cfe2ff"/>
+    <text x="655" y="497" text-anchor="middle" font-size="10" fill="#084298" font-weight="600">SINAV NOTU</text>
+    <text x="780" y="495" fill="#495057">9-B Türkçe quiz — 29 not girildi</text>
+    <text x="1130" y="495" fill="#6c757d" font-family="monospace" font-size="10">10.0.0.8</text>
+
+    <text x="290" y="540" fill="#adb5bd" font-style="italic">... 124 işlem daha (son 7 gün)</text>
+  </g>
+
+  <text x="290" y="580" font-size="11" fill="#6c757d">💡 Loglar 6 ay saklanır · CSV/Excel olarak dışa aktarılabilir</text>
+</svg>

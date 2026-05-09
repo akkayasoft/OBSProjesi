@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="Inter, system-ui, sans-serif">
+  <rect width="1280" height="600" fill="#f4f6f9"/>
+  <rect x="0" y="0" width="1280" height="60" fill="#0d6efd"/>
+  <text x="24" y="38" font-size="20" fill="#fff">🎓 Bilfen</text>
+  <rect x="0" y="60" width="240" height="540" fill="#212529"/>
+
+  <text x="270" y="100" font-size="22" font-weight="700" fill="#212529">Gelir / Gider</text>
+  <rect x="1110" y="85" width="150" height="40" rx="6" fill="#198754"/>
+  <text x="1185" y="111" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">+ YENİ KAYIT</text>
+
+  <!-- Filter -->
+  <rect x="270" y="150" width="990" height="60" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="290" y="166" width="180" height="30" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="302" y="186" font-size="12" fill="#495057">Tarih: 01.05 → 08.05</text>
+  <rect x="490" y="166" width="140" height="30" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="502" y="186" font-size="12" fill="#495057">Tür: Tümü ▾</text>
+  <rect x="650" y="166" width="180" height="30" rx="4" fill="#fff" stroke="#ced4da"/>
+  <text x="662" y="186" font-size="12" fill="#495057">Kategori: Tümü ▾</text>
+  <rect x="850" y="166" width="100" height="30" rx="4" fill="#0d6efd"/>
+  <text x="900" y="186" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">Filtrele</text>
+
+  <!-- Table -->
+  <rect x="270" y="225" width="990" height="365" rx="6" fill="#fff" stroke="#dee2e6"/>
+  <rect x="270" y="225" width="990" height="36" fill="#f8f9fa"/>
+  <line x1="270" y1="261" x2="1260" y2="261" stroke="#dee2e6"/>
+  <g font-size="11" fill="#6c757d" font-weight="600">
+    <text x="290" y="248">TARİH</text>
+    <text x="395" y="248">TÜR</text>
+    <text x="475" y="248">KATEGORİ</text>
+    <text x="635" y="248">AÇIKLAMA</text>
+    <text x="980" y="248">EKLEYEN</text>
+    <text x="1100" y="248">TUTAR</text>
+    <text x="1200" y="248">İŞLEM</text>
+  </g>
+
+  <g font-size="11">
+    <text x="290" y="285" fill="#495057">08.05.2026</text>
+    <rect x="390" y="273" width="50" height="20" rx="10" fill="#d4edda"/>
+    <text x="415" y="287" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">Gelir</text>
+    <text x="475" y="285" fill="#495057">Öğrenci Aidatı</text>
+    <text x="635" y="285" fill="#212529">Demo Öğrenci 1 — 4. taksit</text>
+    <text x="980" y="285" fill="#6c757d">Ahmet Y.</text>
+    <text x="1090" y="285" fill="#198754" font-weight="700">+1.500</text>
+    <text x="1200" y="285" fill="#0d6efd">✏️ 🗑</text>
+    <line x1="270" y1="298" x2="1260" y2="298" stroke="#f1f3f5"/>
+
+    <text x="290" y="318" fill="#495057">08.05.2026</text>
+    <rect x="390" y="306" width="50" height="20" rx="10" fill="#d4edda"/>
+    <text x="415" y="320" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">Gelir</text>
+    <text x="475" y="318" fill="#495057">Öğrenci Aidatı</text>
+    <text x="635" y="318" fill="#212529">Demo Öğrenci 12 — 2. taksit</text>
+    <text x="980" y="318" fill="#6c757d">Ahmet Y.</text>
+    <text x="1090" y="318" fill="#198754" font-weight="700">+1.250</text>
+    <text x="1200" y="318" fill="#0d6efd">✏️ 🗑</text>
+    <line x1="270" y1="331" x2="1260" y2="331" stroke="#f1f3f5"/>
+
+    <text x="290" y="351" fill="#495057">07.05.2026</text>
+    <rect x="390" y="339" width="55" height="20" rx="10" fill="#f8d7da"/>
+    <text x="418" y="353" text-anchor="middle" font-size="10" fill="#721c24" font-weight="600">Gider</text>
+    <text x="475" y="351" fill="#495057">Personel Maaş</text>
+    <text x="635" y="351" fill="#212529">Ali Yılmaz — Mayıs 2026</text>
+    <text x="980" y="351" fill="#6c757d">Ahmet Y.</text>
+    <text x="1090" y="351" fill="#dc3545" font-weight="700">-15.000</text>
+    <text x="1200" y="351" fill="#0d6efd">✏️ 🗑</text>
+    <line x1="270" y1="364" x2="1260" y2="364" stroke="#f1f3f5"/>
+
+    <text x="290" y="384" fill="#495057">07.05.2026</text>
+    <rect x="390" y="372" width="50" height="20" rx="10" fill="#d4edda"/>
+    <text x="415" y="386" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">Gelir</text>
+    <text x="475" y="384" fill="#495057">Kantin Satışı</text>
+    <text x="635" y="384" fill="#212529">Günlük kantin kapanışı</text>
+    <text x="980" y="384" fill="#6c757d">Sistem (oto.)</text>
+    <text x="1090" y="384" fill="#198754" font-weight="700">+340</text>
+    <line x1="270" y1="397" x2="1260" y2="397" stroke="#f1f3f5"/>
+
+    <text x="290" y="417" fill="#495057">06.05.2026</text>
+    <rect x="390" y="405" width="55" height="20" rx="10" fill="#f8d7da"/>
+    <text x="418" y="419" text-anchor="middle" font-size="10" fill="#721c24" font-weight="600">Gider</text>
+    <text x="475" y="417" fill="#495057">Kira</text>
+    <text x="635" y="417" fill="#212529">Mayıs 2026 dershane kirası</text>
+    <text x="980" y="417" fill="#6c757d">Ahmet Y.</text>
+    <text x="1090" y="417" fill="#dc3545" font-weight="700">-12.000</text>
+    <text x="1200" y="417" fill="#0d6efd">✏️ 🗑</text>
+    <line x1="270" y1="430" x2="1260" y2="430" stroke="#f1f3f5"/>
+
+    <text x="290" y="450" fill="#495057">05.05.2026</text>
+    <rect x="390" y="438" width="50" height="20" rx="10" fill="#d4edda"/>
+    <text x="415" y="452" text-anchor="middle" font-size="10" fill="#155724" font-weight="600">Gelir</text>
+    <text x="475" y="450" fill="#495057">Öğrenci Aidatı</text>
+    <text x="635" y="450" fill="#212529">Demo Öğrenci 5 — 7. taksit</text>
+    <text x="980" y="450" fill="#6c757d">Ahmet Y.</text>
+    <text x="1090" y="450" fill="#198754" font-weight="700">+850</text>
+    <text x="1200" y="450" fill="#0d6efd">✏️ 🗑</text>
+    <line x1="270" y1="463" x2="1260" y2="463" stroke="#f1f3f5"/>
+
+    <text x="290" y="483" fill="#495057">05.05.2026</text>
+    <rect x="390" y="471" width="55" height="20" rx="10" fill="#f8d7da"/>
+    <text x="418" y="485" text-anchor="middle" font-size="10" fill="#721c24" font-weight="600">Gider</text>
+    <text x="475" y="483" fill="#495057">Kırtasiye</text>
+    <text x="635" y="483" fill="#212529">Sınav formları + foto. ürünleri</text>
+    <text x="980" y="483" fill="#6c757d">Ayşe K.</text>
+    <text x="1090" y="483" fill="#dc3545" font-weight="700">-1.250</text>
+    <text x="1200" y="483" fill="#0d6efd">✏️ 🗑</text>
+    <line x1="270" y1="496" x2="1260" y2="496" stroke="#f1f3f5"/>
+
+    <text x="290" y="516" fill="#adb5bd" font-style="italic">... 62 satır daha</text>
+
+    <!-- Sum row -->
+    <line x1="270" y1="540" x2="1260" y2="540" stroke="#0d6efd" stroke-width="2"/>
+    <text x="290" y="560" fill="#212529" font-weight="700">DÖNEM TOPLAMI</text>
+    <text x="850" y="560" fill="#198754" font-weight="700">+42.350 ₺</text>
+    <text x="975" y="560" fill="#dc3545" font-weight="700">-28.200 ₺</text>
+    <text x="1090" y="560" fill="#0d6efd" font-weight="700">+14.150</text>
+  </g>
+</svg>

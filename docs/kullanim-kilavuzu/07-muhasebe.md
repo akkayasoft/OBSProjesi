@@ -6,7 +6,7 @@
 
 Sol menü → **Muhasebe**.
 
-![Muhasebe dashboard: bu ay özeti, son işlemler](gorseller/07-muhasebe-ana.svg)
+![Muhasebe dashboard: bu ay özeti, son işlemler](gorseller/07-muhasebe-ana.png)
 
 KPI kartları:
 - Bu ay gelir / gider / **net**
@@ -17,7 +17,7 @@ KPI kartları:
 
 **Muhasebe → Gelir / Gider** sayfasında tüm hareketler:
 
-![Kolonlar: tarih, tür, kategori, açıklama, tutar, ekleyen](gorseller/07-gelir-gider-listesi.svg)
+![Kolonlar: tarih, tür, kategori, açıklama, tutar, ekleyen](gorseller/07-gelir-gider-listesi.png)
 
 Kolonlar:
 - Tarih
@@ -65,7 +65,7 @@ Sistem aşağıdaki işlemler için **otomatik gelir/gider kaydı oluşturur**:
 
 **Muhasebe → Banka Hesapları**:
 
-![Hesap listesi: ad, banka, IBAN, bakiye](gorseller/07-banka-hesaplari.svg)
+![Hesap listesi: ad, banka, IBAN, bakiye](gorseller/07-banka-hesaplari.png)
 
 - Birden fazla banka hesabı / kasa tanımlanabilir
 - Her gelir/gider hareketinde hesap seçimi var
@@ -84,7 +84,7 @@ Sistem aşağıdaki işlemler için **otomatik gelir/gider kaydı oluşturur**:
 
 **Muhasebe → Tahsilat** veya öğrenci detayında **Muhasebe** sekmesi.
 
-![Öğrenci taksitleri + "Ödeme Al" butonu](gorseller/07-tahsilat-ekrani.svg)
+![Öğrenci taksitleri + "Ödeme Al" butonu](gorseller/07-tahsilat-ekrani.png)
 
 1. Öğrenciyi seç (otomatik tamamlama)
 2. Hangi taksit?
@@ -113,7 +113,7 @@ Tahsilat sonrası A4 makbuz açılır:
 
 **Muhasebe → Personel Ödeme**:
 
-![07-personel-odeme](gorseller/07-personel-odeme.svg)
+![07-personel-odeme](gorseller/07-personel-odeme.png)
 
 1. Personel seç
 2. Dönem (örn. "Mayıs 2026 maaşı")

@@ -11,7 +11,7 @@ Sol menü → **Sistem Ayarları → Veritabanı Yedekleme**.
 
 Sürücü kursunda: **Ayarlar → Veritabanı Yedekleme**.
 
-![Sayfa: yedek al kartı + geri yükle kartı](gorseller/11-yedekleme-anasayfa.svg)
+![Sayfa: yedek al kartı + geri yükle kartı](gorseller/11-yedekleme-anasayfa.png)
 
 Sayfada iki kart var:
 - **Sol**: Yedek İndir

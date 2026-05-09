@@ -27,7 +27,7 @@ Kırmızı sayı = okunmamış bildirim adedi.
 
 Çanın altındaki **"Tümünü Gör"** linki tüm bildirimleri listeler.
 
-![Tablo: bildirim, tarih, okundu/okunmadı](gorseller/09-bildirim-listesi.svg)
+![Tablo: bildirim, tarih, okundu/okunmadı](gorseller/09-bildirim-listesi.png)
 
 Her bildirim:
 - Başlık + kısa metin
@@ -39,7 +39,7 @@ Her bildirim:
 
 **Bildirim → Toplu Mesaj**:
 
-![Form: hedef, mesaj, önizleme](gorseller/09-toplu-mesaj.svg)
+![Form: hedef, mesaj, önizleme](gorseller/09-toplu-mesaj.png)
 
 1. **Hedef**: tüm veliler / belirli sınıf / tek öğrenci
 2. **Mesaj** (160 karakter sınırı önerilir, daha fazlası 2 SMS sayılır)

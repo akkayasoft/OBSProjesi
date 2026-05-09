@@ -12,7 +12,7 @@ https://<dershane-slug>.obs.akkayasoft.com/auth/giris
 
 Örnek: `https://bilfen.obs.akkayasoft.com/auth/giris`
 
-![Açılış sayfasında kullanıcı adı/şifre formu](gorseller/01-giris-ekrani.svg)
+![Açılış sayfasında kullanıcı adı/şifre formu](gorseller/01-giris-ekrani.png)
 
 ## 1.2. Giriş bilgileriyle oturum açma
 

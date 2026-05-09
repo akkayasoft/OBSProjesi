@@ -7,7 +7,7 @@ buradadır.
 
 ## 2.1. Üst banner ve sol menü
 
-![Tüm sayfa: navbar + sol menü + içerik](gorseller/02-genel-yerlesim.svg)
+![Tüm sayfa: navbar + sol menü + içerik](gorseller/02-genel-yerlesim.png)
 
 - **Üst banner (mavi)**: dershanenizin adı + bildirim çanı + kullanıcı menüsü
 - **Sol sidebar**: tüm modüllerin menüsü (rol bazlı filtrelenmiş)

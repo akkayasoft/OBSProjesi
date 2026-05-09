@@ -6,7 +6,7 @@
 
 Sol menüden **Kayıt Yönetimi → Öğrenci Listesi**.
 
-![Tablo halinde öğrenci listesi + filtreler](gorseller/03-ogrenci-listesi.svg)
+![Tablo halinde öğrenci listesi + filtreler](gorseller/03-ogrenci-listesi.png)
 
 Tabloda:
 - Ad-soyad, sınıf, telefon, kayıt durumu
@@ -17,7 +17,7 @@ Tabloda:
 
 Listede sağ üst yeşil **"Yeni Öğrenci"** butonuna basın.
 
-![Form: kimlik, veli, sınıf, ödeme planı sekmeleri](gorseller/03-yeni-ogrenci-formu.svg)
+![Form: kimlik, veli, sınıf, ödeme planı sekmeleri](gorseller/03-yeni-ogrenci-formu.png)
 
 ### 3.2.1. Kimlik bilgileri
 

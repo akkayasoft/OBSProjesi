@@ -8,7 +8,7 @@ Dershanenin kalbi: deneme sınavı yönetimi.
 
 Sol menü → **Deneme Sınavı → Yeni Deneme**.
 
-![Şablon seçim, ders soru sayısı, optik form ayarı](gorseller/06-yeni-deneme.svg)
+![Şablon seçim, ders soru sayısı, optik form ayarı](gorseller/06-yeni-deneme.png)
 
 1. **Şablon seç**: TYT / AYT / LGS
 2. **Tarih**: deneme gün/saat
@@ -37,7 +37,7 @@ Sistem otomatik:
 - Ders bazlı netleri hesaplar
 - Toplam net + yüzde / sıra üretir
 
-![Öğrenci, doğru, yanlış, net kolonları](gorseller/06-puanlama-tablosu.svg)
+![Öğrenci, doğru, yanlış, net kolonları](gorseller/06-puanlama-tablosu.png)
 
 ## 6.4. Sıralama tablosu
 

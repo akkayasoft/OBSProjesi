@@ -9,7 +9,7 @@
 
 Sol menü → **Sistem Ayarları**.
 
-![Ayarlar dashboard: kart kart modüller](gorseller/10-ayarlar-anasayfa.svg)
+![Ayarlar dashboard: kart kart modüller](gorseller/10-ayarlar-anasayfa.png)
 
 Bölümler:
 - **Genel**: kurum adı, logo, iletişim
@@ -67,7 +67,7 @@ Bölümler:
 
 **Ayarlar → Yetkilendirme**:
 
-![Rol × modül checkbox grid](gorseller/10-yetki-matrisi.svg)
+![Rol × modül checkbox grid](gorseller/10-yetki-matrisi.png)
 
 - Satırlar: modüller (Muhasebe, Devamsızlık, Not Defteri, ...)
 - Sütunlar: roller (Sistem Yöneticisi, Yönetici, Öğretmen, Muhasebeci, Veli, Öğrenci)
@@ -90,7 +90,7 @@ Bölümler:
 
 ## 10.7. Denetim Kaydı (Audit Log)
 
-![10-denetim-log](gorseller/10-denetim-log.svg)
+![10-denetim-log](gorseller/10-denetim-log.png)
 
 Sistemde yapılan kritik işlemlerin geçmişi:
 - Kim, ne zaman, hangi işlemi yaptı
@@ -104,7 +104,7 @@ Sistemde yapılan kritik işlemlerin geçmişi:
 
 **Sol menü → Kullanıcı Yönetimi**:
 
-![10-kullanici-listesi](gorseller/10-kullanici-listesi.svg)
+![10-kullanici-listesi](gorseller/10-kullanici-listesi.png)
 
 - Tüm kullanıcılar listesi (rol, son giriş, durum)
 - **Yeni Kullanıcı**: ad, email, rol, geçici şifre

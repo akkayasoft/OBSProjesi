@@ -6,7 +6,7 @@
 
 Sol menü → **Raporlama** (veya bazı kurum tiplerinde **Raporlar**).
 
-![KPI kartları + grafik bölümleri](gorseller/08-rapor-anasayfa.svg)
+![KPI kartları + grafik bölümleri](gorseller/08-rapor-anasayfa.png)
 
 KPI kartları:
 - Aktif öğrenci / personel

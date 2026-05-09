@@ -6,7 +6,7 @@
 
 **Not Defteri → Sınav Notları → Yeni Sınav** veya mevcut sınava tıklayarak.
 
-![Sınıfın tüm öğrencileri, yan yana kutucuklarla not girişi](gorseller/05-not-girisi.svg)
+![Sınıfın tüm öğrencileri, yan yana kutucuklarla not girişi](gorseller/05-not-girisi.png)
 
 1. Sınav adı (örn. "1. Yazılı — Matematik")
 2. Tarih
@@ -32,7 +32,7 @@
 
 **Karne → Öğrenci Seç** veya öğrenci detayından **Akademik → Karne**.
 
-![A4 hazır karne görünümü: ders, not, ortalama, başarı durumu](gorseller/05-karne-onizleme.svg)
+![A4 hazır karne görünümü: ders, not, ortalama, başarı durumu](gorseller/05-karne-onizleme.png)
 
 İçerik:
 - Ders bazlı not listesi

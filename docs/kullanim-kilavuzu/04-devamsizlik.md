@@ -6,7 +6,7 @@
 
 Sol menü → **Devamsızlık → Yoklama Al**.
 
-![Sınıf seçici + öğrenci kartları (var/yok/geç)](gorseller/04-yoklama-ekrani.svg)
+![Sınıf seçici + öğrenci kartları (var/yok/geç)](gorseller/04-yoklama-ekrani.png)
 
 1. Üstten **sınıf** seç
 2. Öğrenciler kart şeklinde dizilir
@@ -52,7 +52,7 @@ Yanlış yazıldıysa:
 - Öğrenci bazlı top 10 (en çok gelmeyenler)
 - PDF/Excel dışa aktarım
 
-![Bar grafik + tablo](gorseller/04-aylik-rapor.svg)
+![Bar grafik + tablo](gorseller/04-aylik-rapor.png)
 
 ## 4.6. Veliye toplu duyuru gönderme
 

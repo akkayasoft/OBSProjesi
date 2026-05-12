@@ -345,7 +345,7 @@
                         · Kalan <strong class="text-danger">{{ '%.2f'|format(egitim_kalan) }} ₺</strong>
                     </small>
                 </div>
-                {% if not salt_goruntu_modu and (kursiyer.fiyat or 0) > 0 %}
+                {% if (kursiyer.fiyat or 0) > 0 %}
                 <button type="button" class="btn btn-sm btn-success"
                         data-bs-toggle="modal" data-bs-target="#taksitlendirModal">
                     <i class="bi bi-calendar-range me-1"></i>Taksitlendir

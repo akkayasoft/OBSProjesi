@@ -260,6 +260,7 @@ def create_app(config_class=Config):
                 {'label': 'Sınavlar', 'icon': 'bi-pencil-square', 'url': '/portal/sinavlar/'},
                 {'label': 'Duyurular', 'icon': 'bi-megaphone', 'url': '/portal/duyurular/'},
                 {'label': 'Ödeme Durumu', 'icon': 'bi-cash-stack', 'url': '/portal/muhasebe/'},
+                {'label': 'Şifre Değiştir', 'icon': 'bi-key', 'url': '/kullanici/profil/sifre'},
             ]},
             {'label': 'Kullanıcı Yönetimi', 'icon': 'bi-shield-lock', 'url': '/kullanici/', 'modul_key': 'kullanici', 'children': [
                 {'label': 'Kullanıcı Listesi', 'icon': 'bi-people', 'url': '/kullanici/liste'},

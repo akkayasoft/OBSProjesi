@@ -60,6 +60,8 @@ def create_app(config_class=Config):
     # Mobil uygulama API'si (JSON + JWT) — bagimsiz Flutter istemcisi icin
     from app.api import api_bp
     app.register_blueprint(api_bp, url_prefix='/api/v1')
+    # API token tabanli auth kullanir; CSRF (cerez tabanli) muaf tutulur
+    csrf.exempt(api_bp)
 
     from app.ders_dagitimi import ders_dagitimi_bp
     app.register_blueprint(ders_dagitimi_bp, url_prefix='/ders-dagitimi')

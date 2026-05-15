@@ -20,3 +20,5 @@ Pillow>=10.3.0
 pdfplumber==0.11.9
 # Uygulama ici kilavuz icin markdown -> HTML donusum
 Markdown==3.7
+# Mobil uygulama API'si — JWT token kimlik dogrulama
+PyJWT==2.10.1

@@ -57,6 +57,10 @@ def create_app(config_class=Config):
     from app.ogretmen_hakedis import ogretmen_hakedis_bp
     app.register_blueprint(ogretmen_hakedis_bp, url_prefix='/ogretmen-hakedis')
 
+    # Mobil uygulama API'si (JSON + JWT) — bagimsiz Flutter istemcisi icin
+    from app.api import api_bp
+    app.register_blueprint(api_bp, url_prefix='/api/v1')
+
     from app.ders_dagitimi import ders_dagitimi_bp
     app.register_blueprint(ders_dagitimi_bp, url_prefix='/ders-dagitimi')
 

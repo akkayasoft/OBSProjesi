@@ -10,7 +10,7 @@ import os
 import subprocess
 import sys
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, date
 from urllib.parse import urlparse
 
 from flask import (Blueprint, render_template, redirect, url_for, flash,
@@ -153,6 +153,8 @@ def dashboard():
         toplam = s.query(func.count(Tenant.id)).scalar() or 0
         aktif = s.query(func.count(Tenant.id)).filter(Tenant.durum == 'aktif').scalar() or 0
         askida = s.query(func.count(Tenant.id)).filter(Tenant.durum == 'askida').scalar() or 0
+        surucu = s.query(func.count(Tenant.id)).filter(
+            Tenant.kurum_tipi == 'surucu_kursu').scalar() or 0
 
     return render_template(
         'sistem/dashboard.html',
@@ -160,6 +162,8 @@ def dashboard():
         toplam=toplam,
         aktif=aktif,
         askida=askida,
+        surucu=surucu,
+        bugun=date.today(),
         arama=arama,
         durum=durum,
         planlar=PLAN_LIMITLERI,

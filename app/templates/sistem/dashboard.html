@@ -3,26 +3,109 @@
 {% block title %}Tenant'lar{% endblock %}
 
 {% block content %}
+<style>
+.stat-card {
+    border-radius: 14px; padding: 1.1rem 1.25rem;
+    border: 1px solid #334155; position: relative; overflow: hidden;
+}
+.stat-card .stat-deger { font-size: 2rem; font-weight: 800; line-height: 1; }
+.stat-card .stat-etiket { font-size: .8rem; opacity: .8; margin-top: .3rem; }
+.stat-card .stat-ikon {
+    position: absolute; right: -8px; bottom: -12px;
+    font-size: 4.2rem; opacity: .14;
+}
+.stat-toplam  { background: linear-gradient(135deg,#1e293b,#3730a3); }
+.stat-aktif   { background: linear-gradient(135deg,#064e3b,#10b981); }
+.stat-askida  { background: linear-gradient(135deg,#78350f,#f59e0b); }
+.stat-surucu  { background: linear-gradient(135deg,#1e293b,#0e7490); }
+
+.tenant-kart {
+    background: #1e293b; border: 1px solid #334155;
+    border-left: 4px solid #475569; border-radius: 12px;
+    padding: 1rem 1.1rem; height: 100%;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s;
+}
+.tenant-kart:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    border-color: #475569;
+}
+.tenant-kart.durum-aktif  { border-left-color: #10b981; }
+.tenant-kart.durum-askida { border-left-color: #f59e0b; }
+.tenant-kart .tenant-ad {
+    color: #f1f5f9; font-weight: 700; font-size: 1.05rem;
+    text-decoration: none;
+}
+.tenant-kart .tenant-ad:hover { color: #c7d2fe; }
+.tenant-kart .tk-meta { color: #64748b; font-size: .76rem; }
+.tenant-kart .tk-satir {
+    display: flex; justify-content: space-between;
+    font-size: .82rem; padding: .25rem 0;
+    border-top: 1px solid #2c3a4f;
+}
+.tenant-kart .tk-satir .tk-label { color: #94a3b8; }
+.rozet {
+    font-size: .7rem; padding: .22rem .5rem; border-radius: 6px;
+    border: 1px solid transparent; white-space: nowrap;
+}
+.rozet-plan   { background: rgba(129,140,248,.18); color:#a5b4fc; border-color: rgba(129,140,248,.3); }
+.rozet-kurs   { background: rgba(245,158,11,.18); color:#fbbf24; border-color: rgba(245,158,11,.3); }
+.rozet-ders   { background: rgba(59,130,246,.16); color:#93c5fd; border-color: rgba(59,130,246,.3); }
+.rozet-aktif  { background:#10b981; color:#04231a; font-weight:600; }
+.rozet-askida { background:#f59e0b; color:#3a2606; font-weight:600; }
+.rozet-pasif  { background:#475569; color:#e2e8f0; }
+.abonelik-doldu  { color:#f87171; font-weight:600; }
+.abonelik-yakin  { color:#fbbf24; font-weight:600; }
+.abonelik-normal { color:#94a3b8; }
+.gorunum-btn.active { background: rgba(129,140,248,.25); color:#fff; }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
         <h4 class="mb-1">
             <i class="bi bi-grid-3x3-gap me-2 text-info"></i>Tenant'lar
         </h4>
-        <small class="text-muted">
-            Toplam: {{ toplam }} ·
-            <span class="text-success">{{ aktif }} aktif</span> ·
-            <span class="text-warning">{{ askida }} askıda</span>
-        </small>
+        <small class="text-muted">Tüm kurumların genel görünümü</small>
     </div>
-    <div>
-        <a href="{{ url_for('sistem.tenant_yeni') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle me-1"></i>Yeni Tenant
-        </a>
+    <a href="{{ url_for('sistem.tenant_yeni') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Tenant
+    </a>
+</div>
+
+<!-- Ozet istatistik kartlari -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-toplam">
+            <div class="stat-deger">{{ toplam }}</div>
+            <div class="stat-etiket">Toplam Tenant</div>
+            <i class="bi bi-buildings stat-ikon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-aktif">
+            <div class="stat-deger">{{ aktif }}</div>
+            <div class="stat-etiket">Aktif</div>
+            <i class="bi bi-check-circle stat-ikon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-askida">
+            <div class="stat-deger">{{ askida }}</div>
+            <div class="stat-etiket">Askıda</div>
+            <i class="bi bi-pause-circle stat-ikon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-surucu">
+            <div class="stat-deger">{{ surucu }}</div>
+            <div class="stat-etiket">Sürücü Kursu</div>
+            <i class="bi bi-car-front stat-ikon"></i>
+        </div>
     </div>
 </div>
 
 <!-- Filtreler -->
-<form method="GET" class="row g-2 align-items-center mb-3">
+<form method="GET" class="row g-2 align-items-center mb-4">
     <div class="col-md-6">
         <input type="search" name="arama" value="{{ arama }}"
                class="form-control form-control-sm"
@@ -42,87 +125,87 @@
     </div>
 </form>
 
-<!-- Tenant tablosu -->
-<div class="sistem-card p-0">
-    {% if tenants %}
-    <table class="table table-hover mb-0 align-middle">
-        <thead>
-            <tr>
-                <th>Tenant</th>
-                <th>Plan</th>
-                <th>Durum</th>
-                <th>İletişim</th>
-                <th>Abonelik Bitiş</th>
-                <th class="text-end">İşlem</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in tenants %}
-            <tr>
-                <td>
-                    <a href="{{ url_for('sistem.tenant_detay', tenant_id=t.id) }}"
-                       class="text-decoration-none">
-                        <strong style="color:#e2e8f0;">{{ t.ad }}</strong>
-                    </a>
-                    {% if t.kurum_tipi == 'surucu_kursu' %}
-                    <span class="badge ms-1"
-                          style="background: rgba(245,158,11,0.18); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); font-size:0.7rem;">
-                        <i class="bi bi-car-front"></i> Sürücü Kursu
-                    </span>
-                    {% endif %}
-                    <small class="text-muted d-block">
-                        <code>{{ t.slug }}</code> · {{ t.db_name }}
-                    </small>
-                </td>
-                <td>
-                    {% set p = planlar.get(t.plan, planlar['standart']) %}
-                    <span class="badge"
-                          style="background: rgba(129,140,248,0.18); color:#a5b4fc; border:1px solid rgba(129,140,248,0.3);">
-                        <i class="bi bi-stars me-1"></i>{{ p.ad }}
-                    </span>
-                </td>
-                <td>
-                    {% if t.durum == 'aktif' %}
-                    <span class="badge bg-success">Aktif</span>
-                    {% elif t.durum == 'askida' %}
-                    <span class="badge bg-warning text-dark">Askıda</span>
-                    {% else %}
-                    <span class="badge bg-secondary">{{ t.durum }}</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <small class="text-muted">
-                        {% if t.iletisim_email %}
-                        <i class="bi bi-envelope me-1"></i>{{ t.iletisim_email }}<br>
-                        {% endif %}
-                        {% if t.iletisim_telefon %}
-                        <i class="bi bi-telephone me-1"></i>{{ t.iletisim_telefon }}
-                        {% endif %}
-                        {% if not t.iletisim_email and not t.iletisim_telefon %}—{% endif %}
-                    </small>
-                </td>
-                <td>
-                    {% if t.abonelik_bitis %}
-                    <small>{{ t.abonelik_bitis.strftime('%d.%m.%Y') }}</small>
-                    {% else %}
-                    <small class="text-muted">—</small>
-                    {% endif %}
-                </td>
-                <td class="text-end">
-                    <a href="{{ url_for('sistem.tenant_detay', tenant_id=t.id) }}"
-                       class="btn btn-sm btn-outline-info">
-                        <i class="bi bi-arrow-right"></i> Aç
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="text-center text-muted py-5">
-        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
-        Tenant bulunamadı.
-    </div>
-    {% endif %}
+{% if tenants %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <small class="text-muted">{{ tenants|length }} tenant listeleniyor</small>
 </div>
+<div class="row g-3">
+    {% for t in tenants %}
+    {% set p = planlar.get(t.plan, planlar['standart']) %}
+    <div class="col-md-6 col-xl-4">
+        <div class="tenant-kart durum-{{ t.durum }}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <a href="{{ url_for('sistem.tenant_detay', tenant_id=t.id) }}"
+                       class="tenant-ad">{{ t.ad }}</a>
+                    <div class="tk-meta">
+                        <code>{{ t.slug }}</code> · {{ t.db_name }}
+                    </div>
+                </div>
+                {% if t.durum == 'aktif' %}
+                <span class="rozet rozet-aktif">Aktif</span>
+                {% elif t.durum == 'askida' %}
+                <span class="rozet rozet-askida">Askıda</span>
+                {% else %}
+                <span class="rozet rozet-pasif">{{ t.durum }}</span>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-1 flex-wrap mb-2">
+                {% if t.kurum_tipi == 'surucu_kursu' %}
+                <span class="rozet rozet-kurs"><i class="bi bi-car-front me-1"></i>Sürücü Kursu</span>
+                {% else %}
+                <span class="rozet rozet-ders"><i class="bi bi-mortarboard me-1"></i>Dershane</span>
+                {% endif %}
+                <span class="rozet rozet-plan"><i class="bi bi-stars me-1"></i>{{ p.ad }}</span>
+            </div>
+
+            <div class="tk-satir">
+                <span class="tk-label"><i class="bi bi-envelope me-1"></i>İletişim</span>
+                <span>{{ t.iletisim_email or t.iletisim_telefon or '—' }}</span>
+            </div>
+            <div class="tk-satir">
+                <span class="tk-label"><i class="bi bi-calendar-event me-1"></i>Abonelik</span>
+                <span>
+                    {% if t.abonelik_bitis %}
+                        {% set kalan = (t.abonelik_bitis - bugun).days %}
+                        {% if kalan < 0 %}
+                        <span class="abonelik-doldu">
+                            <i class="bi bi-x-octagon"></i>
+                            {{ -kalan }} gün önce doldu
+                        </span>
+                        {% elif kalan == 0 %}
+                        <span class="abonelik-doldu"><i class="bi bi-exclamation-triangle"></i> Bugün doluyor</span>
+                        {% elif kalan <= 15 %}
+                        <span class="abonelik-yakin">
+                            <i class="bi bi-hourglass-split"></i> {{ kalan }} gün kaldı
+                        </span>
+                        {% else %}
+                        <span class="abonelik-normal">
+                            {{ t.abonelik_bitis.strftime('%d.%m.%Y') }}
+                            ({{ kalan }} gün)
+                        </span>
+                        {% endif %}
+                    {% else %}
+                        <span class="abonelik-normal">Limitsiz</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="text-end mt-2">
+                <a href="{{ url_for('sistem.tenant_detay', tenant_id=t.id) }}"
+                   class="btn btn-sm btn-outline-info">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Yönet
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="sistem-card text-center text-muted py-5">
+    <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+    Tenant bulunamadı.
+</div>
+{% endif %}
 {% endblock %}

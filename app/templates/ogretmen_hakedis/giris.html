@@ -1,0 +1,146 @@
+{% extends "ogretmen_hakedis/_layout.html" %}
+
+{% block title %}Ders Saati Girişi — {{ ay_etiket }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Ders Saati Girişi</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hakedis-grid { border-collapse: separate; border-spacing: 0; font-size: .85rem; }
+.hakedis-grid th, .hakedis-grid td {
+    border: 1px solid #dee2e6; padding: 2px; text-align: center;
+    white-space: nowrap;
+}
+.hakedis-grid thead th {
+    background: #f8f9fa; position: sticky; top: 0; z-index: 3;
+}
+.hakedis-grid .col-brans, .hakedis-grid .col-ad {
+    position: sticky; z-index: 2; background: #fff; text-align: left;
+    padding: 4px 8px;
+}
+.hakedis-grid .col-brans { left: 0; min-width: 90px; }
+.hakedis-grid .col-ad { left: 90px; min-width: 150px; font-weight: 600; }
+.hakedis-grid thead .col-brans, .hakedis-grid thead .col-ad { z-index: 4; }
+.hakedis-grid .col-toplam {
+    position: sticky; right: 0; z-index: 2;
+    background: #e7f1ff; font-weight: 700; min-width: 64px;
+}
+.hakedis-grid thead .col-toplam { z-index: 4; }
+.hakedis-grid input {
+    width: 38px; border: none; text-align: center; padding: 4px 1px;
+    background: transparent; font-size: .85rem;
+}
+.hakedis-grid input:focus {
+    outline: 2px solid #0d6efd; background: #fff; border-radius: 3px;
+}
+.hakedis-grid td.haftasonu { background: #fff5f5; }
+.hakedis-grid th.haftasonu { background: #ffe9e9; }
+.grid-scroll { overflow-x: auto; max-height: 70vh; }
+</style>
+{% endblock %}
+
+{% block hakedis_content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h4 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Ders Saati Girişi</h4>
+    <div class="btn-group">
+        <a href="{{ url_for('ogretmen_hakedis.giris', ay=onceki_ay) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="btn btn-light btn-sm disabled fw-bold">{{ ay_etiket }}</span>
+        <a href="{{ url_for('ogretmen_hakedis.giris', ay=sonraki_ay) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+    <a href="{{ url_for('ogretmen_hakedis.maliyet', ay=donem) }}"
+       class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-cash-stack me-1"></i>Öğretmen Maliyeti
+    </a>
+</div>
+
+<div class="alert alert-info py-2 small">
+    <i class="bi bi-info-circle me-1"></i>
+    Her hücreye o gün girilen ders saatini yazın. Boş bırakılan gün
+    sıfır sayılır. Yarım saat için <code>0.5</code> / <code>1.5</code>
+    yazabilirsiniz. Değişiklikleri kaydetmeyi unutmayın.
+</div>
+
+{% if satirlar %}
+<form method="POST" action="{{ url_for('ogretmen_hakedis.giris', ay=donem) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="card shadow-sm">
+        <div class="grid-scroll">
+            <table class="hakedis-grid mb-0">
+                <thead>
+                    <tr>
+                        <th class="col-brans">Branş</th>
+                        <th class="col-ad">Ad Soyad</th>
+                        {% for g in gunler %}
+                        <th>{{ g }}</th>
+                        {% endfor %}
+                        <th class="col-toplam">Top.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in satirlar %}
+                    <tr>
+                        <td class="col-brans text-muted">{{ s.personel.departman or '—' }}</td>
+                        <td class="col-ad">{{ s.personel.tam_ad }}</td>
+                        {% for g in gunler %}
+                        <td>
+                            <input type="text" inputmode="decimal"
+                                   name="s_{{ s.personel.id }}_{{ g }}"
+                                   value="{{ s.gunler.get(g, '') }}"
+                                   data-personel="{{ s.personel.id }}"
+                                   class="ders-saat">
+                        </td>
+                        {% endfor %}
+                        <td class="col-toplam" id="toplam-{{ s.personel.id }}">
+                            {{ s.toplam | round(1) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <small class="text-muted">{{ satirlar|length }} personel</small>
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-1"></i>Kaydet
+            </button>
+        </div>
+    </div>
+</form>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+        Aktif personel bulunamadı. Önce <strong>Personel Yönetimi</strong>'nden
+        personel ekleyin.
+    </div>
+</div>
+{% endif %}
+
+<script>
+(function() {
+    function satirToplami(pid) {
+        var inputs = document.querySelectorAll('input[data-personel="' + pid + '"]');
+        var t = 0;
+        inputs.forEach(function(inp) {
+            var v = parseFloat((inp.value || '').replace(',', '.'));
+            if (!isNaN(v) && v > 0) t += v;
+        });
+        var hucre = document.getElementById('toplam-' + pid);
+        if (hucre) hucre.textContent = (Math.round(t * 10) / 10);
+    }
+    document.querySelectorAll('input.ders-saat').forEach(function(inp) {
+        inp.addEventListener('input', function() {
+            satirToplami(this.getAttribute('data-personel'));
+        });
+    });
+})();
+</script>
+{% endblock %}

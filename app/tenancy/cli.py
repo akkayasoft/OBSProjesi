@@ -94,6 +94,8 @@ TENANT_KOLON_BACKFILL_LISTESI = [
     ('personel_odeme_kayitlari', 'gelir_gider_kayit_id', 'INTEGER'),
     # Kantin satisi -> Gelir linki
     ('kantin_satislar', 'gelir_gider_kayit_id', 'INTEGER'),
+    # Ogretmen hak edis — saat bazli calisma ucreti
+    ('personeller', 'saatlik_ucret', 'NUMERIC(10,2)'),
 ]
 
 

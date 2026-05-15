@@ -1,0 +1,103 @@
+{% extends "ogretmen_portal/_layout.html" %}
+
+{% block title %}Hak Edişim — {{ ay_etiket }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Hak Edişim</li>
+{% endblock %}
+
+{% block portal_content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h4 class="mb-0"><i class="bi bi-cash-coin me-2"></i>Ders Saatlerim / Hak Edişim</h4>
+    <div class="btn-group">
+        <a href="{{ url_for('ogretmen_portal.hakedis.index', ay=onceki_ay) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="btn btn-light btn-sm disabled fw-bold">{{ ay_etiket }}</span>
+        <a href="{{ url_for('ogretmen_portal.hakedis.index', ay=sonraki_ay) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+</div>
+
+{% if personel is none %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-1"></i>
+    Hesabınıza bağlı bir personel kaydı bulunamadı. Ders saati takibi
+    için yöneticinizle iletişime geçin.
+</div>
+{% else %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-primary text-white">
+            <div class="card-body py-3">
+                <div class="small opacity-75">Toplam Ders Saati</div>
+                <div class="fs-3 fw-bold">{{ toplam_saat | round(1) }} saat</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-secondary text-white">
+            <div class="card-body py-3">
+                <div class="small opacity-75">Saatlik Ücret</div>
+                <div class="fs-3 fw-bold">
+                    {% if saatlik_ucret > 0 %}{{ '%.2f'|format(saatlik_ucret) }} ₺{% else %}—{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body py-3">
+                <div class="small opacity-75">Hak Ediş Tutarı</div>
+                <div class="fs-3 fw-bold">{{ '%.2f'|format(tutar) }} ₺</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-calendar3 me-2"></i>{{ ay_etiket }} Günlük Ders Saatleri</h6>
+        {% if odeme %}
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle me-1"></i>Ödendi
+        </span>
+        {% else %}
+        <span class="badge bg-warning text-dark">
+            <i class="bi bi-hourglass-split me-1"></i>Ödeme Bekliyor
+        </span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+            {% for g in gun_listesi %}
+            <div class="text-center border rounded p-2"
+                 style="min-width:48px; {% if gunler.get(g) %}background:#e7f1ff;{% endif %}">
+                <div class="small text-muted">{{ g }}</div>
+                <div class="fw-bold">
+                    {% if gunler.get(g) %}{{ gunler.get(g) | round(1) }}{% else %}<span class="text-muted">·</span>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% if odeme %}
+<div class="alert alert-success">
+    <i class="bi bi-check-circle me-1"></i>
+    Bu dönem hak edişiniz <strong>{{ '%.2f'|format(odeme.tutar) }} ₺</strong>
+    olarak {{ odeme.tarih.strftime('%d.%m.%Y') }} tarihinde ödenmiştir.
+</div>
+{% elif saatlik_ucret == 0 %}
+<div class="alert alert-info small">
+    <i class="bi bi-info-circle me-1"></i>
+    Saatlik ücretiniz henüz tanımlanmamış. Hak ediş tutarı saatlik ücret
+    tanımlandıktan sonra hesaplanır.
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -54,6 +54,9 @@ def create_app(config_class=Config):
     from app.personel import personel_bp
     app.register_blueprint(personel_bp, url_prefix='/personel')
 
+    from app.ogretmen_hakedis import ogretmen_hakedis_bp
+    app.register_blueprint(ogretmen_hakedis_bp, url_prefix='/ogretmen-hakedis')
+
     from app.ders_dagitimi import ders_dagitimi_bp
     app.register_blueprint(ders_dagitimi_bp, url_prefix='/ders-dagitimi')
 
@@ -251,6 +254,7 @@ def create_app(config_class=Config):
                 {'label': 'Sınıflarım', 'icon': 'bi-people', 'url': '/ogretmen/siniflarim/'},
                 {'label': 'Notlarım', 'icon': 'bi-journal-check', 'url': '/ogretmen/notlar/'},
                 {'label': 'Yoklama', 'icon': 'bi-clipboard-check', 'url': '/ogretmen/yoklama/'},
+                {'label': 'Hak Edişim', 'icon': 'bi-cash-coin', 'url': '/ogretmen/hakedis/'},
                 {'label': 'Mesajlarım', 'icon': 'bi-envelope', 'url': '/ogretmen/mesajlar/'},
             ]},
             {'label': 'Öğrenci Portalı', 'icon': 'bi-mortarboard', 'url': '/portal/', 'modul_key': 'ogrenci_portal', 'children': [
@@ -301,6 +305,10 @@ def create_app(config_class=Config):
                 {'label': 'Personel Listesi', 'icon': 'bi-people-fill', 'url': '/personel/personel/'},
                 {'label': 'Yeni Personel', 'icon': 'bi-person-plus-fill', 'url': '/personel/personel/yeni'},
                 {'label': 'İzin Yönetimi', 'icon': 'bi-calendar-check', 'url': '/personel/izin/'},
+                {'label': 'Ders Saati Girişi', 'icon': 'bi-calendar3', 'url': '/ogretmen-hakedis/giris',
+                 'roller': ['admin', 'yonetici', 'muhasebeci']},
+                {'label': 'Öğretmen Maliyeti', 'icon': 'bi-cash-stack', 'url': '/ogretmen-hakedis/maliyet',
+                 'roller': ['admin', 'yonetici', 'muhasebeci']},
                 {'label': 'Raporlar', 'icon': 'bi-bar-chart-line', 'url': '/personel/rapor/'},
             ]},
             {'label': 'Ders Dağıtımı', 'icon': 'bi-book', 'url': '/ders-dagitimi/', 'modul_key': 'ders_dagitimi', 'children': [

@@ -244,6 +244,9 @@ class Personel(db.Model):
     ise_bitis_tarihi = db.Column(db.Date, nullable=True)
     calisma_turu = db.Column(db.String(20), default='tam_zamanli')
 
+    # Saat bazli calisma — ogretmen hak edis hesabi icin
+    saatlik_ucret = db.Column(db.Numeric(10, 2), nullable=True)
+
     user = db.relationship('User', backref=db.backref('personel', uselist=False))
     odeme_kayitlari = db.relationship('PersonelOdemeKaydi', backref='personel', lazy='dynamic')
     izinler = db.relationship('PersonelIzin', backref='personel', lazy='dynamic')
@@ -291,6 +294,36 @@ class PersonelOdemeKaydi(db.Model):
 
     def __repr__(self):
         return f'<PersonelOdeme {self.donem} {self.tutar}>'
+
+
+class OgretmenDersSaati(db.Model):
+    """Bir ogretmenin belirli bir gun girdigi ders saati.
+
+    Aylik hak edis = ay icindeki tum saatlerin toplami x Personel.saatlik_ucret.
+    Her (personel, tarih) icin tek kayit; aciklama 'deneme gunu' /
+    'bayram tatil' gibi notlar icin kullanilir.
+    """
+    __tablename__ = 'ogretmen_ders_saatleri'
+    __table_args__ = (
+        db.UniqueConstraint('personel_id', 'tarih',
+                            name='uq_ogretmen_ders_saati'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    personel_id = db.Column(db.Integer, db.ForeignKey('personeller.id'),
+                            nullable=False)
+    tarih = db.Column(db.Date, nullable=False)
+    saat = db.Column(db.Numeric(5, 1), nullable=False, default=0)
+    aciklama = db.Column(db.String(200), nullable=True)
+    olusturan_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                             nullable=True)
+
+    personel = db.relationship('Personel', backref=db.backref(
+        'ders_saatleri', lazy='dynamic',
+        cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<OgretmenDersSaati p={self.personel_id} {self.tarih} {self.saat}s>'
 
 
 class BankaHesabi(db.Model):

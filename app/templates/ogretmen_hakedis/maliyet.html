@@ -1,0 +1,228 @@
+{% extends "ogretmen_hakedis/_layout.html" %}
+
+{% block title %}Öğretmen Maliyeti — {{ ay_etiket }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Öğretmen Maliyeti</li>
+{% endblock %}
+
+{% block hakedis_content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h4 class="mb-0"><i class="bi bi-cash-stack me-2"></i>Öğretmen Maliyeti</h4>
+    <div class="btn-group">
+        <a href="{{ url_for('ogretmen_hakedis.maliyet', ay=onceki_ay) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="btn btn-light btn-sm disabled fw-bold">{{ ay_etiket }}</span>
+        <a href="{{ url_for('ogretmen_hakedis.maliyet', ay=sonraki_ay) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+    <a href="{{ url_for('ogretmen_hakedis.giris', ay=donem) }}"
+       class="btn btn-primary btn-sm">
+        <i class="bi bi-calendar3 me-1"></i>Ders Saati Girişi
+    </a>
+</div>
+
+<!-- Ozet kartlari -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-primary text-white">
+            <div class="card-body py-3">
+                <div class="small opacity-75">Toplam Ders Saati</div>
+                <div class="fs-3 fw-bold">{{ genel_saat | round(1) }} saat</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body py-3">
+                <div class="small opacity-75">Toplam Hak Ediş</div>
+                <div class="fs-3 fw-bold">{{ '%.2f'|format(genel_tutar) }} ₺</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-dark text-white">
+            <div class="card-body py-3">
+                <div class="small opacity-75">Dönem</div>
+                <div class="fs-3 fw-bold">{{ ay_etiket }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if grup_listesi %}
+{% for grup in grup_listesi %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-bookmark-fill me-2 text-primary"></i>{{ grup.brans }}</h6>
+        <small class="text-muted">
+            {{ grup.alt_saat | round(1) }} saat ·
+            <strong>{{ '%.2f'|format(grup.alt_tutar) }} ₺</strong>
+        </small>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Öğretmen</th>
+                    <th class="text-end">Toplam Saat</th>
+                    <th style="width:170px;">Saatlik Ücret</th>
+                    <th class="text-end">Hak Ediş</th>
+                    <th class="text-center" style="width:160px;">Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in grup.satirlar %}
+                <tr>
+                    <td><strong>{{ s.personel.tam_ad }}</strong></td>
+                    <td class="text-end">{{ s.toplam_saat | round(1) }}</td>
+                    <td>
+                        <form method="POST"
+                              action="{{ url_for('ogretmen_hakedis.saatlik_ucret', personel_id=s.personel.id) }}"
+                              class="d-flex gap-1">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="ay" value="{{ donem }}">
+                            <input type="text" inputmode="decimal" name="saatlik_ucret"
+                                   value="{{ s.saatlik_ucret if s.saatlik_ucret else '' }}"
+                                   placeholder="₺/saat"
+                                   class="form-control form-control-sm"
+                                   {% if s.odeme %}disabled{% endif %}>
+                            {% if not s.odeme %}
+                            <button class="btn btn-sm btn-outline-secondary" title="Kaydet">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            {% endif %}
+                        </form>
+                    </td>
+                    <td class="text-end fw-bold">{{ '%.2f'|format(s.tutar) }} ₺</td>
+                    <td class="text-center">
+                        {% if s.odeme %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>Ödendi
+                        </span>
+                        <form method="POST"
+                              action="{{ url_for('ogretmen_hakedis.ode_geri_al', odeme_id=s.odeme.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('{{ s.personel.tam_ad }} hak edişi ödemesi geri alınacak. Bağlı gider kaydı da silinecek. Devam?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-link btn-sm text-danger p-0 ms-1"
+                                    title="Geri al">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </form>
+                        {% elif s.tutar > 0 %}
+                        <button type="button" class="btn btn-sm btn-success"
+                                data-bs-toggle="modal"
+                                data-bs-target="#odeModal{{ s.personel.id }}">
+                            <i class="bi bi-cash me-1"></i>Öde
+                        </button>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <!-- Odeme modali -->
+                {% if not s.odeme and s.tutar > 0 %}
+                <div class="modal fade" id="odeModal{{ s.personel.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST"
+                                  action="{{ url_for('ogretmen_hakedis.ode', personel_id=s.personel.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="ay" value="{{ donem }}">
+                                <div class="modal-header">
+                                    <h6 class="modal-title">
+                                        {{ s.personel.tam_ad }} — {{ ay_etiket }} Hak Edişi
+                                    </h6>
+                                    <button type="button" class="btn-close"
+                                            data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <table class="table table-sm">
+                                        <tr><td>Toplam Saat</td>
+                                            <td class="text-end">{{ s.toplam_saat | round(1) }}</td></tr>
+                                        <tr><td>Saatlik Ücret</td>
+                                            <td class="text-end">{{ '%.2f'|format(s.saatlik_ucret) }} ₺</td></tr>
+                                        <tr class="table-success"><td><strong>Ödenecek</strong></td>
+                                            <td class="text-end"><strong>{{ '%.2f'|format(s.tutar) }} ₺</strong></td></tr>
+                                    </table>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Ödeme Türü</label>
+                                        <select name="odeme_turu" class="form-select form-select-sm">
+                                            <option value="havale">Havale/EFT</option>
+                                            <option value="nakit">Nakit</option>
+                                            <option value="eft">EFT</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Banka Hesabı (opsiyonel)</label>
+                                        <select name="banka_hesap_id" class="form-select form-select-sm">
+                                            <option value="0">— Seçiniz —</option>
+                                            {% for h in hesaplar %}
+                                            <option value="{{ h.id }}">{{ h.banka_adi }} - {{ h.hesap_adi }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <small class="text-muted">
+                                            Hesap seçilirse banka çıkışı da kaydedilir.
+                                        </small>
+                                    </div>
+                                    <div class="alert alert-warning small mb-0 py-2">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Onaylanınca otomatik <strong>gider kaydı</strong>
+                                        (Personel Maaşları) oluşturulur.
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-sm btn-secondary"
+                                            data-bs-dismiss="modal">İptal</button>
+                                    <button class="btn btn-sm btn-success">
+                                        <i class="bi bi-check-lg me-1"></i>Ödendi Olarak Kaydet
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-light">
+                <tr>
+                    <th>{{ grup.brans }} Toplam</th>
+                    <th class="text-end">{{ grup.alt_saat | round(1) }}</th>
+                    <th></th>
+                    <th class="text-end">{{ '%.2f'|format(grup.alt_tutar) }} ₺</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+<div class="card shadow-sm border-success">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>GENEL TOPLAM</h6>
+        <div>
+            <span class="me-3 text-muted">{{ genel_saat | round(1) }} saat</span>
+            <span class="fs-5 fw-bold text-success">{{ '%.2f'|format(genel_tutar) }} ₺</span>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-clipboard-x fs-1 d-block mb-2 opacity-50"></i>
+        Bu ay için ders saati veya saatlik ücret tanımlı personel yok.<br>
+        <a href="{{ url_for('ogretmen_hakedis.giris', ay=donem) }}" class="btn btn-primary btn-sm mt-3">
+            <i class="bi bi-calendar3 me-1"></i>Ders Saati Girişine Git
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

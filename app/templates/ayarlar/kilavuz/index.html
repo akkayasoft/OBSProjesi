@@ -74,8 +74,8 @@
 </div>
 
 <div class="row">
-    <!-- Sol: bölüm listesi (büyük kartlar) -->
-    <div class="col-lg-8">
+    <!-- Bölüm listesi (büyük kartlar) -->
+    <div class="col-lg-12">
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white">
                 <h6 class="mb-0">
@@ -107,18 +107,6 @@
             </a>
         </div>
         {% endif %}
-    </div>
-
-    <!-- Sağ: kılavuz hakkında bilgi -->
-    <div class="col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Kılavuz Hakkında</h6>
-            </div>
-            <div class="card-body kilavuz-icerik">
-                {{ icerik_html | safe }}
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}

@@ -561,8 +561,6 @@ def create_app(config_class=Config):
                          'url': '/surucu-kursu/ayarlar/yetkilendirme'},
                         {'label': 'Veritabanı Yedekleme', 'icon': 'bi-cloud-download',
                          'url': '/ayarlar/yedekleme'},
-                        {'label': 'Uygulama Kılavuzu', 'icon': 'bi-book',
-                         'url': '/ayarlar/kilavuz/'},
                     ],
                     'renk_kat': 'mor',
                 })

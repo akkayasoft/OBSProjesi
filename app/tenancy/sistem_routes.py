@@ -655,6 +655,75 @@ def tenant_kullanici_durum(tenant_id, user_id):
     return redirect(url_for('sistem.tenant_kullanicilar', tenant_id=tenant_id))
 
 
+@bp.route('/tenant/<int:tenant_id>/kullanici/<int:user_id>/rol', methods=['POST'])
+@platform_admin_required
+def tenant_kullanici_rol(tenant_id, user_id):
+    tenant = _tenant_yukle(tenant_id)
+    if not tenant:
+        abort(404)
+
+    yeni_rol = (request.form.get('yeni_rol') or '').strip()
+    if yeni_rol not in ROLLER_LISTESI + ['admin']:
+        flash('Geçersiz rol.', 'danger')
+        return redirect(url_for('sistem.tenant_kullanicilar', tenant_id=tenant_id))
+
+    admin = aktif_platform_admin()
+    try:
+        from app.models.user import User
+        from app.models.ayarlar import RolModulIzin, KullaniciModulIzin
+        with _tenant_session(tenant.db_name) as ts:
+            u = ts.query(User).filter_by(id=user_id).first()
+            if not u:
+                abort(404)
+            eski_rol = u.rol
+            kullanici_adi = u.username
+            if eski_rol == yeni_rol:
+                flash(f'"{kullanici_adi}" zaten bu role sahip.', 'info')
+                return redirect(url_for('sistem.tenant_kullanicilar',
+                                         tenant_id=tenant_id))
+            # Son admin/yoneticinin rolu dusurulemez (sistem kilitlenmesin)
+            if eski_rol in ('admin', 'yonetici') and \
+                    yeni_rol not in ('admin', 'yonetici'):
+                kalan = ts.query(func.count(User.id)).filter(
+                    User.rol.in_(['admin', 'yonetici']),
+                    User.aktif.is_(True),
+                    User.id != user_id,
+                ).scalar() or 0
+                if kalan == 0:
+                    flash('Son admin/yöneticinin rolü düşürülemez. Önce '
+                          'başka bir admin/yönetici kullanıcı oluşturun.',
+                          'danger')
+                    return redirect(url_for('sistem.tenant_kullanicilar',
+                                             tenant_id=tenant_id))
+            u.rol = yeni_rol
+            ts.flush()
+            # yonetici'ye yukseltiliyorsa tum modullere izin ver
+            if yeni_rol == 'yonetici':
+                mevcut_izinler = {
+                    i.modul_key for i in ts.query(KullaniciModulIzin)
+                    .filter_by(user_id=u.id).all()
+                }
+                for modul_key in RolModulIzin.MODULLER.keys():
+                    if modul_key not in mevcut_izinler:
+                        ts.add(KullaniciModulIzin(
+                            user_id=u.id, modul_key=modul_key, aktif=True,
+                        ))
+            ts.commit()
+    except Exception as e:
+        flash(f'Rol güncellenemedi: {e}', 'danger')
+        return redirect(url_for('sistem.tenant_kullanicilar', tenant_id=tenant_id))
+
+    with master_session() as s:
+        t = s.query(Tenant).filter_by(id=tenant_id).first()
+        audit_kaydet(s, admin, 'tenant_user_role_change', tenant=t,
+                     detay=f'user_id={user_id} username={kullanici_adi} '
+                           f'{eski_rol} -> {yeni_rol}')
+        s.commit()
+    flash(f'"{kullanici_adi}" rolü "{eski_rol}" → "{yeni_rol}" olarak '
+          f'güncellendi.', 'success')
+    return redirect(url_for('sistem.tenant_kullanicilar', tenant_id=tenant_id))
+
+
 @bp.route('/tenant/<int:tenant_id>/kullanici/<int:user_id>/sil', methods=['POST'])
 @platform_admin_required
 def tenant_kullanici_sil(tenant_id, user_id):

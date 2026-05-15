@@ -89,6 +89,12 @@
                                             title="Şifre sıfırla">
                                         <i class="bi bi-key"></i>
                                     </button>
+                                    <button type="button" class="btn btn-outline-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#rolModal{{ u.id }}"
+                                            title="Rol değiştir">
+                                        <i class="bi bi-person-gear"></i>
+                                    </button>
                                     <form method="POST"
                                           action="{{ url_for('sistem.tenant_kullanici_durum', tenant_id=tenant.id, user_id=u.id) }}"
                                           class="d-inline">
@@ -136,6 +142,49 @@
                                         <div class="modal-footer" style="border-color:#334155;">
                                             <button class="btn btn-sm btn-warning">
                                                 <i class="bi bi-key me-1"></i>Şifreyi Güncelle
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rol degistirme modal'i -->
+                        <div class="modal fade" id="rolModal{{ u.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content" style="background:#1e293b; color:#e2e8f0;">
+                                    <form method="POST"
+                                          action="{{ url_for('sistem.tenant_kullanici_rol', tenant_id=tenant.id, user_id=u.id) }}"
+                                          onsubmit="return confirm('{{ u.username }} kullanıcısının rolü değiştirilecek. Devam?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="modal-header" style="border-color:#334155;">
+                                            <h6 class="modal-title">{{ u.username }} — Rol Değiştir</h6>
+                                            <button type="button" class="btn-close btn-close-white"
+                                                    data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="small text-muted mb-2">
+                                                Mevcut rol:
+                                                <strong>{{ u.rol }}</strong>
+                                            </p>
+                                            <label class="form-label small">Yeni Rol</label>
+                                            <select name="yeni_rol" class="form-select form-select-sm">
+                                                <option value="admin" {% if u.rol == 'admin' %}selected{% endif %}>admin (tam yetkili)</option>
+                                                <option value="yonetici" {% if u.rol == 'yonetici' %}selected{% endif %}>yonetici</option>
+                                                <option value="muhasebeci" {% if u.rol == 'muhasebeci' %}selected{% endif %}>muhasebeci</option>
+                                                <option value="ogretmen" {% if u.rol == 'ogretmen' %}selected{% endif %}>ogretmen</option>
+                                                <option value="veli" {% if u.rol == 'veli' %}selected{% endif %}>veli</option>
+                                                <option value="ogrenci" {% if u.rol == 'ogrenci' %}selected{% endif %}>ogrenci</option>
+                                            </select>
+                                            <p class="small text-muted mt-2 mb-0">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                yonetici rolüne yükseltilirse tüm
+                                                modüllere erişim izni verilir.
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer" style="border-color:#334155;">
+                                            <button class="btn btn-sm btn-primary">
+                                                <i class="bi bi-person-gear me-1"></i>Rolü Güncelle
                                             </button>
                                         </div>
                                     </form>

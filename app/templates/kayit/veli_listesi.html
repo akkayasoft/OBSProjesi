@@ -140,6 +140,11 @@
                             <span class="badge bg-success-subtle text-success border" title="Veli portalına giriş yapabiliyor">
                                 <i class="bi bi-check-circle me-1"></i>Aktif
                             </span>
+                            {% if v.kullanici_adi %}
+                            <div class="small text-muted mt-1" title="Veli kullanıcı adı">
+                                <i class="bi bi-person-badge me-1"></i><code>{{ v.kullanici_adi }}</code>
+                            </div>
+                            {% endif %}
                             {% else %}
                             <span class="badge bg-light text-muted border" title="Henüz veli kullanıcı hesabı oluşturulmamış">
                                 <i class="bi bi-dash-circle me-1"></i>Yok

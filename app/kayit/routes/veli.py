@@ -105,6 +105,7 @@ def liste():
             'meslek': ana.meslek,
             'user_id': ana.user_id,
             'sistem_kullanicisi': ana.user_id is not None,
+            'kullanici_adi': ana.user.username if ana.user else None,
             'ogrenciler': [
                 {
                     'id': v.ogrenci.id,

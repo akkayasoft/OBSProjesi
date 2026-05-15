@@ -70,7 +70,7 @@
                             </td>
                             <td>
                                 <span class="badge"
-                                      style="background: rgba(129,140,248,0.18); color:#a5b4fc; border:1px solid rgba(129,140,248,0.3);">
+                                      style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">
                                     {{ u.rol }}
                                 </span>
                             </td>
@@ -124,13 +124,13 @@
                         <!-- Sifre sifirlama modal'i -->
                         <div class="modal fade" id="sifreModal{{ u.id }}" tabindex="-1">
                             <div class="modal-dialog">
-                                <div class="modal-content" style="background:#1e293b; color:#e2e8f0;">
+                                <div class="modal-content">
                                     <form method="POST"
                                           action="{{ url_for('sistem.tenant_kullanici_sifre', tenant_id=tenant.id, user_id=u.id) }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <div class="modal-header" style="border-color:#334155;">
+                                        <div class="modal-header">
                                             <h6 class="modal-title">{{ u.username }} — Şifre Sıfırla</h6>
-                                            <button type="button" class="btn-close btn-close-white"
+                                            <button type="button" class="btn-close"
                                                     data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body">
@@ -139,7 +139,7 @@
                                                    class="form-control form-control-sm"
                                                    required minlength="6" autofocus>
                                         </div>
-                                        <div class="modal-footer" style="border-color:#334155;">
+                                        <div class="modal-footer">
                                             <button class="btn btn-sm btn-warning">
                                                 <i class="bi bi-key me-1"></i>Şifreyi Güncelle
                                             </button>
@@ -152,14 +152,14 @@
                         <!-- Rol degistirme modal'i -->
                         <div class="modal fade" id="rolModal{{ u.id }}" tabindex="-1">
                             <div class="modal-dialog">
-                                <div class="modal-content" style="background:#1e293b; color:#e2e8f0;">
+                                <div class="modal-content">
                                     <form method="POST"
                                           action="{{ url_for('sistem.tenant_kullanici_rol', tenant_id=tenant.id, user_id=u.id) }}"
                                           onsubmit="return confirm('{{ u.username }} kullanıcısının rolü değiştirilecek. Devam?');">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <div class="modal-header" style="border-color:#334155;">
+                                        <div class="modal-header">
                                             <h6 class="modal-title">{{ u.username }} — Rol Değiştir</h6>
-                                            <button type="button" class="btn-close btn-close-white"
+                                            <button type="button" class="btn-close"
                                                     data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body">
@@ -182,7 +182,7 @@
                                                 modüllere erişim izni verilir.
                                             </p>
                                         </div>
-                                        <div class="modal-footer" style="border-color:#334155;">
+                                        <div class="modal-footer">
                                             <button class="btn btn-sm btn-primary">
                                                 <i class="bi bi-person-gear me-1"></i>Rolü Güncelle
                                             </button>

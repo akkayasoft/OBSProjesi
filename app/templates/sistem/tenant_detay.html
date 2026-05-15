@@ -24,14 +24,14 @@
                     {% if tenant.kurum_tipi == 'surucu_kursu' %}
                     <div class="mt-1">
                         <span class="badge"
-                              style="background: rgba(245,158,11,0.18); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);">
+                              style="background:#fef3c7; color:#b45309; border:1px solid #fcd34d;">
                             <i class="bi bi-car-front-fill me-1"></i>Sürücü Kursu
                         </span>
                     </div>
                     {% else %}
                     <div class="mt-1">
                         <span class="badge"
-                              style="background: rgba(129,140,248,0.18); color:#a5b4fc; border:1px solid rgba(129,140,248,0.3);">
+                              style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">
                             <i class="bi bi-mortarboard-fill me-1"></i>Dershane / Okul (OBS)
                         </span>
                     </div>
@@ -86,7 +86,7 @@
                 {% set plan_limit = planlar.get(tenant.plan, planlar.standart)[alan] %}
                 {% set limit = override if override is not none else plan_limit %}
                 <div class="col-md-4">
-                    <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 0.85rem;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem;">
                         <small class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.05em;">
                             <i class="bi {{ ikon }} me-1"></i>{{ etiket }}
                         </small>
@@ -97,7 +97,7 @@
                         </div>
                         {% if limit and limit > 0 %}
                         {% set oran = (mevcut / limit * 100) | round | int %}
-                        <div class="progress mt-2" style="height: 4px; background: #334155;">
+                        <div class="progress mt-2" style="height: 4px; background: #e2e8f0;">
                             <div class="progress-bar bg-{% if oran >= 90 %}danger{% elif oran >= 70 %}warning{% else %}success{% endif %}"
                                  style="width: {{ [oran, 100]|min }}%"></div>
                         </div>
@@ -180,7 +180,7 @@
             {% if loglar %}
             <div class="d-flex flex-column gap-2">
                 {% for l in loglar %}
-                <div style="border-left: 2px solid #334155; padding: 0.4rem 0.7rem;">
+                <div style="border-left: 2px solid #e2e8f0; padding: 0.4rem 0.7rem;">
                     <small class="text-muted d-block">
                         {{ l.created_at.strftime('%d.%m.%Y %H:%M') if l.created_at }}
                         · {{ l.admin_username or 'sistem' }}

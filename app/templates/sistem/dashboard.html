@@ -6,58 +6,58 @@
 <style>
 .stat-card {
     border-radius: 14px; padding: 1.1rem 1.25rem;
-    border: 1px solid #334155; position: relative; overflow: hidden;
+    position: relative; overflow: hidden; color: #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
 }
 .stat-card .stat-deger { font-size: 2rem; font-weight: 800; line-height: 1; }
-.stat-card .stat-etiket { font-size: .8rem; opacity: .8; margin-top: .3rem; }
+.stat-card .stat-etiket { font-size: .8rem; opacity: .9; margin-top: .3rem; }
 .stat-card .stat-ikon {
     position: absolute; right: -8px; bottom: -12px;
-    font-size: 4.2rem; opacity: .14;
+    font-size: 4.2rem; opacity: .22;
 }
-.stat-toplam  { background: linear-gradient(135deg,#1e293b,#3730a3); }
-.stat-aktif   { background: linear-gradient(135deg,#064e3b,#10b981); }
-.stat-askida  { background: linear-gradient(135deg,#78350f,#f59e0b); }
-.stat-surucu  { background: linear-gradient(135deg,#1e293b,#0e7490); }
+.stat-toplam  { background: linear-gradient(135deg,#6366f1,#4338ca); }
+.stat-aktif   { background: linear-gradient(135deg,#34d399,#059669); }
+.stat-askida  { background: linear-gradient(135deg,#fbbf24,#d97706); }
+.stat-surucu  { background: linear-gradient(135deg,#22d3ee,#0e7490); }
 
 .tenant-kart {
-    background: #1e293b; border: 1px solid #334155;
-    border-left: 4px solid #475569; border-radius: 12px;
+    background: #fff; border: 1px solid #e2e8f0;
+    border-left: 4px solid #cbd5e1; border-radius: 12px;
     padding: 1rem 1.1rem; height: 100%;
-    transition: transform .15s ease, box-shadow .15s ease, border-color .15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform .15s ease, box-shadow .15s ease;
 }
 .tenant-kart:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
-    border-color: #475569;
+    box-shadow: 0 10px 24px rgba(15,23,42,0.14);
 }
 .tenant-kart.durum-aktif  { border-left-color: #10b981; }
 .tenant-kart.durum-askida { border-left-color: #f59e0b; }
 .tenant-kart .tenant-ad {
-    color: #f1f5f9; font-weight: 700; font-size: 1.05rem;
+    color: #0f172a; font-weight: 700; font-size: 1.05rem;
     text-decoration: none;
 }
-.tenant-kart .tenant-ad:hover { color: #c7d2fe; }
-.tenant-kart .tk-meta { color: #64748b; font-size: .76rem; }
+.tenant-kart .tenant-ad:hover { color: #4338ca; }
+.tenant-kart .tk-meta { color: #94a3b8; font-size: .76rem; }
 .tenant-kart .tk-satir {
     display: flex; justify-content: space-between;
-    font-size: .82rem; padding: .25rem 0;
-    border-top: 1px solid #2c3a4f;
+    font-size: .82rem; padding: .3rem 0;
+    border-top: 1px solid #f1f5f9;
 }
-.tenant-kart .tk-satir .tk-label { color: #94a3b8; }
+.tenant-kart .tk-satir .tk-label { color: #64748b; }
 .rozet {
     font-size: .7rem; padding: .22rem .5rem; border-radius: 6px;
     border: 1px solid transparent; white-space: nowrap;
 }
-.rozet-plan   { background: rgba(129,140,248,.18); color:#a5b4fc; border-color: rgba(129,140,248,.3); }
-.rozet-kurs   { background: rgba(245,158,11,.18); color:#fbbf24; border-color: rgba(245,158,11,.3); }
-.rozet-ders   { background: rgba(59,130,246,.16); color:#93c5fd; border-color: rgba(59,130,246,.3); }
-.rozet-aktif  { background:#10b981; color:#04231a; font-weight:600; }
-.rozet-askida { background:#f59e0b; color:#3a2606; font-weight:600; }
-.rozet-pasif  { background:#475569; color:#e2e8f0; }
-.abonelik-doldu  { color:#f87171; font-weight:600; }
-.abonelik-yakin  { color:#fbbf24; font-weight:600; }
-.abonelik-normal { color:#94a3b8; }
-.gorunum-btn.active { background: rgba(129,140,248,.25); color:#fff; }
+.rozet-plan   { background: #eef2ff; color:#4338ca; border-color:#c7d2fe; }
+.rozet-kurs   { background: #fef3c7; color:#b45309; border-color:#fcd34d; }
+.rozet-ders   { background: #dbeafe; color:#1d4ed8; border-color:#93c5fd; }
+.rozet-aktif  { background:#d1fae5; color:#047857; border-color:#6ee7b7; font-weight:600; }
+.rozet-askida { background:#fef3c7; color:#b45309; border-color:#fcd34d; font-weight:600; }
+.rozet-pasif  { background:#e2e8f0; color:#475569; }
+.abonelik-doldu  { color:#dc2626; font-weight:600; }
+.abonelik-yakin  { color:#d97706; font-weight:600; }
+.abonelik-normal { color:#64748b; }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">

@@ -8,6 +8,9 @@ build/
 instance/obs.db
 instance/obs.db.backup-*
 instance/uploads/
+# Firebase servis hesabi anahtari — GIZLI, asla commit edilmez
+instance/firebase-service-account.json
+*firebase-adminsdk*.json
 venv/
 .venv/
 .claude/

@@ -83,9 +83,10 @@ def init_tenant_middleware(app: Flask) -> None:
 
     @app.before_request
     def _tenant_resolver():
-        # Statik ve health path'leri icin atla
+        # Statik, health ve yasal (tenant'tan bagimsiz) path'leri atla
         p = request.path
-        if p.startswith('/static/') or p.startswith('/_health'):
+        if (p.startswith('/static/') or p.startswith('/_health')
+                or p.startswith('/gizlilik')):
             return
 
         tenant = _resolve_tenant_from_request(app)

@@ -185,6 +185,12 @@ def create_app(config_class=Config):
     def forbidden(e):
         return render_template('errors/403.html'), 403
 
+    # Gizlilik politikasi — tenant'tan bagimsiz herkese acik sayfa
+    # (mobil uygulama / Play Store icin). Middleware bu path'i atlar.
+    @app.route('/gizlilik')
+    def gizlilik_politikasi():
+        return render_template('gizlilik.html')
+
     # Context processor - bildirim sayısı
     @app.context_processor
     def inject_bildirim_sayisi():

@@ -22,3 +22,5 @@ pdfplumber==0.11.9
 Markdown==3.7
 # Mobil uygulama API'si — JWT token kimlik dogrulama
 PyJWT==2.10.1
+# Mobil push bildirim — Firebase Cloud Messaging gonderimi
+firebase-admin==6.5.0

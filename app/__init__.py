@@ -62,6 +62,9 @@ def create_app(config_class=Config):
     app.register_blueprint(api_bp, url_prefix='/api/v1')
     # API token tabanli auth kullanir; CSRF (cerez tabanli) muaf tutulur
     csrf.exempt(api_bp)
+    # Bildirim olusunca mobil cihazlara FCM push gonderme olaylari
+    from app.api.fcm import fcm_olaylarini_kaydet
+    fcm_olaylarini_kaydet()
 
     from app.ders_dagitimi import ders_dagitimi_bp
     app.register_blueprint(ders_dagitimi_bp, url_prefix='/ders-dagitimi')

@@ -91,6 +91,34 @@ class PushAbonelik(db.Model):
         return f'<PushAbonelik {self.id} user={self.kullanici_id}>'
 
 
+class CihazTokeni(db.Model):
+    """Mobil uygulama (Flutter) FCM push token kayitlari.
+
+    Her cihaz icin bir FCM token. Ayni kullanicinin birden fazla
+    cihazi olabilir. token benzersizdir; ayni token baska kullaniciya
+    gecerse uzerine yazilir (cihaz el degistirmis olabilir).
+    """
+    __tablename__ = 'cihaz_tokenleri'
+
+    id = db.Column(db.Integer, primary_key=True)
+    kullanici_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                             nullable=False, index=True)
+    token = db.Column(db.String(512), nullable=False, unique=True)
+    platform = db.Column(db.String(20), nullable=True)  # android / ios
+    aktif = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    guncelleme_tarihi = db.Column(db.DateTime, default=datetime.utcnow,
+                                  onupdate=datetime.utcnow)
+
+    kullanici = db.relationship('User',
+                                backref=db.backref('cihaz_tokenleri',
+                                                   lazy='dynamic',
+                                                   cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<CihazTokeni {self.id} user={self.kullanici_id}>'
+
+
 class BildirimSablonu(db.Model):
     """Bildirim (push + in-app) sablonlari.
 

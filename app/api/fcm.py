@@ -58,7 +58,15 @@ def _gonderileri_isle(gonderiler):
                 token=token,
                 notification=messaging.Notification(
                     title=baslik, body=mesaj),
-                android=messaging.AndroidConfig(priority='high'),
+                android=messaging.AndroidConfig(
+                    priority='high',
+                    # Yuksek oncelikli kanal -> ust banner + ses
+                    notification=messaging.AndroidNotification(
+                        channel_id='obs_bildirim',
+                        sound='default',
+                        default_sound=True,
+                    ),
+                ),
             ))
         except Exception:
             # Gecersiz/suresi dolmus token — sessizce atla

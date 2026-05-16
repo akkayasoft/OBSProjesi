@@ -86,32 +86,40 @@ def fcm_olaylarini_kaydet():
     _olaylar_kayitli = True
     from app.models.bildirim import Bildirim
 
+    from sqlalchemy import text
+
     @event.listens_for(Bildirim, 'after_insert')
     def _bildirim_eklendi(mapper, connection, target):
+        # Cihaz token'larini BURADA sorgula — after_insert sirasinda
+        # 'connection' ile SQL emit edilebilir. (after_commit'te session
+        # kapali oldugu icin sorgu yapilamiyordu.)
         sess = Session.object_session(target)
         if sess is None:
             return
+        try:
+            satirlar = connection.execute(
+                text('SELECT token FROM cihaz_tokenleri '
+                     'WHERE kullanici_id = :uid AND aktif = :aktif'),
+                {'uid': target.kullanici_id, 'aktif': True},
+            ).fetchall()
+        except Exception as e:
+            print(f'[fcm] token sorgu hatasi: {e}')
+            return
+        if not satirlar:
+            return
         kova = sess.info.setdefault('_fcm_bekleyen', [])
-        kova.append((target.kullanici_id, target.baslik, target.mesaj))
+        for satir in satirlar:
+            kova.append((satir[0], target.baslik, target.mesaj))
 
     @event.listens_for(Session, 'after_commit')
     def _commit_sonrasi(sess):
+        # Sadece onceden toplanmis (token, baslik, mesaj) listesini
+        # arka plan thread'ine devret — burada SQL YOK.
         kova = sess.info.pop('_fcm_bekleyen', None)
         if not kova or not _firebase_baslat():
             return
-        try:
-            from app.models.bildirim import CihazTokeni
-            gonderiler = []
-            for kullanici_id, baslik, mesaj in kova:
-                tokenlar = CihazTokeni.query.filter_by(
-                    kullanici_id=kullanici_id, aktif=True).all()
-                for c in tokenlar:
-                    gonderiler.append((c.token, baslik, mesaj))
-            if gonderiler:
-                threading.Thread(
-                    target=_gonderileri_isle,
-                    args=(gonderiler,),
-                    daemon=True,
-                ).start()
-        except Exception as e:
-            print(f'[fcm] commit sonrasi push hazirlama hatasi: {e}')
+        threading.Thread(
+            target=_gonderileri_isle,
+            args=(list(kova),),
+            daemon=True,
+        ).start()
